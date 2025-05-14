@@ -12,16 +12,14 @@ const productSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  image: { // سيخزن مسار أو URL للصورة
+  image: { 
     type: String,
   },
   category: {
     type: String,
   },
-  // يمكنك إضافة timestamps إذا أردت حقلي createdAt و updatedAt
-  // timestamps: true
 });
 
-const Product = mongoose.model('Product', productSchema); // Mongoose سينشئ/يستخدم collection باسم 'products'
+const Product = mongoose.model('Product', productSchema); 
 
 module.exports = Product;

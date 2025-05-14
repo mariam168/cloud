@@ -9,8 +9,9 @@ import About from './pages/About';
 import ContactUs from './pages/ContactUs';
 import ProductDetails from './pages/ProductDetails';
 import DashboardLayout from './components/layouts/DashboardLayout';
-import DashboardPage from './pages/Dashboard';
-import ProductsPage from './pages/Products.js';
+import DashboardPage from './pages/Admin/Dashboard';
+import ProductsPage from './pages/Admin/Products';
+import CateoryPage from './pages/Admin/Categories';
 function App() {
   const [dark, setDark] = useState(false);
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/" element={<DashboardLayout />}>
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="products" element={<ProductsPage />} />
+          <Route path="categories" element={<CateoryPage />} />
           {/* <Route path="categories" element={<CategoriesPage />} />
           <Route path="orders" element={<OrdersPage />} /> */}
         </Route>

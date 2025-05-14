@@ -66,8 +66,24 @@ const translations = {
   "Name (A-Z)": "Name (A-Z)",
   "Showing": "Showing",
   "items": "items",
-  "No products found matching your criteria.": "No products found matching your criteria."
-
+  "No products found matching your criteria.": "No products found matching your criteria.",
+productListTitle: "Product List (Admin Dashboard)",
+    loading: "Loading products...",
+    noProducts: "No products available.",
+    errorFetchingProducts: "An error occurred while fetching products: ",
+    confirmDelete: "Are you sure you want to delete the product",
+    productDeleted: "Product deleted successfully!",
+    errorDeletingProduct: "Error deleting product: ",
+    image: "Image",
+    name: "Name",
+    description: "Description",
+    category: "Category",
+    price: "Price",
+    actions: "Actions",
+    edit: "Edit",
+    delete: "Delete",
+    noDescription: "No description",
+    uncategorized: "Uncategorized",
 
   
   },
@@ -157,7 +173,24 @@ const translations = {
   quantity: "الكمية",
   addToCart: "أضف إلى السلة",
   toWishlist: "إلى المفضلة",
-  egp: "جنيه"
+  egp: "جنيه",
+   productListTitle: "قائمة المنتجات (لوحة التحكم)",
+    loading: "جاري تحميل المنتجات...",
+    noProducts: "لا توجد منتجات متاحة.",
+    errorFetchingProducts: "حدث خطأ أثناء تحميل المنتجات: ",
+    confirmDelete: "هل أنت متأكد أنك تريد حذف المنتج",
+    productDeleted: "تم حذف المنتج بنجاح!",
+    errorDeletingProduct: "حدث خطأ أثناء حذف المنتج: ",
+    image: "الصورة",
+    name: "الاسم",
+    description: "الوصف",
+    category: "الفئة",
+    price: "السعر",
+    actions: "إجراءات",
+    edit: "تعديل",
+    delete: "حذف",
+    noDescription: "لا يوجد وصف",
+    uncategorized: "غير مصنف",
 
 
 

@@ -9,10 +9,12 @@ const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs'); 
 const Product = require('./models/Product');
+const Category = require('./models/Category');
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -124,6 +126,90 @@ app.put('/api/product/:id', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error updating product:', error);
     res.status(500).json({ message: 'Internal Server Error', error: error.message, details: error });
+  }
+});
+app.post('/api/categories', async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    if (!name || name.trim() === "") {
+      return res.status(400).json({ message: 'Category name is required.' });
+    }
+
+    const newCategory = new Category({ name, description });
+    await newCategory.save();
+    res.status(201).json(newCategory);
+  } catch (error) {
+    console.error('Error creating category:', error);
+    if (error.code === 11000) { // خطأ الاسم الفريد (unique)
+        return res.status(400).json({ message: 'Category name already exists.' });
+    }
+    if (error.name === 'ValidationError') {
+        return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+});
+
+// GET /api/categories - جلب جميع الفئات
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await Category.find().sort({ name: 1 }); // ترتيب حسب الاسم
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+});
+
+// PUT /api/categories/:id - تحديث فئة موجودة
+app.put('/api/categories/:id', async (req, res) => {
+  try {
+    const categoryId = req.params.id;
+    const { name, description } = req.body;
+
+    if (!name || name.trim() === "") {
+      return res.status(400).json({ message: 'Category name is required.' });
+    }
+
+    const updatedCategory = await Category.findByIdAndUpdate(
+      categoryId,
+      { name, description },
+      { new: true, runValidators: true } // new: true لإرجاع المستند المحدث, runValidators لتطبيق التحقق من صحة السكيما
+    );
+
+    if (!updatedCategory) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    res.status(200).json(updatedCategory);
+  } catch (error) {
+    console.error('Error updating category:', error);
+    if (error.code === 11000) {
+        return res.status(400).json({ message: 'Category name already exists.' });
+    }
+    if (error.name === 'ValidationError') {
+        return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+});
+
+// DELETE /api/categories/:id - حذف فئة
+app.delete('/api/categories/:id', async (req, res) => {
+  try {
+    const categoryId = req.params.id;
+    // ملاحظة: هنا لا نحذف المنتجات المرتبطة بهذه الفئة تلقائياً
+    // إذا أردت ذلك، ستحتاج إلى منطق إضافي (مثلاً، إما منع الحذف إذا كانت هناك منتجات، أو تحديث المنتجات)
+    // هذا يعتمد على قواعد العمل لديك. الآن سنحذف الفئة فقط.
+
+    const deletedCategory = await Category.findByIdAndDelete(categoryId);
+
+    if (!deletedCategory) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    res.status(200).json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 });
 
