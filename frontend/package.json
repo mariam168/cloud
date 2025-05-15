@@ -10,6 +10,7 @@
     "axios": "^1.9.0",
     "browserify-zlib": "^0.2.0",
     "crypto-browserify": "^3.12.1",
+    "framer-motion": "^12.11.4",
     "lucide-react": "^0.510.0",
     "path-browserify": "^1.0.1",
     "querystring-es3": "^0.2.1",

@@ -1,7 +1,7 @@
 import React from 'react';
-import HeroSection from '../components/HeroSection';
-import TrendingProducts from '../components/TrendingProducts';
-import Features from '../components/Features';
+import HeroSection from '../components/Home/HeroSection';
+import TrendingProducts from '../components/Home/TrendingProducts';
+import Features from '../components/Home/Features';
 
 
 export default function Home() {

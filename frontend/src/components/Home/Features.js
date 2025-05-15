@@ -4,7 +4,7 @@ import {
   CreditCard,
   RotateCcw,
 } from "lucide-react";
-import { useLanguage } from "../components/LanguageContext";
+import { useLanguage } from "../LanguageContext";
 
 const Features = () => {
   const { t } = useLanguage();

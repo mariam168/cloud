@@ -1,19 +1,14 @@
-// frontend/src/components/TopBar.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { useLanguage } from '../LanguageContext'; // افترض أن هذا السياق موجود لديك
-import { useAuth } from '../../context/AuthContext';
-
-const TopBar = () => {
+import { useLanguage } from '../LanguageContext'; 
+import { useAuth } from '../../context/AuthContext';const TopBar = () => {
   const { t, toggleLanguage } = useLanguage();
   const { currentUser, isAuthenticated, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
-
   const [dark, setDark] = useState(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
     return savedDarkMode ? JSON.parse(savedDarkMode) : false;
   });
-
   useEffect(() => {
     if (dark) {
       document.body.classList.add('dark');
@@ -23,7 +18,6 @@ const TopBar = () => {
       localStorage.setItem('darkMode', JSON.stringify(false));
     }
   }, [dark]);
-
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -32,18 +26,13 @@ const TopBar = () => {
   return (
     <div className="bg-slate-900 text-white text-xs dark:bg-gray-800 py-2 sm:py-3 shadow-md">
       <div className="container mx-auto px-4 flex flex-wrap justify-between items-center">
-        {/* شعار/اسم الموقع واللغة/العملة */}
         <div className="flex items-center gap-4 mb-2 sm:mb-0">
-          <Link to="/" className="text-lg sm:text-xl font-bold text-white hover:text-gray-300">
-            {t.siteName || "متجري"} {/* يمكنك إضافة t.siteName في ملفات اللغة */}
-          </Link>
+        
           <div className="flex items-center gap-3 sm:gap-4 border-l border-gray-700 pl-3 sm:pl-4 ml-3 sm:ml-4">
             <span>{t.currency}</span>
             <button onClick={toggleLanguage} className="hover:text-gray-300">{t.language}</button>
           </div>
         </div>
-
-        {/* روابط التنقل الرئيسية - يمكن وضعها هنا أو في شريط منفصل أسفله */}
         <nav className="flex flex-wrap justify-center gap-3 sm:gap-4 items-center order-last sm:order-none w-full sm:w-auto my-2 sm:my-0">
           <Link to="/" className="hover:text-gray-300">{t.home}</Link>
           <Link to="/shop" className="hover:text-gray-300">{t.shop}</Link>
@@ -55,8 +44,6 @@ const TopBar = () => {
              </Link>
           )}
         </nav>
-
-        {/* معلومات المستخدم وتسجيل الدخول/الخروج والوضع الداكن */}
         <div className="flex items-center gap-2 sm:gap-3">
           {isAuthenticated && currentUser ? (
             <>

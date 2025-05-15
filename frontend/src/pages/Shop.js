@@ -1,30 +1,16 @@
-
-import React, { useState, useEffect } from 'react'; 
-import ProductCard from '../components/ProductCard'; 
-import { Search } from 'lucide-react'; 
-import { useLanguage } from "../components/LanguageContext"; 
+import React, { useState, useEffect } from 'react';
+import ProductCard from '../components/ProductCard';
+import { Search } from 'lucide-react';
+import { useLanguage } from "../components/LanguageContext";
 
 const ShopPage = () => {
-  const { t } = useLanguage(); 
+  const { t } = useLanguage();
 
-  const [products, setProducts] = useState([
-    { id: 1, image: 'https://via.placeholder.com/300x200?text=Watch', category: 'Watch', name: 'Xiaomi Mi Band 5', brand: 'Xiaomi', rating: 5, reviews: 50, price: 9552.00 },
-    { id: 2, image: 'https://via.placeholder.com/300x200?text=Speaker', category: 'Speaker', name: 'Big Power Sound Speaker', brand: 'Big Power', rating: 5, reviews: 50, price: 13200.00 },
-    { id: 3, image: 'https://via.placeholder.com/300x200?text=Camera', category: 'Camera', name: 'WiFi Security Camera', brand: 'HomeTech', rating: 5, reviews: 50, price: 19152.00 },
-    { id: 4, image: 'https://via.placeholder.com/300x200?text=Phone', category: 'Phone', name: 'Smartphone X', brand: 'Apple', rating: 4.5, reviews: 30, price: 15000.00 },
-    { id: 5, image: 'https://via.placeholder.com/300x200?text=Headphone', category: 'Headphone', name: 'Wireless Headphones', brand: 'Sony', rating: 4, reviews: 25, price: 2500.00 },
-    { id: 6, image: 'https://via.placeholder.com/300x200?text=Laptop', category: 'Laptop', name: 'Gaming Laptop Pro', brand: 'Dell', rating: 5, reviews: 40, price: 35000.00 },
-    { id: 7, image: 'https://via.placeholder.com/300x200?text=TV', category: 'TV', name: 'Smart TV 55 Inch', brand: 'Samsung', rating: 4.8, reviews: 60, price: 18000.00 },
-    { id: 8, image: 'https://via.placeholder.com/300x200?text=Phone', category: 'Phone', name: 'iPhone 6x Plus', brand: 'Apple', rating: 5, reviews: 50, price: 19200.00 },
-    { id: 9, image: 'https://via.placeholder.com/300x200?text=Headphone', category: 'Headphone', name: 'Wireless Headphones', brand: 'Bose', rating: 5, reviews: 50, price: 16800.00 },
-    { id: 10, image: 'https://via.placeholder.com/300x200?text=Speaker', category: 'Speaker', name: 'Mini Bluetooth Speaker', brand: 'MiniSound', rating: 4, reviews: 240, price: 3360.00 },
-    { id: 11, image: 'https://via.placeholder.com/300x200?text=TV', category: 'TV', name: '65" 4K TV', brand: 'Samsung', rating: 4.5, reviews: 100, price: 25000.00 },
-  ]);
-
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('popularity'); 
-  const [selectedCategory, setSelectedCategory] = useState('All Categories'); 
-  const [priceRange, setPriceRange] = useState({ min: 10, max: 10000 }); 
+  const [sortBy, setSortBy] = useState('popularity');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 0 });
   const [selectedBrand, setSelectedBrand] = useState('All Brands');
 
   const categories = [
@@ -37,6 +23,26 @@ const ShopPage = () => {
     'Laptop',
     'TV',
   ];
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/products');
+        const data = await res.json();
+        setProducts(data);
+
+        // Set initial price range after loading
+        const minPrice = Math.min(...data.map(p => p.price));
+        const maxPrice = Math.max(...data.map(p => p.price));
+        setPriceRange({ min: minPrice, max: maxPrice });
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const brands = ['All Brands', ...new Set(products.map(p => p.brand))];
 
   const filteredProducts = products.filter(product => {
@@ -54,14 +60,6 @@ const ShopPage = () => {
     if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
     return 0;
   });
-
-  useEffect(() => {
-    if (products.length > 0) {
-      const minPrice = Math.min(...products.map(p => p.price));
-      const maxPrice = Math.max(...products.map(p => p.price));
-      setPriceRange({ min: minPrice, max: maxPrice });
-    }
-  }, [products]); 
 
   return (
     <section className="w-full bg-gray-50 py-8 px-4 transition-colors duration-300 dark:bg-gray-900 md:px-8 lg:px-12">
@@ -83,6 +81,7 @@ const ShopPage = () => {
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               </div>
             </div>
+
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                 {t.allCategories || 'All Categories'}
@@ -99,6 +98,7 @@ const ShopPage = () => {
                 ))}
               </ul>
             </div>
+
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                 {t.priceRange || 'Price Range'}
@@ -126,6 +126,7 @@ const ShopPage = () => {
                 <span>${priceRange.max}</span>
               </div>
             </div>
+
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                 {t.filterByBrand || 'Filter by Brand'}
