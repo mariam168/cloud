@@ -20,7 +20,11 @@ import DashboardLayout from './components/layouts/DashboardLayout';
 import DashboardPage from './pages/Admin/Dashboard';
 import ProductsPage from './pages/Admin/Products';
 import CateoryPage from './pages/Admin/Categories';
+import WishlistPage from './pages/WishlistPage';
 import { WishlistProvider } from './context/WishlistContext'; 
+import { CartProvider } from './context/CartContext';
+import CartPage from './pages/CartPage';
+
 function App() {
   const [dark, setDark] = useState(false);
 
@@ -29,6 +33,7 @@ function App() {
       <AuthProvider>
         <LanguageProvider>
           <WishlistProvider>
+             <CartProvider>
           <div className={dark ? 'dark bg-gray-900 text-white min-h-screen' : 'bg-white text-black min-h-screen'}>
             <TopBar />
             <MainHeader />
@@ -43,6 +48,8 @@ function App() {
 
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} /> 
+              <Route path="/cart" element={<CartPage />} />
 
            
               <Route path="/" element={<DashboardLayout />}>
@@ -52,6 +59,7 @@ function App() {
               </Route>
             </Routes>
           </div>
+          </CartProvider>
           </WishlistProvider>
         </LanguageProvider>
       </AuthProvider>
