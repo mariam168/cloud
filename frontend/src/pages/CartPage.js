@@ -1,95 +1,200 @@
-import { useCart } from '../context/CartContext'; 
-import { Link } from 'react-router-dom';
-import { Plus, Minus, Trash2 } from 'lucide-react';
-const CartPage = () => {
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+import React, { useEffect } from 'react';
+import { useCart } from '../context/CartContext'; // Import the useCart hook
+import { useLanguage } from '../components/LanguageContext'; // Assuming LanguageContext is in components
+import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 
-  if (cartItems.length === 0) {
+const CartPage = () => {
+    const { t } = useLanguage(); // For localization
+    const navigate = useNavigate(); // Initialize useNavigate hook
+    // Get cart state and actions from CartContext
+    const { cartItems, loadingCart, fetchCart, removeFromCart, updateCartItemQuantity } = useCart();
+
+    // Fetch cart items when the component mounts or cart state changes
+    // Although fetchCart is called in CartContext's useEffect, calling it here
+    // might be useful if the user navigates directly to the cart page.
+    // However, relying on CartContext's initial fetch is usually sufficient.
+    // Let's rely on the context's fetch for simplicity here.
+
+    // Calculate the total price of items in the cart
+    const calculateTotal = () => {
+        // Ensure cartItems is an array before reducing
+        if (!Array.isArray(cartItems)) {
+            return 0;
+        }
+        return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    };
+
+    // Handle quantity change for a specific item
+    const handleQuantityChange = (productId, quantity) => {
+        // Ensure quantity is a valid positive integer
+        const numQuantity = Number(quantity);
+        if (!isNaN(numQuantity) && Number.isInteger(numQuantity) && numQuantity >= 1) {
+            updateCartItemQuantity(productId, numQuantity);
+        } else if (quantity === '') {
+             // Allow empty string temporarily in input, but don't update backend
+             // You might want to add a blur handler to set it to 1 if left empty
+        }
+    };
+
+    // Handle incrementing quantity
+    const handleIncrementQuantity = (productId, currentQuantity) => {
+        updateCartItemQuantity(productId, currentQuantity + 1);
+    };
+
+    // Handle decrementing quantity
+    const handleDecrementQuantity = (productId, currentQuantity) => {
+        if (currentQuantity > 1) {
+            updateCartItemQuantity(productId, currentQuantity - 1);
+        }
+    };
+
+    // Handle removing an item from the cart
+    const handleRemoveItem = (productId) => {
+        removeFromCart(productId);
+    };
+
+    // Handle proceeding to checkout
+    const handleProceedToCheckout = () => {
+        if (cartItems.length === 0) {
+            alert(t.cartEmptyCheckout || 'Your cart is empty. Add items before checking out.');
+            return;
+        }
+        // Navigate to the checkout page
+        navigate('/checkout');
+    };
+
+
+    // Show loading state
+    if (loadingCart) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300">
+                <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>{t.loadingCart || 'Loading cart...'}</span>
+            </div>
+        );
+    }
+
+    // Show empty cart message
+    if (!cartItems || cartItems.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300 p-4 text-center">
+                 <ShoppingCart size={48} className="mb-4 text-gray-500 dark:text-gray-400"/>
+                <span>{t.cartEmpty || 'Your cart is empty.'}</span>
+                 <Link to="/shop" className="mt-4 text-blue-600 hover:underline dark:text-blue-400">
+                    {t.continueShopping || 'Continue Shopping'}
+                 </Link>
+            </div>
+        );
+    }
+
+    // Display cart items
     return (
-      <div className="container mx-auto p-4 md:p-8 text-center min-h-[50vh] flex flex-col justify-center items-center">
-        <h1 className="text-2xl font-semibold mb-4 dark:text-white">Your Cart is Empty</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">Looks like you haven't added anything to your cart yet.</p>
-        <Link
-          to="/shop" 
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors"
-        >
-          Start Shopping
-        </Link>
-      </div>
-    );
-  }
-  return (
-    <div className="container mx-auto p-4 md:p-8 dark:bg-slate-900">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Your Shopping Cart</h1>
-      <div className="bg-white dark:bg-slate-800 shadow-xl rounded-lg p-6">
-        {cartItems.map(item => (
-          <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between py-4 border-b dark:border-gray-700 last:border-b-0">
-            <div className="flex items-center mb-4 sm:mb-0">
-              <img
-                src={item.image ? `http://localhost:5000${item.image}` : 'https://via.placeholder.com/80?text=No+Image'}
-                alt={item.name}
-                className="w-20 h-20 object-contain rounded-md mr-4"
-              />
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{item.name}</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Price: ${item.price?.toFixed(2)}</p>
-              </div>
+        <div className="container mx-auto p-4 md:p-8 max-w-4xl bg-white dark:bg-slate-900 shadow-2xl rounded-xl my-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 border-b pb-4 border-gray-200 dark:border-gray-700">
+                {t.shoppingCart || 'Shopping Cart'}
+            </h1>
+
+            <div className="flex flex-col gap-6">
+                {/* Map over cart items to display each one */}
+                {cartItems.map(item => (
+                    <div key={item.product} className="flex flex-col sm:flex-row items-center border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0 last:pb-0">
+                        {/* Product Image */}
+                        <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
+                             <Link to={`/shop/${item.product}`}> {/* Link to product details */}
+                                <img
+                                    src={`http://localhost:5000${item.image}`} // Assuming image path is relative
+                                    alt={item.name || 'Product Image'}
+                                    className="w-20 h-20 object-cover rounded-md shadow-md"
+                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/80?text=No+Image' }}
+                                />
+                             </Link>
+                        </div>
+
+                        {/* Product Details and Actions */}
+                        <div className="flex-grow flex flex-col sm:flex-row justify-between">
+                            <div className="flex-grow mb-4 sm:mb-0">
+                                {/* Product Name */}
+                                <Link to={`/shop/${item.product}`} className="text-lg font-semibold text-gray-800 dark:text-white hover:underline">
+                                    {item.name || 'Unnamed Product'}
+                                </Link>
+                                {/* Price */}
+                                <p className="text-green-600 dark:text-green-400 font-bold mt-1">
+                                    ${item.price?.toFixed(2) || 'N/A'}
+                                </p>
+                            </div>
+
+                            {/* Quantity Selector and Remove Button */}
+                            <div className="flex items-center gap-4">
+                                {/* Quantity Input with + and - buttons */}
+                                <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
+                                     <button
+                                        onClick={() => handleDecrementQuantity(item.product, item.quantity)}
+                                        className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={item.quantity <= 1}
+                                        aria-label="Decrease quantity"
+                                    >
+                                        <Minus size={16} />
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={item.quantity}
+                                        onChange={(e) => handleQuantityChange(item.product, e.target.value)}
+                                        onBlur={(e) => { // Set quantity to 1 if input is empty or invalid on blur
+                                            const value = Number(e.target.value);
+                                            if (isNaN(value) || !Number.isInteger(value) || value < 1) {
+                                                updateCartItemQuantity(item.product, 1);
+                                            }
+                                        }}
+                                        className="w-12 text-center border-none focus:ring-0 bg-transparent text-gray-800 dark:text-white [-moz-appearance:_textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0"
+                                        min="1"
+                                        aria-label="Product quantity"
+                                    />
+                                    <button
+                                        onClick={() => handleIncrementQuantity(item.product, item.quantity)}
+                                        className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                                        aria-label="Increase quantity"
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                </div>
+
+                                {/* Remove Button */}
+                                <button
+                                    onClick={() => handleRemoveItem(item.product)}
+                                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
+                                    aria-label="Remove item from cart"
+                                    title={t.removeItem || 'Remove Item'}
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                  disabled={item.quantity <= 1}
-                  aria-label="Decrease quantity"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="px-3 text-gray-800 dark:text-white">{item.quantity}</span>
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-              <p className="text-md font-semibold text-gray-800 dark:text-white w-20 text-right">
-                ${(item.price * item.quantity).toFixed(2)}
-              </p>
-              <button
-                onClick={() => removeFromCart(item.id)}
-                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 transition-colors"
-                title="Remove item"
-              >
-                <Trash2 size={20} />
-              </button>
+
+            {/* Cart Summary */}
+            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <div className="w-full sm:w-auto">
+                    <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                        {t.cartTotal || 'Cart Total'}: ${calculateTotal().toFixed(2)}
+                    </div>
+                    {/* Proceed to Checkout Button */}
+                    <button
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleProceedToCheckout} // Call the new handler
+                        disabled={cartItems.length === 0} // Disable if cart is empty
+                    >
+                         {t.proceedToCheckout || 'Proceed to Checkout'}
+                    </button>
+                </div>
             </div>
-          </div>
-        ))}
-        <div className="mt-6 pt-6 border-t dark:border-gray-700">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Total:</h2>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">${getCartTotal().toFixed(2)}</p>
-          </div>
-          <div className="flex flex-col sm:flex-row justify-end gap-4">
-            <button
-              onClick={clearCart}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg shadow transition-colors"
-            >
-              Clear Cart
-            </button>
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded-lg shadow transition-colors"
-              onClick={() => alert('Proceeding to Checkout!')} 
-            >
-              Proceed to Checkout
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default CartPage;

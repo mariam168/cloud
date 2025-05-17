@@ -1,118 +1,194 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext'; 
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 const CartContext = createContext();
-export const useCart = () => useContext(CartContext);
+
+export const useCart = () => {
+    const context = useContext(CartContext);
+    if (context === undefined) {
+        throw new Error('useCart must be used within a CartProvider');
+    }
+    return context;
+};
+
 export const CartProvider = ({ children }) => {
-  const { currentUser, loadingAuth } = useAuth(); 
-  const [cartItems, setCartItems] = useState([]);
-  const [cartInitialized, setCartInitialized] = useState(false);
-  const getCartStorageKey = React.useCallback(() => {
-    if (currentUser && currentUser.id) { 
-      return `cartItems_${currentUser.id}`;
-    }
-    return 'cartItems_guest'; 
-  }, [currentUser]);
-  useEffect(() => {
-    if (loadingAuth) {
-      setCartInitialized(false);
-      return;
-    }
-    const storageKey = getCartStorageKey();
-    const localData = localStorage.getItem(storageKey);
-    try {
-      const parsedData = localData ? JSON.parse(localData) : [];
-      setCartItems(Array.isArray(parsedData) ? parsedData : []);
-    } catch (error) {
-      console.error("CartContext: Error parsing cart data from localStorage:", error);
-      setCartItems([]); 
-      localStorage.removeItem(storageKey);
-    }
-    setCartInitialized(true); 
-  }, [currentUser, loadingAuth, getCartStorageKey]);
-  useEffect(() => {
-    if (!cartInitialized || loadingAuth) {
-      return;
-    }
+    const [cartItems, setCartItems] = useState([]);
+    const [loadingCart, setLoadingCart] = useState(false);
+    const [cartInitialized, setCartInitialized] = useState(false); // New state for initialization status
 
-    const storageKey = getCartStorageKey();
-    if (cartItems && cartItems.length > 0) {
-      localStorage.setItem(storageKey, JSON.stringify(cartItems));
-    } else {
-      localStorage.removeItem(storageKey);
-    }
-  }, [cartItems, currentUser, cartInitialized, loadingAuth, getCartStorageKey]);
-  const addToCart = (product, quantity) => {
-    if (!product || !product.id || typeof quantity !== 'number' || quantity <= 0) {
-        console.error("CartContext: Invalid product data or quantity provided to addToCart.", { product, quantity });
-        alert("لا يمكن إضافة المنتج إلى السلة. بيانات المنتج أو الكمية غير صالحة.");
-        return;
-    }
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        return [...prevItems, { ...product, quantity }];
-      }
-    });
-    alert(`تمت إضافة ${quantity} من ${product.name || 'منتج غير مسمى'} إلى السلة!`);
-  };
+    const { isAuthenticated, API_BASE_URL, token } = useAuth();
+    const navigate = useNavigate();
 
-  const removeFromCart = (productId) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
-  };
-
-  const updateQuantity = (productId, newQuantity) => {
-    const quantityNum = parseInt(newQuantity, 10);
-    if (isNaN(quantityNum) || quantityNum <= 0) {
-      removeFromCart(productId);
-    } else {
-      setCartItems(prevItems =>
-        prevItems.map(item =>
-          item.id === productId ? { ...item, quantity: quantityNum } : item
-        )
-      );
-    }
-  };
-  const clearCart = () => {
-    setCartItems([]);
-  };
-  const getCartCount = () => {
-    if (!cartInitialized) return 0;
-    return cartItems.reduce((total, item) => total + (item.quantity || 0), 0);
-  };
-
-  const getCartTotal = () => {
-    if (!cartInitialized) return 0;
-    return cartItems.reduce((total, item) => {
-        const price = parseFloat(item.price);
-        const quantity = parseInt(item.quantity, 10);
-        if (isNaN(price) || isNaN(quantity)) {
-            console.warn(`CartContext: Invalid price or quantity for item ${item.id}: Price=${item.price}, Quantity=${item.quantity}`);
-            return total;
+    // Calculate total quantity of items in the cart
+    const getCartCount = useCallback(() => {
+        // Ensure cartItems is an array before reducing
+        if (!Array.isArray(cartItems)) {
+             console.warn("CartContext: cartItems is not an array.", cartItems);
+             return 0;
         }
-        return total + price * quantity;
-    }, 0);
-  };
-  if (loadingAuth && !cartInitialized) {
-    return null;
-  }
-  return (
-    <CartContext.Provider value={{
-      cartItems,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      getCartCount,
-      getCartTotal,
-      cartInitialized
-    }}>
-      {children}
-    </CartContext.Provider>
-  );
+        return cartItems.reduce((total, item) => total + (item.quantity || 0), 0);
+    }, [cartItems]);
+
+    // Fetch the user's cart from the backend
+    const fetchCart = useCallback(async () => {
+        // Only fetch if authenticated and API_BASE_URL and token are available
+        if (isAuthenticated && API_BASE_URL && token) {
+            setLoadingCart(true);
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/cart`, { // Correct URL using backticks
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // The backend now sends { message, cart: itemsArray }, so access .cart
+                setCartItems(response.data.cart || []);
+            } catch (error) {
+                console.error('CartContext: Failed to fetch cart:', error.response?.data?.message || error.message);
+                 // Clear cart items on fetch error (e.g., expired token, 404)
+                setCartItems([]);
+            } finally {
+                setLoadingCart(false);
+                setCartInitialized(true); // Mark cart as initialized after fetch attempt
+            }
+        } else {
+            // If not authenticated or missing info, clear cart and mark as initialized
+            setCartItems([]);
+            setCartInitialized(true);
+        }
+    }, [isAuthenticated, API_BASE_URL, token]); // Dependencies for useCallback
+
+    // Effect to fetch cart when authentication status or token changes
+    useEffect(() => {
+        // Fetch cart only if authenticated and token is available
+        if (isAuthenticated && token) {
+            fetchCart();
+        } else {
+            // If not authenticated, clear cart and mark as initialized immediately
+            setCartItems([]);
+            setCartInitialized(true);
+        }
+    }, [isAuthenticated, token, fetchCart]); // Dependencies for useEffect
+
+
+    // Add a product to the cart with a specific quantity
+    // Now accepts a quantity parameter
+    const addToCart = async (product, quantity = 1) => {
+        if (!isAuthenticated) {
+            alert('يرجى تسجيل الدخول لإضافة المنتجات إلى السلة.');
+            navigate('/login');
+            return;
+        }
+        if (!product || !product._id) {
+            alert('بيانات المنتج غير مكتملة!');
+            return;
+        }
+         // Validate quantity before sending
+        const numQuantity = Number(quantity);
+        if (isNaN(numQuantity) || !Number.isInteger(numQuantity) || numQuantity < 1) {
+             alert('الكمية يجب أن تكون عدداً صحيحاً موجباً.');
+             return;
+        }
+
+
+        try {
+            // Send product ID in the URL parameter and quantity in the request body
+            const response = await axios.post(`${API_BASE_URL}/api/cart/${product._id}`, { quantity: numQuantity }, { // Send quantity in body
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // The backend now sends { message, cart: itemsArray }, so access .cart
+            setCartItems(response.data.cart || []);
+            console.log(`تمت إضافة ${numQuantity} من المنتج ${product.name} للسلة.`);
+        } catch (error) {
+            alert(`حدث خطأ أثناء إضافة المنتج للسلة: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    // Remove a product from the cart
+    const removeFromCart = async (productId) => {
+        if (!isAuthenticated) return;
+        try {
+            // Send product ID in the URL parameter using backticks
+            const response = await axios.delete(`${API_BASE_URL}/api/cart/${productId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // The backend now sends { message, cart: itemsArray }, so access .cart
+            setCartItems(response.data.cart || []);
+            console.log('تمت إزالة المنتج من السلة:', productId);
+        } catch (error) {
+            alert(`فشل في إزالة المنتج من السلة: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    // Check if a product is already in the cart
+    const isInCart = (productId) => {
+        if (!productId) return false;
+        // Ensure you are comparing the Mongoose product ID from the cart item (item.product)
+        // and converting both to string for reliable comparison
+        return cartItems.some(item => item.product && item.product.toString() === productId.toString());
+    };
+
+    // Toggle (add/remove) a product from the cart
+    // This version is suitable for ProductCard where quantity is always 1 for toggle
+    const toggleCart = async (product) => {
+         if (!isAuthenticated) {
+            alert('يرجى تسجيل الدخول لاستخدام السلة.');
+            navigate('/login');
+            return;
+        }
+        if (!product || !product._id) {
+            alert('بيانات المنتج غير مكتملة.');
+            return;
+        }
+
+        // Use product._id for the check and toggle logic
+        if (isInCart(product._id)) {
+            // If already in cart, remove it
+            await removeFromCart(product._id);
+        } else {
+            // If not in cart, add with quantity 1
+            await addToCart(product, 1); // Add with default quantity 1
+        }
+    };
+
+    // Function to update the quantity of an existing item in the cart
+    const updateCartItemQuantity = async (productId, quantity) => {
+         if (!isAuthenticated) {
+            alert('يرجى تسجيل الدخول لتحديث السلة.');
+            navigate('/login');
+            return;
+        }
+         const numQuantity = Number(quantity);
+        if (isNaN(numQuantity) || !Number.isInteger(numQuantity) || numQuantity < 1) {
+             alert('الكمية يجب أن تكون عدداً صحيحاً موجباً.');
+             return;
+        }
+
+        try {
+             const response = await axios.put(`${API_BASE_URL}/api/cart/${productId}`, { quantity: numQuantity }, {
+                 headers: { Authorization: `Bearer ${token}` }
+             });
+             setCartItems(response.data.cart || []);
+             console.log(`تم تحديث كمية المنتج ${productId} إلى ${numQuantity}.`);
+        } catch (error) {
+             alert(`حدث خطأ أثناء تحديث كمية المنتج: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+
+    return (
+        <CartContext.Provider value={{
+            cartItems,
+            addToCart, // Now accepts quantity
+            removeFromCart,
+            isInCart,
+            toggleCart, // Still adds/removes with quantity 1
+            updateCartItemQuantity, // New function to update quantity
+            loadingCart,
+            fetchCart,
+            getCartCount, // Exposing the function to get total quantity
+            cartInitialized // Exposing the initialization status
+        }}>
+            {children}
+        </CartContext.Provider>
+    );
 };
