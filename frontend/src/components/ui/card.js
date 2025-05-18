@@ -1,6 +1,4 @@
 import React from 'react';
-
-// Basic Card component using Tailwind CSS classes
 const Card = React.forwardRef(({ className, ...props }, ref) => (
     <div
         ref={ref}

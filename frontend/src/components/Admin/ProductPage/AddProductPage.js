@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
-
-const AddProductPage = ({ onProductAdded }) => {
+const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' }) => {
   const [product, setProduct] = useState({
-    name: "",
-    description: "",
+    name_en: "", 
+    name_ar: "",
+    description_en: "",
+    description_ar: "",
     price: "",
     category: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProduct((prev) => ({
@@ -19,57 +19,53 @@ const AddProductPage = ({ onProductAdded }) => {
       [name]: value,
     }));
   };
-
   const handleImageChange = (e) => {
     setImageFile(e.target.files[0]);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitMessage("");
-
-    if (!product.name || !product.price) {
-      setSubmitMessage("اسم المنتج والسعر مطلوبان.");
+    if (!product.name_en || !product.name_ar || !product.price) {
+      setSubmitMessage("Product English and Arabic names, and price are required.");
       return;
     }
     if (!imageFile) {
-      setSubmitMessage("صورة المنتج مطلوبة.");
-      return;
+       setSubmitMessage("Product image is required.");
+       return;
     }
-
     setIsSubmitting(true);
-
     try {
       const formData = new FormData();
-      formData.append("name", product.name);
-      formData.append("description", product.description);
+      formData.append("name_en", product.name_en);
+      formData.append("name_ar", product.name_ar); 
+      formData.append("description_en", product.description_en); 
+      formData.append("description_ar", product.description_ar); 
       formData.append("price", product.price);
-      formData.append("image", imageFile);
+      formData.append("image", imageFile); 
       if (product.category) {
         formData.append("category", product.category);
       }
-
-      await axios.post("http://localhost:5000/api/product", formData, {
+      await axios.post(`${serverUrl}/api/product`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/form-data", 
         },
       });
-
-      setSubmitMessage("تم إضافة المنتج بنجاح!");
-      setProduct({ name: "", description: "", price: "", category: "" });
+      setSubmitMessage("Product added successfully!");
+      setProduct({ name_en: "", name_ar: "", description_en: "", description_ar: "", price: "", category: "" });
       setImageFile(null);
       const fileInput = document.getElementById("image");
       if (fileInput) fileInput.value = null;
-
       if (onProductAdded) {
         onProductAdded();
       }
     } catch (error) {
       console.error("Error adding product:", error.response ? error.response.data : error.message);
-      setSubmitMessage("حدث خطأ أثناء إضافة المنتج: " +
+      setSubmitMessage(
+        "Error adding product: " +
         (error.response && error.response.data && typeof error.response.data === 'string'
           ? error.response.data
-          : error.message));
+          : error.response?.data?.message || error.message) 
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -78,35 +74,58 @@ const AddProductPage = ({ onProductAdded }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {submitMessage && (
-        <p className={`text-center mb-4 p-2 rounded ${submitMessage.includes("نجاح") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+        <p className={`text-center mb-4 p-2 rounded ${submitMessage.includes("successfully") || submitMessage.includes("بنجاح") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
           {submitMessage}
         </p>
       )}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">اسم المنتج</label>
+        <label htmlFor="name_en" className="block text-sm font-medium text-gray-700 mb-1">Product Name (English)</label>
         <input
           type="text"
-          id="name"
-          name="name"
-          value={product.name}
+          id="name_en"
+          name="name_en"
+          value={product.name_en}
           onChange={handleChange}
           className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           required
         />
       </div>
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">وصف المنتج</label>
+        <label htmlFor="name_ar" className="block text-sm font-medium text-gray-700 mb-1">اسم المنتج (العربية)</label>
+        <input
+          type="text"
+          id="name_ar"
+          name="name_ar"
+          value={product.name_ar}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-right" // Added text-right for Arabic input
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="description_en" className="block text-sm font-medium text-gray-700 mb-1">Product Description (English)</label>
         <textarea
-          id="description"
-          name="description"
-          value={product.description}
+          id="description_en"
+          name="description_en"
+          value={product.description_en}
           onChange={handleChange}
           className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           rows="4"
         />
       </div>
       <div>
-        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">سعر المنتج</label>
+        <label htmlFor="description_ar" className="block text-sm font-medium text-gray-700 mb-1">وصف المنتج (العربية)</label>
+        <textarea
+          id="description_ar"
+          name="description_ar"
+          value={product.description_ar}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-right" // Added text-right for Arabic input
+          rows="4"
+        />
+      </div>
+      <div>
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Product Price</label>
         <input
           type="number"
           id="price"
@@ -120,7 +139,7 @@ const AddProductPage = ({ onProductAdded }) => {
         />
       </div>
       <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">فئة المنتج (اختياري)</label>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category (Optional)</label>
         <input
           type="text"
           id="category"
@@ -131,7 +150,7 @@ const AddProductPage = ({ onProductAdded }) => {
         />
       </div>
       <div>
-        <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">صورة المنتج</label>
+        <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
         <input
           type="file"
           id="image"
@@ -139,7 +158,7 @@ const AddProductPage = ({ onProductAdded }) => {
           onChange={handleImageChange}
           className="w-full p-2 border border-gray-300 rounded-md file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           accept="image/*"
-          required
+          required 
         />
       </div>
       <button
@@ -147,7 +166,7 @@ const AddProductPage = ({ onProductAdded }) => {
         disabled={isSubmitting}
         className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 transition duration-150 ease-in-out"
       >
-        {isSubmitting ? "جاري الإضافة..." : "إضافة المنتج"}
+        {isSubmitting ? "Adding..." : "Add Product"}
       </button>
     </form>
   );
