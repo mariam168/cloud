@@ -1,71 +1,42 @@
-import React, { useEffect } from 'react';
-import { useCart } from '../context/CartContext'; // Import the useCart hook
-import { useLanguage } from '../components/LanguageContext'; // Assuming LanguageContext is in components
+import { useCart } from '../context/CartContext'; 
+import { useLanguage } from '../components/LanguageContext'; 
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
-
+import { Link, useNavigate } from 'react-router-dom'; 
 const CartPage = () => {
-    const { t } = useLanguage(); // For localization
-    const navigate = useNavigate(); // Initialize useNavigate hook
-    // Get cart state and actions from CartContext
+    const { t } = useLanguage(); 
+    const navigate = useNavigate();
     const { cartItems, loadingCart, fetchCart, removeFromCart, updateCartItemQuantity } = useCart();
-
-    // Fetch cart items when the component mounts or cart state changes
-    // Although fetchCart is called in CartContext's useEffect, calling it here
-    // might be useful if the user navigates directly to the cart page.
-    // However, relying on CartContext's initial fetch is usually sufficient.
-    // Let's rely on the context's fetch for simplicity here.
-
-    // Calculate the total price of items in the cart
     const calculateTotal = () => {
-        // Ensure cartItems is an array before reducing
         if (!Array.isArray(cartItems)) {
             return 0;
         }
         return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
     };
-
-    // Handle quantity change for a specific item
     const handleQuantityChange = (productId, quantity) => {
-        // Ensure quantity is a valid positive integer
         const numQuantity = Number(quantity);
         if (!isNaN(numQuantity) && Number.isInteger(numQuantity) && numQuantity >= 1) {
             updateCartItemQuantity(productId, numQuantity);
         } else if (quantity === '') {
-             // Allow empty string temporarily in input, but don't update backend
-             // You might want to add a blur handler to set it to 1 if left empty
         }
     };
-
-    // Handle incrementing quantity
     const handleIncrementQuantity = (productId, currentQuantity) => {
         updateCartItemQuantity(productId, currentQuantity + 1);
     };
-
-    // Handle decrementing quantity
     const handleDecrementQuantity = (productId, currentQuantity) => {
         if (currentQuantity > 1) {
             updateCartItemQuantity(productId, currentQuantity - 1);
         }
     };
-
-    // Handle removing an item from the cart
     const handleRemoveItem = (productId) => {
         removeFromCart(productId);
     };
-
-    // Handle proceeding to checkout
     const handleProceedToCheckout = () => {
         if (cartItems.length === 0) {
             alert(t.cartEmptyCheckout || 'Your cart is empty. Add items before checking out.');
             return;
         }
-        // Navigate to the checkout page
         navigate('/checkout');
     };
-
-
-    // Show loading state
     if (loadingCart) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300">
@@ -77,8 +48,6 @@ const CartPage = () => {
             </div>
         );
     }
-
-    // Show empty cart message
     if (!cartItems || cartItems.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300 p-4 text-center">
@@ -90,46 +59,34 @@ const CartPage = () => {
             </div>
         );
     }
-
-    // Display cart items
     return (
         <div className="container mx-auto p-4 md:p-8 max-w-4xl bg-white dark:bg-slate-900 shadow-2xl rounded-xl my-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 border-b pb-4 border-gray-200 dark:border-gray-700">
                 {t.shoppingCart || 'Shopping Cart'}
             </h1>
-
             <div className="flex flex-col gap-6">
-                {/* Map over cart items to display each one */}
                 {cartItems.map(item => (
                     <div key={item.product} className="flex flex-col sm:flex-row items-center border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0 last:pb-0">
-                        {/* Product Image */}
                         <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
-                             <Link to={`/shop/${item.product}`}> {/* Link to product details */}
+                             <Link to={`/shop/${item.product}`}>
                                 <img
-                                    src={`http://localhost:5000${item.image}`} // Assuming image path is relative
+                                    src={`http://localhost:5000${item.image}`} 
                                     alt={item.name || 'Product Image'}
                                     className="w-20 h-20 object-cover rounded-md shadow-md"
                                     onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/80?text=No+Image' }}
                                 />
                              </Link>
                         </div>
-
-                        {/* Product Details and Actions */}
                         <div className="flex-grow flex flex-col sm:flex-row justify-between">
                             <div className="flex-grow mb-4 sm:mb-0">
-                                {/* Product Name */}
                                 <Link to={`/shop/${item.product}`} className="text-lg font-semibold text-gray-800 dark:text-white hover:underline">
                                     {item.name || 'Unnamed Product'}
                                 </Link>
-                                {/* Price */}
                                 <p className="text-green-600 dark:text-green-400 font-bold mt-1">
                                     ${item.price?.toFixed(2) || 'N/A'}
                                 </p>
                             </div>
-
-                            {/* Quantity Selector and Remove Button */}
                             <div className="flex items-center gap-4">
-                                {/* Quantity Input with + and - buttons */}
                                 <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
                                      <button
                                         onClick={() => handleDecrementQuantity(item.product, item.quantity)}
@@ -143,7 +100,7 @@ const CartPage = () => {
                                         type="number"
                                         value={item.quantity}
                                         onChange={(e) => handleQuantityChange(item.product, e.target.value)}
-                                        onBlur={(e) => { // Set quantity to 1 if input is empty or invalid on blur
+                                        onBlur={(e) => { 
                                             const value = Number(e.target.value);
                                             if (isNaN(value) || !Number.isInteger(value) || value < 1) {
                                                 updateCartItemQuantity(item.product, 1);
@@ -161,8 +118,6 @@ const CartPage = () => {
                                         <Plus size={16} />
                                     </button>
                                 </div>
-
-                                {/* Remove Button */}
                                 <button
                                     onClick={() => handleRemoveItem(item.product)}
                                     className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
@@ -176,18 +131,15 @@ const CartPage = () => {
                     </div>
                 ))}
             </div>
-
-            {/* Cart Summary */}
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                 <div className="w-full sm:w-auto">
                     <div className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                         {t.cartTotal || 'Cart Total'}: ${calculateTotal().toFixed(2)}
                     </div>
-                    {/* Proceed to Checkout Button */}
                     <button
                         className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={handleProceedToCheckout} // Call the new handler
-                        disabled={cartItems.length === 0} // Disable if cart is empty
+                        onClick={handleProceedToCheckout} 
+                        disabled={cartItems.length === 0} 
                     >
                          {t.proceedToCheckout || 'Proceed to Checkout'}
                     </button>

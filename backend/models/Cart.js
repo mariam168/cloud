@@ -1,14 +1,11 @@
 const mongoose = require('mongoose');
-
-// Schema for individual items within the cart
 const cartItemSchema = mongoose.Schema({
     product: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'Product' // Refers to the Product model
+        ref: 'Product' 
     },
-    // Storing name, image, and price directly here for convenience and resilience
-    name: {
+   name: {
         type: String,
         required: true
     },
@@ -23,23 +20,20 @@ const cartItemSchema = mongoose.Schema({
         type: Number,
         required: true,
         default: 1,
-        min: 1 // Quantity cannot be less than 1
+        min: 1
     }
-}, { _id: false }); // Do not create a separate _id for subdocuments in the array
-
-// Main Cart schema
+}, { _id: false });
 const cartSchema = mongoose.Schema({
-    user: {
+    user: { 
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User',
-        unique: true // Each user can only have one cart document
+        unique: true 
     },
-    items: [cartItemSchema] // Array of cart item subdocuments
+    items: [cartItemSchema] 
 }, {
-    timestamps: true // Adds createdAt and updatedAt fields
+    timestamps: true 
 });
-
 const Cart = mongoose.model('Cart', cartSchema);
 
 module.exports = Cart;

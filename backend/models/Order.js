@@ -1,78 +1,85 @@
 const mongoose = require('mongoose');
-
-// Schema for individual items within an order
-// Similar to cart item schema, but captures the state at the time of order
 const orderItemSchema = mongoose.Schema({
-    name: { type: String, required: true },
-    quantity: { type: Number, required: true, default: 1 },
-    image: { type: String },
-    price: { type: Number, required: true }, // Price at the time of order
-    product: { // Reference to the original product, but not strictly required for order history display
+    product: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true // It's good practice to link to the original product
+        required: true,
+        ref: 'Product'
     },
-}, { _id: false }); // Don't create separate _id for subdocuments
-
-// Main Order schema
+    name: {
+        type: String,
+        required: true
+    },
+    image: {
+        type: String
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    quantity: {
+        type: Number,
+        required: true,
+        default: 1,
+        min: 1 
+    }
+}, { _id: false }); 
 const orderSchema = mongoose.Schema({
-    user: { // User who placed the order
+    user: { 
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User',
     },
-    orderItems: [orderItemSchema], // Array of items in the order
-    shippingAddress: { // Shipping address details
+    orderItems: [orderItemSchema], 
+    shippingAddress: {
         address: { type: String, required: true },
         city: { type: String, required: true },
         postalCode: { type: String, required: true },
         country: { type: String, required: true },
     },
-    paymentMethod: { // e.g., 'PayPal', 'Stripe', 'Cash on Delivery'
+    paymentMethod: { 
         type: String,
         required: true,
     },
-    paymentResult: { // Details from payment gateway after successful payment
-        id: { type: String },
-        status: { type: String },
-        update_time: { type: String },
-        email_address: { type: String },
+    paymentResult: {
+        id: { type: String }, 
+        status: { type: String }, 
+        update_time: { type: String }, 
+        email_address: { type: String }, 
     },
-    taxPrice: { // Tax amount
+    taxPrice: { 
         type: Number,
         required: true,
         default: 0.0,
     },
-    shippingPrice: { // Shipping cost
+    shippingPrice: {
         type: Number,
         required: true,
         default: 0.0,
     },
-    totalPrice: { // Total amount paid
+    totalPrice: { 
         type: Number,
         required: true,
         default: 0.0,
     },
-    isPaid: { // Payment status
+    isPaid: { 
         type: Boolean,
         required: true,
         default: false,
     },
-    paidAt: { // Timestamp of payment
+    paidAt: {
         type: Date,
     },
-    isDelivered: { // Delivery status
+    isDelivered: { 
         type: Boolean,
         required: true,
         default: false,
     },
-    deliveredAt: { // Timestamp of delivery
+    deliveredAt: {
         type: Date,
     },
 }, {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true,
 });
-
 const Order = mongoose.model('Order', orderSchema);
 
 module.exports = Order;

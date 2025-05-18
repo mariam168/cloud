@@ -1,4 +1,3 @@
-// frontend/src/pages/RegisterPage.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -14,7 +13,7 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, API_BASE_URL } = useAuth(); // استخدام API_BASE_URL من السياق
+  const { login, API_BASE_URL } = useAuth(); 
 
   const { name, email, password, password2 } = formData;
 
@@ -29,7 +28,6 @@ const RegisterPage = () => {
     setLoading(true);
     setError('');
     try {
-      // استخدام API_BASE_URL
       const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { name, email, password /*, role: 'user' -  الخادم سيعينها 'user' افتراضياً */ });
       login(res.data.user, res.data.token);
       navigate('/');
@@ -38,9 +36,9 @@ const RegisterPage = () => {
       const errors = err.response?.data?.errors;
       if (errors && Array.isArray(errors)) {
         setError(errors.map(er => er.msg).join(', '));
-      } else if (err.response?.data?.message) { // للرسائل العامة مثل 'User already exists' أو 'Category name already exists'
+      } else if (err.response?.data?.message) {
         setError(err.response.data.message);
-      } else if (err.response?.data?.msg) { // للرسائل الفردية
+      } else if (err.response?.data?.msg) { 
         setError(err.response.data.msg);
       }
        else {
