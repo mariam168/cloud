@@ -5,6 +5,7 @@ import { Plus, Minus, ShoppingCart, Heart, ShieldCheck, Truck, Award } from 'luc
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../components/LanguageContext';
+
 const ProductDetails = () => {
     const { id } = useParams();
     const { t, language } = useLanguage();
@@ -15,6 +16,7 @@ const ProductDetails = () => {
     const [isWishlisted, setIsWishlisted] = useState(false);
     const { addToCart, isInCart, updateCartItemQuantity, cartItems } = useCart();
     const { isAuthenticated } = useAuth();
+
     useEffect(() => {
         setLoading(true);
         setError(null);
@@ -38,32 +40,39 @@ const ProductDetails = () => {
                 setLoading(false);
             });
     }, [id]);
+
     const handleQuantityChange = (event) => {
         const value = event.target.value;
         setQuantity(value === '' ? '' : parseInt(value, 10));
     };
+
     const incrementQuantity = () => {
         setQuantity(prev => (typeof prev === 'number' ? prev + 1 : 1));
     };
+
     const decrementQuantity = () => {
         setQuantity(prev => (typeof prev === 'number' && prev > 1 ? prev - 1 : 1));
     };
+
     const handleWishlistToggle = () => {
         if (!isAuthenticated) {
-             alert(t.pleaseLoginToAddFavorites || 'Please log in to add to favorites.');
-             return;
+            alert(t('productDetailsPage.pleaseLoginToAddFavorites') || 'Please log in to add to favorites.');
+            return;
         }
         setIsWishlisted(prev => !prev);
         console.log(`Wishlist toggled for product ${id}. New state: ${!isWishlisted}`);
     };
+
     const handleAddToCart = () => {
         if (!product) return;
         const quantityToAdd = typeof quantity === 'number' && quantity > 0 ? quantity : 1;
         addToCart(product, quantityToAdd);
     };
+
     const productInCart = product ? isInCart(product._id) : false;
     const cartItem = product ? cartItems.find(item => item.product && item.product.toString() === product._id.toString()) : null;
     const currentCartQuantity = cartItem ? cartItem.quantity : 0;
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300">
@@ -71,17 +80,18 @@ const ProductDetails = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Loading product details...</span>
+                <span>{t('general.loading') || 'Loading...'}</span>
             </div>
         );
     }
     if (error) {
         return (
             <div className="flex items-center justify-center min-h-[60vh] text-xl text-red-600 dark:text-red-400 p-4 text-center">
-                Error: {error}
+                {t('general.error') || 'Error'}: {error}
             </div>
         );
     }
+
     if (!product) {
         return (
             <div className="flex items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300">
@@ -89,11 +99,10 @@ const ProductDetails = () => {
             </div>
         );
     }
-
     const displayQuantity = typeof quantity === 'number' && quantity > 0 ? quantity : '';
-
-    const productName = product.name?.[language] || product.name?.en || product.name?.ar || 'Unnamed Product';
-    const productDescription = product.description?.[language] || product.description?.en || product.description?.ar || t.noDescription || 'No detailed description available for this product.';
+    const productName = product.name?.[language] || product.name?.en || product.name?.ar || t('general.unnamedProduct') || 'Unnamed Product';
+    const productDescription = product.description?.[language] || product.description?.en || product.description?.ar || t('adminProduct.noDescription') || 'No detailed description available for this product.';
+    const productCategory = product.category || t('adminProduct.uncategorized') || 'Uncategorized';
 
 
     return (
@@ -133,7 +142,7 @@ const ProductDetails = () => {
                 <div className="lg:col-span-1 flex flex-col gap-6">
                     <div>
                         <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 uppercase mb-1">
-                            {product.category || t.uncategorized || 'Uncategorized'}
+                            {productCategory}
                         </p>
                         <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight">
                             {productName}
@@ -141,12 +150,12 @@ const ProductDetails = () => {
                     </div>
                     <div className="flex items-baseline gap-2 pb-4 border-b border-gray-200 dark:border-gray-700">
                         <p className="text-3xl md:text-4xl font-extrabold text-green-600 dark:text-green-400">
-                             {t.currencySymbol || "EGP"} {product.price ? Number(product.price).toFixed(2) : 'N/A'}
+                             {t('shopPage.currencySymbol') || "$"}{product.price ? Number(product.price).toFixed(2) : 'N/A'}
                         </p>
                     </div>
                     <div className="flex flex-col gap-4 pb-6 border-b border-gray-200 dark:border-gray-700">
                         <div>
-                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t.quantity || 'Quantity'}</h3>
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('productDetailsPage.quantity') || 'Quantity'}</h3>
                             <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-md w-32 overflow-hidden">
                                 <button
                                     onClick={decrementQuantity}
@@ -185,18 +194,18 @@ const ProductDetails = () => {
                                 aria-label={`Add ${typeof quantity === 'number' && quantity > 0 ? quantity : 1} of ${productName} to cart`}
                             >
                                 <ShoppingCart size={20} className="inline-block mr-2" />
-                                {t.addToCart || 'Add to Cart'} ({typeof quantity === 'number' && quantity > 0 ? quantity : 1})
+                                {t('shopPage.addToCart') || 'Add to Cart'} ({typeof quantity === 'number' && quantity > 0 ? quantity : 1})
                             </button>
                             <button
                                 className={`p-3 rounded-lg shadow-md transition-colors duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-700
                                      ${isWishlisted
                                         ? 'bg-pink-500 hover:bg-pink-600 text-white'
                                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-gray-300'
-                                    }
+                                     }
                                 `}
                                 onClick={handleWishlistToggle}
-                                aria-label={isWishlisted ? (t.removeFromWishlist || 'Remove from wishlist') : (t.addToWishlist || 'Add to wishlist')}
-                                title={isWishlisted ? (t.removeFromWishlist || 'Remove from Wishlist') : (t.addToWishlist || 'Add to Wishlist')}
+                                aria-label={isWishlisted ? (t('shopPage.removeFromFavorites') || 'Remove from favorites') : (t('shopPage.addToFavorites') || 'Add to favorites')}
+                                title={isWishlisted ? (t('shopPage.removeFromFavorites') || 'Remove from Favorites') : (t('shopPage.addToFavorites') || 'Add to Favorites')}
                             >
                                 <Heart size={24} fill={isWishlisted ? 'white' : 'none'} stroke={isWishlisted ? 'white' : 'currentColor'} />
                             </button>
@@ -204,19 +213,22 @@ const ProductDetails = () => {
                     </div>
                     <div className="flex justify-around items-center text-gray-600 dark:text-gray-400 text-xs mt-4">
                         <div className="flex flex-col items-center text-center">
-                            <ShieldCheck size={24} /> <span>{t.securePayment || 'Secure Payment'}</span>
+                            <ShieldCheck size={24} /> 
+                            <span>{t('productDetailsPage.securePayment') || 'Secure Payment'}</span>
                         </div>
                         <div className="flex flex-col items-center text-center">
-                            <Truck size={24} /> <span>{t.fastShipping || 'Fast Shipping'}</span>
+                            <Truck size={24} />
+                            <span>{t('productDetailsPage.fastShipping') || 'Fast Shipping'}</span>
                         </div>
                         <div className="flex flex-col items-center text-center">
-                            <Award size={24} /> <span>{t.qualityGuarantee || 'Quality Guarantee'}</span>
+                            <Award size={24} /> 
+                            <span>{t('productDetailsPage.qualityGuarantee') || 'Quality Guarantee'}</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">{t.productDescriptionTitle || 'Product Description'}</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">{t('productDetailsPage.productDescription') || 'Product Description'}</h3>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                     {productDescription}
                 </p>

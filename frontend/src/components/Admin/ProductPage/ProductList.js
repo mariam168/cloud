@@ -3,44 +3,50 @@ import axios from 'axios';
 import { FaEdit, FaTrashAlt, FaPlus } from 'react-icons/fa';
 import EditProductModal from './EditProductModal';
 import AddProductPage from './AddProductPage';
-import { useLanguage } from '../../LanguageContext'; const ProductList = () => {
+import { useLanguage } from '../../LanguageContext';
+
+const ProductList = () => {
   const { t, language } = useLanguage();
-  const [products, setProducts] = useState([]); 
-  const [loading, setLoading] = useState(true); 
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false); 
-  const [showAddModal, setShowAddModal] = useState(false); 
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const SERVER_URL = 'http://localhost:5000';
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${SERVER_URL}/api/products`);
-      setProducts(response.data); 
+      setProducts(response.data);
       setError(null);
     } catch (err) {
       console.error('Error fetching products:', err);
-      setError(t.errorFetchingProducts + (err.response?.data?.message || err.message));
+      setError(t('general.errorFetchingProducts') + (err.response?.data?.message || err.message));
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchProducts();
-  }, []); 
+  }, []);
+
   const handleDelete = async (productId, productNames) => {
-    const productName = productNames?.[language] || productNames?.en || productNames?.ar || 'this product';
-    if (window.confirm(`${t.confirmDelete} "${productName}"?`)) {
+    const productName = productNames?.[language] || productNames?.en || productNames?.ar || t('general.unnamedProduct');
+    if (window.confirm(t('adminProduct.confirmDelete', productName))) {
       try {
         await axios.delete(`${SERVER_URL}/api/product/${productId}`);
         setProducts(prev => prev.filter(p => p._id !== productId));
-        alert(t.productDeleted);
+        alert(t('adminProduct.deleteSuccess') || 'Product deleted successfully!');
       } catch (err) {
         console.error('Error deleting product:', err);
-        alert(t.errorDeletingProduct + (err.response?.data?.message || err.message));
+        alert((t('adminProduct.errorDeletingProduct') || 'An error occurred while deleting the product.') + (err.response?.data?.message || err.message));
       }
     }
   };
+
   const handleOpenEditModal = (product) => {
     setEditingProduct(product);
     setShowEditModal(true);
@@ -52,40 +58,42 @@ import { useLanguage } from '../../LanguageContext'; const ProductList = () => {
   };
 
   const handleProductUpdated = () => {
-    fetchProducts(); 
-    handleCloseEditModal(); 
+    fetchProducts();
+    handleCloseEditModal();
   };
+
   const handleProductAdded = () => {
     fetchProducts();
     setShowAddModal(false);
   };
-  if (loading) return <p className="text-center">{t.loading}</p>;
+
+  if (loading) return <p className="text-center">{t('general.loading') || 'Loading...'}</p>;
   if (error) return <p className="text-center text-red-600">{error}</p>;
 
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold">{t.productListTitle}</h2>
+        <h2 className="text-3xl font-bold">{t('productAdmin.productListTitle') || 'Product List'}</h2>
         <button
-          onClick={() => setShowAddModal(true)} 
+          onClick={() => setShowAddModal(true)}
           className="bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-green-700"
         >
-          <FaPlus /> {t.addProduct || 'Add Product'}
+          <FaPlus /> {t('productAdmin.addProductButton') || 'Add Product'}
         </button>
       </div>
       {products.length === 0 ? (
-        <p className="text-gray-500 text-center">{t.noProducts}</p>
+        <p className="text-gray-500 text-center">{t('productAdmin.noProducts') || 'No products to display currently.'}</p>
       ) : (
         <div className="overflow-x-auto bg-white shadow-md rounded-lg">
           <table className="min-w-full text-sm text-left">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <th className="px-4 py-3">{t.image}</th>
-                <th className="px-4 py-3">{t.name}</th> 
-                <th className="px-4 py-3">{t.description}</th> 
-                <th className="px-4 py-3">{t.category}</th> 
-                <th className="px-4 py-3">{t.price}</th> 
-                <th className="px-4 py-3 text-center">{t.actions}</th>
+                <th className="px-4 py-3">{t('productAdmin.imageTable') || 'Image'}</th>
+                <th className="px-4 py-3">{t('productAdmin.nameTable') || 'Name'}</th>
+                <th className="px-4 py-3">{t('productAdmin.descriptionTable') || 'Description'}</th>
+                <th className="px-4 py-3">{t('productAdmin.categoryTable') || 'Category'}</th>
+                <th className="px-4 py-3">{t('productAdmin.priceTable') || 'Price'}</th>
+                <th className="px-4 py-3 text-center">{t('productAdmin.actionsTable') || 'Actions'}</th>
               </tr>
             </thead>
             <tbody>
@@ -95,37 +103,37 @@ import { useLanguage } from '../../LanguageContext'; const ProductList = () => {
                     <img
                       src={
                         product.image
-                          ? `${SERVER_URL}${product.image}` 
-                          : 'https://via.placeholder.com/80x80?text=No+Image' 
+                          ? `${SERVER_URL}${product.image}`
+                          : 'https://via.placeholder.com/80x80?text=No+Image'
                       }
-                      alt={product.name?.[language] || product.name?.en || 'Product Image'}
+                      alt={product.name?.[language] || product.name?.en || product.name?.ar || t('general.unnamedProduct')}
                       className="w-16 h-16 object-cover rounded border"
                     />
                   </td>
                   <td className="px-4 py-3 font-semibold">
-                    {product.name?.[language] || product.name?.en || product.name?.ar || 'N/A'}
+                    {product.name?.[language] || product.name?.en || product.name?.ar || t('general.unnamedProduct')}
                   </td>
                   <td className="px-4 py-3">
-                    {product.description?.[language] || product.description?.en || product.description?.ar || t.noDescription}
+                    {product.description?.[language] || product.description?.en || product.description?.ar || t('productAdmin.noDescription') || 'No Description'}
                   </td>
                   <td className="px-4 py-3">
                     <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs">
-                      {product.category || t.uncategorized}
+                      {product.category || t('productAdmin.uncategorized') || 'Uncategorized'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-bold text-green-600">${product.price?.toFixed(2) || '0.00'}</td>
+                  <td className="px-4 py-3 font-bold text-green-600">{t('shopPage.currencySymbol') || "$"}{product.price?.toFixed(2) || '0.00'}</td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => handleOpenEditModal(product)} 
+                      onClick={() => handleOpenEditModal(product)}
                       className="text-blue-600 hover:text-blue-800 mx-2"
-                      title={t.edit || 'Edit'}
+                      title={t('adminCategoryPage.editCategory') || 'Edit'}
                     >
                       <FaEdit />
                     </button>
                     <button
-                      onClick={() => handleDelete(product._id, product.name)} 
+                      onClick={() => handleDelete(product._id, product.name)}
                       className="text-red-600 hover:text-red-800 mx-2"
-                      title={t.delete || 'Delete'}
+                      title={t('adminCategoryPage.deleteCategory') || 'Delete'}
                     >
                       <FaTrashAlt />
                     </button>

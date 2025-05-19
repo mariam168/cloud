@@ -3,6 +3,7 @@ import ProductCard from '../components/ProductCard';
 import { useLanguage } from "../components/LanguageContext";
 import { useLocation } from 'react-router-dom';
 import { Filter, X } from 'lucide-react';
+
 const ShopPage = () => {
     const { t, language } = useLanguage();
     const location = useLocation();
@@ -17,6 +18,7 @@ const ShopPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFilterVisible, setIsFilterVisible] = useState(false);
+
     useEffect(() => {
         const fetchProducts = async (searchTerm = '') => {
             setLoading(true);
@@ -26,7 +28,7 @@ const ShopPage = () => {
                 if (!productsRes.ok) {
                     const errorText = await productsRes.text();
                     console.error('Failed to fetch products:', productsRes.status, errorText);
-                    setError(t.shopPage?.errorFetchingProducts || 'Failed to load products.');
+                    setError(t('shopPage.errorFetchingProducts') || 'Failed to load products.');
                     setAllProducts([]);
                     setDisplayedProducts([]);
                     return;
@@ -50,13 +52,14 @@ const ShopPage = () => {
                 setBrands(uniqueBrands);
             } catch (err) {
                 console.error('Error fetching products:', err);
-                setError(t.shopPage?.errorFetchingProducts || 'Failed to load products.');
+                setError(t('shopPage.errorFetchingProducts') || 'Failed to load products.');
                 setAllProducts([]);
                 setDisplayedProducts([]);
             } finally {
                 setLoading(false);
             }
         };
+
         const fetchCategories = async () => {
             try {
                 const categoriesRes = await fetch('http://localhost:5000/api/categories');
@@ -70,11 +73,13 @@ const ShopPage = () => {
                 console.error('Error fetching categories:', err);
             }
         };
+
         const searchParams = new URLSearchParams(location.search);
         const searchTermFromUrl = searchParams.get('search');
         fetchProducts(searchTermFromUrl);
         fetchCategories();
-    }, [location.search, t.shopPage?.errorFetchingProducts]); 
+    }, [location.search, t]);
+
     useEffect(() => {
         let filtered = allProducts.filter(product => {
             const categoryName = typeof product.category === 'object' ? (product.category?.[language] || product.category?.en || product.category?.ar) : product.category;
@@ -85,9 +90,10 @@ const ShopPage = () => {
             const matchesBrand = selectedBrand === 'All Brands' || productBrand === selectedBrand;
             return matchesCategory && matchesPrice && matchesBrand;
         });
+
         const sorted = [...filtered].sort((a, b) => {
             if (sortBy === 'popularity') {
-                return (b.reviews || 0) - (a.reviews || 0); 
+                return (b.reviews || 0) - (a.reviews || 0);
             }
             if (sortBy === 'price-asc') {
                 return (a.price || 0) - (b.price || 0);
@@ -100,13 +106,15 @@ const ShopPage = () => {
                 const nameB = (b.name?.[language] || b.name?.en || b.name?.ar || '').toLowerCase();
                 return nameA.localeCompare(nameB, language);
             }
-            return 0; 
+            return 0;
         });
         setDisplayedProducts(sorted);
     }, [selectedCategory, priceRange, selectedBrand, sortBy, allProducts, language]);
+
     const toggleFilterVisibility = () => {
         setIsFilterVisible(!isFilterVisible);
     };
+
     if (loading) {
         return (
             <section className="min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black py-20 px-4 md:px-8 lg:px-12">
@@ -115,32 +123,34 @@ const ShopPage = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>{t.general?.loading || 'Loading...'}</span>
+                    <span>{t('general.loading') || 'Loading...'}</span>
                 </div>
             </section>
         );
     }
+
     if (error) {
         return (
             <section className="min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black py-20 px-4 md:px-8 lg:px-12">
                 <div className="text-center text-red-600 dark:text-red-400 text-lg p-6 bg-red-100 dark:bg-red-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-700">
-                    <p className="font-bold mb-2">{t.general?.error || 'Error'}:</p>
+                    <p className="font-bold mb-2">{t('general.error') || 'Error'}:</p>
                     <p>{error}</p>
                 </div>
             </section>
         );
     }
+
     return (
         <section className="w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black py-16 px-4 transition-colors duration-500 ease-in-out md:px-8 lg:px-12">
             <div className="mx-auto max-w-screen-xl">
                 <div className="md:hidden flex justify-between items-center mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                    <span className="text-xl font-bold text-gray-800 dark:text-white">{t.shopPage?.filter || 'Filter'}</span>
+                    <span className="text-xl font-bold text-gray-800 dark:text-white">{t('shopPage.filter') || 'Filter'}</span>
                     <button
                         onClick={toggleFilterVisibility}
                         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 ease-in-out"
                     >
                         <Filter size={20} className="mr-2" />
-                        {t.shopPage?.showFilters || 'Show Filters'}
+                        {t('shopPage.showFilters') || 'Show Filters'}
                     </button>
                 </div>
                 <div className="flex flex-col md:flex-row gap-10 lg:gap-12">
@@ -151,7 +161,7 @@ const ShopPage = () => {
                         md:h-fit md:sticky md:top-28 md:rounded-xl md:shadow-lg md:border md:border-gray-200 dark:md:border-gray-700
                     `}>
                         <div className="md:hidden flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t.shopPage?.filter || 'Filter'}</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('shopPage.filter') || 'Filter'}</h3>
                             <button
                                 onClick={toggleFilterVisibility}
                                 className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
@@ -161,7 +171,7 @@ const ShopPage = () => {
                         </div>
                         <div className="mb-8">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                                {t.shopPage?.filterByCategory || 'Filter by Category'}
+                                {t('shopPage.filterByCategory') || 'Filter by Category'}
                             </h3>
                             <ul className="space-y-2">
                                 {categories.map(category => (
@@ -185,7 +195,7 @@ const ShopPage = () => {
                         </div>
                         <div className="mb-8">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                                {t.shopPage?.priceRange || 'Price Range'}
+                                {t('shopPage.priceRange') || 'Price Range'}
                             </h3>
                             <div className="flex items-center justify-between gap-4">
                                 <input
@@ -206,13 +216,13 @@ const ShopPage = () => {
                                 />
                             </div>
                             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-2 font-semibold">
-                                <span>{t.shopPage?.currencySymbol || '$'}{priceRange.min.toFixed(2)}</span>
-                                <span>{t.shopPage?.currencySymbol || '$'}{priceRange.max.toFixed(2)}</span>
+                                <span>{t('shopPage.currencySymbol') || '$'}{priceRange.min.toFixed(2)}</span>
+                                <span>{t('shopPage.currencySymbol') || '$'}{priceRange.max.toFixed(2)}</span>
                             </div>
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                                {t.shopPage?.filterByBrand || 'Filter by Brand'}
+                                {t('shopPage.filterByBrand') || 'Filter by Brand'}
                             </h3>
                             <div className="space-y-2">
                                 {brands.map(brand => (
@@ -227,7 +237,7 @@ const ShopPage = () => {
                                             className="form-radio text-blue-600 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 h-4 w-4 transition-colors duration-200"
                                         />
                                         <label htmlFor={`brand-${brand}`} className="ml-2 text-gray-700 dark:text-gray-300 cursor-pointer text-sm hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
-                                            {t.brands?.[brand] || brand}
+                                            {t(`brands.${brand}`) || brand}
                                             {` (${allProducts.filter(p => brand === 'All Brands' ? true : p.brand === brand).length})`}
                                         </label>
                                     </div>
@@ -244,26 +254,26 @@ const ShopPage = () => {
                     <div className="w-full md:w-3/4">
                         <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-8 border border-gray-200 dark:border-gray-700">
                             <div className="flex items-center mb-4 sm:mb-0">
-                                <span className="text-gray-700 dark:text-gray-300 mr-3 text-base font-semibold">{t.shopPage?.sortBy || 'Sort by:'}</span>
+                                <span className="text-gray-700 dark:text-gray-300 mr-3 text-base font-semibold">{t('shopPage.sortBy') || 'Sort by:'}</span>
                                 <select
                                     className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm shadow-inner transition-colors duration-200"
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
                                 >
-                                    <option value="popularity">{t.shopPage?.popularity || 'Popularity'}</option>
-                                    <option value="price-asc">{t.shopPage?.priceLowToHigh || 'Price: Low to High'}</option>
-                                    <option value="price-desc">{t.shopPage?.priceHighToLow || 'Price: High to Low'}</option>
-                                    <option value="name-asc">{t.shopPage?.nameAZ || 'Name (A-Z)'}</option>
+                                    <option value="popularity">{t('shopPage.popularity') || 'Popularity'}</option>
+                                    <option value="price-asc">{t('shopPage.priceLowToHigh') || 'Price: Low to High'}</option>
+                                    <option value="price-desc">{t('shopPage.priceHighToLow') || 'Price: High to Low'}</option>
+                                    <option value="name-asc">{t('shopPage.nameAZ') || 'Name (A-Z)'}</option>
                                 </select>
                             </div>
                             <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">
-                                {t.shopPage?.showingItems || 'Showing'}: <span className="font-semibold">{displayedProducts.length}</span> {t.shopPage?.items || 'items'}
+                                {t('shopPage.showingItems') || 'Showing'}: <span className="font-semibold">{displayedProducts.length}</span> {t('shopPage.items') || 'items'}
                             </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                             {displayedProducts.length === 0 ? (
                                 <div className="col-span-full text-center text-gray-600 dark:text-gray-400 py-16 text-xl font-semibold">
-                                    {t.shopPage?.noProductsFound || 'No products found matching your criteria.'}
+                                    {t('shopPage.noProductsFound') || 'No products found matching your criteria.'}
                                 </div>
                             ) : (
                                 displayedProducts.map(product => (

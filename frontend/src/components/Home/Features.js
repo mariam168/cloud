@@ -11,23 +11,23 @@ const Features = () => {
     const features = [
         {
             icon: <Truck className="w-10 h-10 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300 ease-in-out" />,
-            title: t.features?.freeShipping || 'Free Shipping',
-            desc: t.features?.freeShippingDesc || 'Free shipping on all orders over $100',
+            title: t('features.freeShipping') || 'Free Shipping',
+            desc: t('features.freeShippingDesc') || 'Free shipping on all orders over $100',
         },
         {
             icon: <MessageCircleQuestion className="w-10 h-10 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300 ease-in-out" />,
-            title: t.features?.support247 || 'Support 24/7',
-            desc: t.features?.support247Desc || 'Get help anytime you need it',
+            title: t('features.support247') || 'Support 24/7',
+            desc: t('features.support247Desc') || 'Get help anytime you need it',
         },
         {
             icon: <CreditCard className="w-10 h-10 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300 ease-in-out" />,
-            title: t.features?.onlinePayment || 'Online Payment',
-            desc: t.features?.onlinePaymentDesc || 'Secure online payment options',
+            title: t('features.onlinePayment') || 'Online Payment',
+            desc: t('features.onlinePaymentDesc') || 'Secure online payment options',
         },
         {
             icon: <RotateCcw className="w-10 h-10 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300 ease-in-out" />,
-            title: t.features?.easyReturn || 'Easy Return',
-            desc: t.features?.easyReturnDesc || 'Hassle-free returns within 30 days',
+            title: t('features.easyReturn') || 'Easy Return',
+            desc: t('features.easyReturnDesc') || 'Hassle-free returns within 30 days',
         },
     ];
 

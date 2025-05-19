@@ -284,6 +284,11 @@ const translations = {
             actionsTable: "Actions",
             noDescription: "No Description",
         },
+        adminProduct: {
+            confirmDelete:"Are you sure you want to delete the product?",
+            deleteSuccess: "Product deleted successfully!",
+            errorDeletingProduct: "An error occurred while deleting the product.",
+        },
         productAdmin: {
             addProductTitle: "Add New Product",
             editProductTitle: "Edit Product",
@@ -327,6 +332,8 @@ const translations = {
             actionsTable: "Actions",
             noDescription: "No Description",
             uncategorized: "Uncategorized",
+            addProductButton: "Add Product",
+            addButton: "Add Product",
         },
         features: {
             freeShipping: "Free Shipping",
@@ -653,7 +660,15 @@ const translations = {
             descriptionTable: "الوصف",
             actionsTable: "الإجراءات",
             noDescription: "لا يوجد وصف",
+            addProductButton: "ائضافة منتج",
+            addButton: "ائضافة",
         },
+         adminProduct: {
+            confirmDelete : "هل تريد حذف المنتج ؟",
+            deleteSuccess: "تم حذف المنتج بنجاح!",
+            errorDeletingProduct: "حدث خطاء اثناء حذف المنتج.",
+        },
+
         productAdmin: {
             addProductTitle: "إضافة منتج جديد",
             editProductTitle: "تعديل المنتج",
