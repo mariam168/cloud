@@ -31,52 +31,62 @@ const MainHeader = () => {
     const cartItemCount = cartInitialized && !loadingCart ? getCartCount() : 0;
 
     return (
-        <div className="border-b bg-white px-4 sm:px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-            <div className="container mx-auto flex flex-wrap items-center justify-between gap-y-4 gap-x-6">
-                <Link to="/" className="flex items-center gap-2 text-xl font-bold text-blue-600 dark:text-blue-400">
-                    <Store className="h-6 w-6" />
+        <div className="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 sm:px-6 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900 transition-colors duration-300 ease-in-out">
+            <div className="container mx-auto flex flex-wrap items-center justify-between gap-y-3 gap-x-4 sm:gap-x-6">
+
+                <Link to="/" className="flex items-center gap-2 text-2xl font-extrabold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 ease-in-out">
+                    <Store className="h-8 w-8 text-blue-800 dark:text-blue-300" />
                     <span>{t.mainHeader?.siteName || "TechXpress"}</span>
                 </Link>
-                {/* Removed the category select dropdown */}
-                <div className="flex max-w-md sm:max-w-xl flex-grow items-center overflow-hidden rounded border shadow-sm dark:border-gray-600 order-3 sm:order-2 w-full sm:w-auto">
+
+                <div className="flex flex-grow max-w-full md:max-w-xl items-center rounded-full border border-gray-300 dark:border-gray-600 shadow-inner overflow-hidden order-3 sm:order-2 w-full focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200 ease-in-out">
                     <input
                         type="text"
-                        className="flex-grow p-2.5 outline-none dark:bg-gray-800 dark:text-white"
+                        className="flex-grow px-4 py-2.5 outline-none bg-transparent text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
                         placeholder={t.mainHeader?.searchPlaceholder || "Search for products..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyPress={handleKeyPress}
                     />
-                    <button onClick={handleSearch} className="bg-blue-600 px-4 py-2.5 text-white hover:bg-blue-700 transition-colors">
-                        <Search size={18} />
+                    <button
+                        onClick={handleSearch}
+                        className="bg-blue-600 px-5 py-2.5 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 ease-in-out flex items-center justify-center"
+                        aria-label="Search"
+                    >
+                        <Search size={20} />
                     </button>
                 </div>
-                <div className="flex items-center gap-4 sm:gap-6 order-2 sm:order-3">
-                    <div className="hidden sm:flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                        <Phone className="h-5 w-5" />
+
+                <div className="flex items-center gap-4 sm:gap-5 order-2 sm:order-3">
+                    <div className="hidden md:flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <Phone className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                         <div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">{t.mainHeader?.hotline || "Hotline"}</div>
-                            <div className="font-semibold">(+100) 123 456 7890</div>
+                            <div className="font-semibold text-gray-800 dark:text-gray-200">(+100) 123 456 7890</div>
                         </div>
                     </div>
+
                     {isAuthenticated && (
-                        <Link to="/wishlist" className="relative text-gray-700 dark:text-gray-200 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        <Link to="/wishlist" className="relative text-gray-700 dark:text-gray-200 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200 ease-in-out"
                              title={t.mainHeader?.myWishlist || "My Wishlist"}
+                             aria-label={t.mainHeader?.myWishlist || "My Wishlist"}
                         >
                             <Heart className="h-6 w-6" />
                             {wishlistCount > 0 && (
-                                <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white">
+                                <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white ring-2 ring-white dark:ring-gray-900">
                                     {wishlistCount}
                                 </span>
                             )}
                         </Link>
                     )}
-                    <Link to="/cart" className="relative text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+
+                    <Link to="/cart" className="relative text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ease-in-out"
                          title={t.mainHeader?.myCart || "My Cart"}
+                         aria-label={t.mainHeader?.myCart || "My Cart"}
                     >
                         <ShoppingCart className="h-6 w-6" />
                         {cartItemCount > 0 && (
-                            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
+                            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white ring-2 ring-white dark:ring-gray-900">
                                 {cartItemCount}
                             </span>
                         )}

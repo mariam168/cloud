@@ -1,7 +1,5 @@
-import React, { createContext, useState, useContext } from 'react';
-
+import React, { createContext, useState, useContext, useEffect } from 'react';
 const LanguageContext = createContext();
-
 const translations = {
     en: {
         general: {
@@ -9,6 +7,12 @@ const translations = {
             error: "Error",
             view: "View Product",
             shopNow: "Shop Now",
+            errorFetchingProducts: "Failed to load products.",
+            errorFetchingOrders: "Failed to fetch orders.",
+            errorFetchingUsers: "Failed to fetch users.",
+            errorFetchingCategories: "Failed to fetch categories.",
+            unnamedProduct: "Unnamed Product",
+            total: "Total",
         },
         shopPage: {
             searchProduct: "Search Product",
@@ -18,7 +22,7 @@ const translations = {
             sortBy: "Sort by:",
             popularity: "Popularity",
             priceLowToHigh: "Price: Low to High",
-            priceHighToLow: "Price: High to High", // Corrected typo
+            priceHighToLow: "Price: High to Low",
             nameAZ: "Name (A-Z)",
             showingItems: "Showing",
             items: "items",
@@ -28,6 +32,9 @@ const translations = {
             addToFavorites: "Add to Favorites",
             removeFromFavorites: "Remove from Favorites",
             currencySymbol: "$",
+            filter: "Filter",
+            showFilters: "Show Filters",
+            locale: 'en-US',
         },
         productDetailsPage: {
             quantity: "Quantity",
@@ -41,6 +48,7 @@ const translations = {
         cartPage: {
             shoppingCart: "Shopping Cart",
             cartEmpty: "Your cart is empty.",
+            cartEmptyDesc: "Looks like you haven't added anything to your cart yet.",
             continueShopping: "Continue Shopping",
             removeItem: "Remove Item",
             cartTotal: "Cart Total",
@@ -48,23 +56,35 @@ const translations = {
             loadingCart: "Loading cart...",
             cartEmptyCheckout: "Your cart is empty. Add items before checking out.",
             cartEmptyCheckoutRedirect: "Your cart is empty. Redirecting to shop...",
+            decreaseQuantity: "Decrease quantity",
+            increaseQuantity: "Increase quantity",
+            productQuantity: "Product quantity",
         },
         checkoutPage: {
             checkout: "Checkout",
             orderSummary: "Order Summary",
-            total: "Total",
             shippingAndPayment: "Shipping & Payment",
             shippingAddress: "Shipping Address",
             paymentMethod: "Payment Method",
             placeOrder: "Place Order",
             placingOrder: "Placing Order...",
-            orderPlacedSuccess: "Order placed successfully!",
+            orderPlacedSuccessTitle: "Order Placed Successfully!",
+            orderPlacedSuccessMessage: "Thank you for your purchase. You will be redirected to the home page shortly.",
+            redirecting: "Redirecting...",
             orderPlacementFailed: "Order placement failed.",
             orderPlacementError: "Error placing order",
             pleaseLoginToCheckout: "Please log in to checkout.",
             shippingPaymentRequired: "Please provide shipping address and payment method.",
             checkoutPlaceholder: "Proceeding to checkout...",
             placeOrderPlaceholder: "Placing order... (Backend logic needed)",
+            enterAddressPlaceholder: "Enter Address",
+            enterCityPlaceholder: "Enter City",
+            enterPostalCodePlaceholder: "Enter Postal Code",
+            enterCountryPlaceholder: "Enter Country",
+            cashOnDelivery: "Cash on Delivery",
+            checkoutTitle: "Checkout",
+            selectPaymentMethod: "Select Payment Method",
+            selectShippingAddress: "Select Shipping Address",
         },
         adminOrdersPage: {
             allOrders: "All Orders",
@@ -88,6 +108,10 @@ const translations = {
             weeklyDesc: "Don't miss our amazing weekly offers! Up to",
             off: "OFF",
             thisWeek: "this week.",
+            languageArabic: "العربية",
+            languageEnglish: "English",
+            lightMode: "Light Mode",
+            darkMode: "Dark Mode",
         },
         heroSlidesData: [
              {
@@ -119,7 +143,7 @@ const translations = {
             iphoneOffer: {
                 productName: "iPhone 12 Pro Max",
                 price: "EGP 12,480.00",
-                image: require("../Assets/hero5.png"),
+                image: "/Assets/hero5.png", 
             },
         },
         categories: {
@@ -133,7 +157,7 @@ const translations = {
             TV: "TV",
         },
         brands: {
-             "All Brands": "All Brands",
+            "All Brands": "All Brands",
         },
         topBar: {
             currency: "Currency",
@@ -150,6 +174,10 @@ const translations = {
             light: "Light",
             dark: "Dark",
             helloUser: "Hello",
+            languageArabic: "العربية",
+            languageEnglish: "English",
+            lightMode: "Light Mode",
+            darkMode: "Dark Mode",
         },
         mainHeader: {
             siteName: "TechXpress",
@@ -185,28 +213,45 @@ const translations = {
             productNamePlaceholder: "Product Name",
             productPriceLabel: "Price:",
             productPricePlaceholder: "Price",
-             // Translations for chart titles
             productStockChartTitle: "Product Stock Levels",
             categoryDistributionChartTitle: "Product Distribution by Category",
             salesOverviewChartTitle: "Sales Overview (Last 6 Months)",
-            userCountTitle: "Total Users", // New
-            topSellingProductsTitle: "Top Selling Products", // New
-            ordersByStatusTitle: "Orders by Status", // New
-
-            // New translations for data status
+            userCountTitle: "Total Users",
+            topSellingProductsTitle: "Top Selling Products",
+            ordersByStatusTitle: "Orders by Status",
+            totalRevenue: "Total Revenue",
+            totalOrders: "Total Orders",
+            totalProducts: "Total Products",
+            totalUsers: "Total Users",
+            revenueLabel: "Revenue",
+            orderCountLabel: "Order Count",
+            itemsSoldLabel: "items sold",
+            items: "items",
+            orderIdHeader: "Order ID",
+            userHeader: "User",
+            dateHeader: "Date",
+            totalHeader: "Total",
+            paidHeader: "Paid",
+            deliveredHeader: "Delivered",
+            recentOrdersTitle: "Recent Orders",
+            userRegistrationTitle: "User Registration Over Time",
+            usersRegisteredLabel: "Users Registered",
             errorFetchingStock: "Failed to fetch stock data.",
             errorFetchingCategories: "Failed to fetch category data.",
             errorFetchingSales: "Failed to fetch sales data.",
-            errorFetchingUsers: "Failed to fetch user data.", // New
-            errorFetchingTopProducts: "Failed to fetch top products data.", // New
-            errorFetchingOrderStatus: "Failed to fetch order status data.", // New
-
+            errorFetchingUsers: "Failed to fetch user data.",
+            errorFetchingTopProducts: "Failed to fetch top products data.",
+            errorFetchingOrderStatus: "Failed to fetch order status data.",
+            errorFetchingData: "Error fetching data.",
             noStockData: "No stock data available.",
             noCategoryData: "No category data available.",
             noSalesData: "No sales data available.",
-            noUserData: "No user data available.", // New
-            noTopProductsData: "No top selling products data available.", // New
-            noOrderStatusData: "No order status data available.", // New
+            noUserData: "No user data available.",
+            noTopProductsData: "No top selling products data available.",
+            noOrderStatusData: "No order status data available.",
+            noDataAvailable: "No data available to display dashboard.",
+            noUserRegistrationData: "No user registration data available.",
+            noRecentOrdersData: "No recent orders available.",
         },
         adminCategoryPage: {
             loadingCategories: "Loading categories...",
@@ -239,7 +284,7 @@ const translations = {
             actionsTable: "Actions",
             noDescription: "No Description",
         },
-         productAdmin: {
+        productAdmin: {
             addProductTitle: "Add New Product",
             editProductTitle: "Edit Product",
             productNameLabel: "Product Name",
@@ -283,7 +328,7 @@ const translations = {
             noDescription: "No Description",
             uncategorized: "Uncategorized",
         },
-         features: {
+        features: {
             freeShipping: "Free Shipping",
             freeShippingDesc: "Free shipping on all orders over $100",
             support247: "Support 24/7",
@@ -299,6 +344,30 @@ const translations = {
             belief: 'We believe in providing an exceptional shopping experience by ensuring fast delivery, secure payment options, and outstanding customer service. Our goal is to make tech shopping simple, reliable, and enjoyable for everyone.',
             explore: 'Explore our collection and stay ahead with the latest technology trends. Your satisfaction is our priority!',
             imageAlt: "Handshake representing partnership and trust"
+        },
+        trendingProducts: "Trending Products",
+        trendingDesc: "Check out our most popular products this week.",
+        wishlistPage: {
+            wishlistTitle: "My Wishlist",
+            loadingWishlist: "Loading wishlist...",
+            pleaseLogin: "Please log in to view your wishlist.",
+            emptyWishlist: "Your wishlist is currently empty.",
+        },
+        auth: {
+            email: "Email Address",
+            password: "Password",
+            signIn: "Sign In",
+            signingIn: "Signing In...",
+            noAccount: "Don't have an account?",
+            register: "Register",
+            name: "Name",
+            confirmPassword: "Confirm Password",
+            passwordMismatch: "Passwords do not match",
+            registering: "Registering...",
+            registrationSuccess: "Registration successful!",
+            haveAccount: "Already have an account?",
+            loginTitle: "Login",
+            registerTitle: "Register",
         }
     },
     ar: {
@@ -307,6 +376,12 @@ const translations = {
             error: "خطأ",
             view: "عرض المنتج",
             shopNow: "تسوق الآن",
+            errorFetchingProducts: "فشل تحميل المنتجات.",
+            errorFetchingOrders: "فشل جلب الطلبات.",
+            errorFetchingUsers: "فشل جلب المستخدمين.",
+            errorFetchingCategories: "فشل جلب الفئات.",
+            unnamedProduct: "منتج غير مسمى",
+            total: "الإجمالي",
         },
         shopPage: {
             searchProduct: "البحث عن منتج",
@@ -327,6 +402,8 @@ const translations = {
             removeFromFavorites: "إزالة من المفضلة",
             currencySymbol: "ج.م",
             locale: 'ar-EG',
+            filter: "تصفية",
+            showFilters: "عرض الفلاتر",
         },
         productDetailsPage: {
             quantity: "الكمية",
@@ -340,6 +417,7 @@ const translations = {
         cartPage: {
             shoppingCart: "سلة التسوق",
             cartEmpty: "سلتك فارغة.",
+            cartEmptyDesc: "يبدو أنك لم تقم بإضافة أي شيء إلى سلة التسوق بعد.",
             continueShopping: "متابعة التسوق",
             removeItem: "إزالة العنصر",
             cartTotal: "إجمالي السلة",
@@ -347,23 +425,35 @@ const translations = {
             loadingCart: "جاري تحميل السلة...",
             cartEmptyCheckout: "سلتك فارغة. أضف عناصر قبل المتابعة للدفع.",
             cartEmptyCheckoutRedirect: "سلتك فارغة. جاري إعادة التوجيه لصفحة التسوق...",
+            decreaseQuantity: "تقليل الكمية",
+            increaseQuantity: "زيادة الكمية",
+            productQuantity: "كمية المنتج",
         },
         checkoutPage: {
             checkout: "الدفع",
             orderSummary: "ملخص الطلب",
-            total: "الإجمالي",
             shippingAndPayment: "الشحن والدفع",
             shippingAddress: "عنوان الشحن",
             paymentMethod: "طريقة الدفع",
             placeOrder: "تأكيد الطلب",
             placingOrder: "جاري تأكيد الطلب...",
-            orderPlacedSuccess: "تم تأكيد الطلب بنجاح!",
+            orderPlacedSuccessTitle: "تم تأكيد الطلب بنجاح!",
+            orderPlacedSuccessMessage: "شكراً لك على عملية الشراء. سيتم إعادة توجيهك إلى الصفحة الرئيسية قريباً.",
+            redirecting: "جاري إعادة التوجيه...",
             orderPlacementFailed: "فشل تأكيد الطلب.",
             orderPlacementError: "خطأ في تأكيد الطلب",
             pleaseLoginToCheckout: "يرجى تسجيل الدخول للمتابعة إلى الدفع.",
             shippingPaymentRequired: "يرجى توفير عنوان الشحن وعنوان الدفع.",
             checkoutPlaceholder: "جاري المتابعة إلى الدفع...",
             placeOrderPlaceholder: "جاري تأكيد الطلب... (تحتاج منطق الخلفية)",
+            enterAddressPlaceholder: "أدخل العنوان",
+            enterCityPlaceholder: "أدخل المدينة",
+            enterPostalCodePlaceholder: "أدخل الرمز البريدي",
+            enterCountryPlaceholder: "أدخل البلد",
+            cashOnDelivery: "الدفع عند الاستلام",
+            checkoutTitle: "إتمام الطلب",
+            selectPaymentMethod: "اختر طريقة الدفع",
+            selectShippingAddress: "اختر عنوان الشحن",
         },
         adminOrdersPage: {
             allOrders: "جميع الطلبات",
@@ -387,10 +477,15 @@ const translations = {
             weeklyDesc: "لا تفوت عروضنا الأسبوعية المذهلة! خصم يصل إلى",
             off: "خصم",
             thisWeek: "هذا الأسبوع.",
+            languageArabic: "العربية",
+            languageEnglish: "English",
+            lightMode: "وضع الإضاءة",
+            darkMode: "الوضع الداكن",
         },
         heroSlidesData: [
-             {
-                image: require("../Assets/hero5.png"),
+            {
+                
+                image: require("../Assets/hero5.png"), 
                 title: "حزمة الأمان القصوى",
                 desc: "كاميرات مراقبة متطورة مع إمكانية الوصول عن بعد.",
                 price: "28,320.00 ج.م",
@@ -402,7 +497,7 @@ const translations = {
                 price: "14,200.00 ج.م",
             },
             {
-                image: require("../Assets/hero3.jpg"),
+                image:require("../Assets/hero4.png"),
                 title: "مجموعة كاميرات المكتب",
                 desc: "أمن عملك بكشف ذكاء اصطناعي ذكي.",
                 price: "17,990.00 ج.م",
@@ -418,7 +513,7 @@ const translations = {
             iphoneOffer: {
                 productName: "آيفون 12 برو ماكس",
                 price: "12,480.00 ج.م",
-                image: require("../Assets/hero5.png"),
+                image: require("../Assets/hero4.png"),
             },
         },
         categories: {
@@ -432,7 +527,7 @@ const translations = {
             TV: "تلفزيونات",
         },
         brands: {
-             "All Brands": "جميع الماركات",
+            "All Brands": "جميع الماركات",
         },
         topBar: {
             currency: "العملة",
@@ -449,6 +544,10 @@ const translations = {
             light: "فاتح",
             dark: "داكن",
             helloUser: "مرحباً",
+            languageArabic: "العربية",
+            languageEnglish: "English",
+            lightMode: "وضع الإضاءة",
+            darkMode: "الوضع الداكن",
         },
         mainHeader: {
             siteName: "تيكسبرس",
@@ -484,28 +583,45 @@ const translations = {
             productNamePlaceholder: "اسم المنتج",
             productPriceLabel: "السعر:",
             productPricePlaceholder: "السعر",
-             // Translations for chart titles
             productStockChartTitle: "مستويات مخزون المنتجات",
             categoryDistributionChartTitle: "توزيع المنتجات حسب الفئة",
             salesOverviewChartTitle: "نظرة عامة على المبيعات (آخر 6 أشهر)",
-            userCountTitle: "إجمالي المستخدمين", // New
-            topSellingProductsTitle: "المنتجات الأكثر مبيعًا", // New
-            ordersByStatusTitle: "الطلبات حسب الحالة", // New
-
-            // New translations for data status
+            userCountTitle: "إجمالي المستخدمين",
+            topSellingProductsTitle: "المنتجات الأكثر مبيعًا",
+            ordersByStatusTitle: "الطلبات حسب الحالة",
+            totalRevenue: "إجمالي الإيرادات",
+            totalOrders: "إجمالي الطلبات",
+            totalProducts: "إجمالي المنتجات",
+            totalUsers: "إجمالي المستخدمين",
+            revenueLabel: "الإيرادات",
+            orderCountLabel: "عدد الطلبات",
+            itemsSoldLabel: "عنصر تم بيعه",
+            items: "عناصر",
+            orderIdHeader: "رقم الطلب",
+            userHeader: "المستخدم",
+            dateHeader: "التاريخ",
+            totalHeader: "الإجمالي",
+            paidHeader: "مدفوع",
+            deliveredHeader: "تم التوصيل",
+            recentOrdersTitle: "الطلبات الأخيرة",
+            userRegistrationTitle: "تسجيل المستخدمين بمرور الوقت",
+            usersRegisteredLabel: "المستخدمون المسجلون",
             errorFetchingStock: "فشل جلب بيانات المخزون.",
             errorFetchingCategories: "فشل جلب بيانات الفئات.",
             errorFetchingSales: "فشل جلب بيانات المبيعات.",
-            errorFetchingUsers: "فشل جلب بيانات المستخدمين.", // New
-            errorFetchingTopProducts: "فشل جلب بيانات المنتجات الأكثر مبيعًا.", // New
-            errorFetchingOrderStatus: "فشل جلب بيانات حالة الطلبات.", // New
-
+            errorFetchingUsers: "فشل جلب بيانات المستخدمين.",
+            errorFetchingTopProducts: "فشل جلب بيانات المنتجات الأكثر مبيعًا.",
+            errorFetchingOrderStatus: "فشل جلب بيانات حالة الطلبات.",
+            errorFetchingData: "خطأ في جلب البيانات.",
             noStockData: "لا توجد بيانات مخزون متاحة.",
             noCategoryData: "لا توجد بيانات فئات متاحة.",
             noSalesData: "لا توجد بيانات مبيعات متاحة.",
-            noUserData: "لا توجد بيانات مستخدمين متاحة.", // New
-            noTopProductsData: "لا توجد بيانات منتجات أكثر مبيعًا متاحة.", // New
-            noOrderStatusData: "لا توجد بيانات حالة طلبات متاحة.", // New
+            noUserData: "لا توجد بيانات مستخدمين متاحة.",
+            noTopProductsData: "لا توجد بيانات منتجات أكثر مبيعًا متاحة.",
+            noOrderStatusData: "لا توجد بيانات حالة طلبات متاحة.",
+            noDataAvailable: "لا توجد بيانات متاحة لعرض لوحة التحكم.",
+            noUserRegistrationData: "لا توجد بيانات تسجيل مستخدمين متاحة.",
+            noRecentOrdersData: "لا توجد طلبات أخيرة متاحة.",
         },
         adminCategoryPage: {
             loadingCategories: "جاري تحميل الفئات...",
@@ -538,7 +654,7 @@ const translations = {
             actionsTable: "الإجراءات",
             noDescription: "لا يوجد وصف",
         },
-         productAdmin: {
+        productAdmin: {
             addProductTitle: "إضافة منتج جديد",
             editProductTitle: "تعديل المنتج",
             productNameLabel: "اسم المنتج",
@@ -582,7 +698,7 @@ const translations = {
             noDescription: "لا يوجد وصف",
             uncategorized: "غير مصنف",
         },
-         features: {
+        features: {
             freeShipping: "شحن مجاني",
             freeShippingDesc: "شحن مجاني على جميع الطلبات فوق 100 دولار",
             support247: "دعم 24/7",
@@ -598,39 +714,91 @@ const translations = {
             belief: 'نؤمن بتقديم تجربة تسوق استثنائية من خلال ضمان التوصيل السريع، خيارات الدفع الآمنة، وخدمة العملاء المتميزة. هدفنا هو جعل تسوق التكنولوجيا بسيطاً، موثوقاً، وممتعاً للجميع.',
             explore: 'استكشف مجموعتنا وابقَ على اطلاع بأحدث اتجاهات التكنولوجيا. رضاكم هو أولويتنا!',
             imageAlt: "مصافحة تمثل الشراكة والثقة"
+        },
+        trendingProducts: "المنتجات الأكثر رواجًا",
+        trendingDesc: "اكتشف منتجاتنا الأكثر شعبية هذا الأسبوع.",
+        wishlistPage: {
+            wishlistTitle: "قائمة المفضلة",
+            loadingWishlist: "جاري تحميل قائمة المفضلة...",
+            pleaseLogin: "يرجى تسجيل الدخول لعرض قائمة المفضلة الخاصة بك.",
+            emptyWishlist: "قائمة المفضلة فارغة حالياً.",
+        },
+        auth: {
+            email: "البريد الإلكتروني",
+            password: "كلمة المرور",
+            signIn: "تسجيل الدخول",
+            signingIn: "جاري تسجيل الدخول...",
+            noAccount: "ليس لديك حساب؟",
+            register: "التسجيل",
+            name: "الاسم",
+            confirmPassword: "تأكيد كلمة المرور",
+            passwordMismatch: "كلمتا المرور غير متطابقتين",
+            registering: "جاري التسجيل...",
+            registrationSuccess: "تم التسجيل بنجاح!",
+            haveAccount: "هل لديك حساب بالفعل؟",
+            loginTitle: "تسجيل الدخول",
+            registerTitle: "التسجيل",
         }
     },
 };
 
+export const LanguageProvider = ({ children }) => {
+    const [language, setLanguage] = useState(() => {
+        const savedLanguage = localStorage.getItem('appLanguage');
+        return savedLanguage || 'en';
+    });
+    useEffect(() => {
+        localStorage.setItem('appLanguage', language);
+    }, [language]);
+    const toggleLanguage = () => {
+        setLanguage(prevLanguage => (prevLanguage === 'en' ? 'ar' : 'en'));
+    };
+    const changeLanguage = (newLanguage) => {
+        if (translations[newLanguage]) {
+            setLanguage(newLanguage);
+        } else {
+            console.warn(`Language "${newLanguage}" is not supported.`);
+        }
+    };
+
+const t = (key) => {
+        const keys = key.split('.'); 
+        let currentTranslation = translations[language]; 
+        for (let i = 0; i < keys.length; i++) {
+            if (currentTranslation && typeof currentTranslation === 'object' && keys[i] in currentTranslation) {
+                currentTranslation = currentTranslation[keys[i]];
+            } else {
+                console.warn(`Translation missing for key: "${key}" in "${language}" language. Falling back to English.`);
+                let englishTranslation = translations['en']; 
+                for (let j = 0; j < keys.length; j++) {
+                    if (englishTranslation && typeof englishTranslation === 'object' && keys[j] in englishTranslation) {
+                        englishTranslation = englishTranslation[keys[j]];
+                    } else {
+                        console.error(`Translation not found for key: "${key}" in English.`);
+                        return key; 
+                    }
+                }
+                return englishTranslation;
+            }
+        }
+
+       if (typeof currentTranslation === 'function') {
+            return (...args) => currentTranslation(...args);
+        }
+
+        return currentTranslation; 
+    };
+
+    return (
+        <LanguageContext.Provider value={{ language, t, toggleLanguage, changeLanguage }}>
+            {children}
+        </LanguageContext.Provider>
+    );
+};
 export const useLanguage = () => {
     const context = useContext(LanguageContext);
     if (context === undefined) {
         throw new Error('useLanguage must be used within a LanguageProvider');
     }
     return context;
-};
-
-export const LanguageProvider = ({ children }) => {
-    const [language, setLanguage] = useState('ar');
-
-    const t = translations[language] || translations.en;
-
-    const changeLanguage = (newLanguage) => {
-        if (translations[newLanguage]) {
-            setLanguage(newLanguage);
-        } else {
-            console.warn(`Language "${newLanguage}" not supported. Falling back to English.`);
-            setLanguage('en');
-        }
-    };
-
-    const toggleLanguage = () => {
-        setLanguage(prevLang => prevLang === 'en' ? 'ar' : 'en');
-    };
-
-    return (
-        <LanguageContext.Provider value={{ language, t, changeLanguage, toggleLanguage }}>
-            {children}
-        </LanguageContext.Provider>
-    );
 };
