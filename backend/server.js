@@ -5,19 +5,25 @@ const path = require('path');
 const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
-const Product = require('./models/Product'); 
+
+const Product = require('./models/Product');
 const Category = require('./models/Category');
 const Cart = require('./models/Cart');
 const Order = require('./models/Order');
+const User = require('./models/User');
+
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const authRoutes = require('./routes/auth');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const { protect, admin } = require('./middleware/authMiddleware');
+
 const app = express();
-app.use(cors()); 
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadsDir = path.join(__dirname, 'uploads');
@@ -30,16 +36,21 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
+
 const upload = multer({ storage: storage });
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/productsDB';
 mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB connected to:', MONGO_URI))
     .catch((error) => console.error('MongoDB connection error:', error));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+
 app.get('/api/products', async (req, res) => {
     try {
         const search = req.query.search || '';
@@ -58,6 +69,7 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.post('/api/product', protect, admin, upload.single('image'), async (req, res) => {
     try {
         const { name_en, name_ar, price, description_en, description_ar, category } = req.body;
@@ -78,7 +90,7 @@ app.post('/api/product', protect, admin, upload.single('image'), async (req, res
         }
         const newProduct = new Product({
             name: { en: name_en, ar: name_ar },
-            price: Number(price), 
+            price: Number(price),
             description: { en: description_en, ar: description_ar },
             image: imagePath,
             category
@@ -98,6 +110,7 @@ app.post('/api/product', protect, admin, upload.single('image'), async (req, res
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.get('/api/products/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -110,6 +123,7 @@ app.get('/api/products/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 app.put('/api/product/:id', protect, admin, upload.single('image'), async (req, res) => {
     try {
         const productId = req.params.id;
@@ -184,6 +198,7 @@ app.put('/api/product/:id', protect, admin, upload.single('image'), async (req, 
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.delete('/api/product/:id', protect, admin, async (req, res) => {
     try {
         const productId = req.params.id;
@@ -208,6 +223,7 @@ app.delete('/api/product/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.get('/api/categories', async (req, res) => {
     try {
         const categories = await Category.find().sort({ 'name.en': 1 });
@@ -217,6 +233,7 @@ app.get('/api/categories', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.post('/api/categories', protect, admin, async (req, res) => {
     try {
         const { name_en, name_ar, description_en, description_ar } = req.body;
@@ -247,6 +264,7 @@ app.post('/api/categories', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.put('/api/categories/:id', protect, admin, async (req, res) => {
     try {
         const categoryId = req.params.id;
@@ -287,6 +305,7 @@ app.put('/api/categories/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 app.delete('/api/categories/:id', protect, admin, async (req, res) => {
     try {
         const categoryId = req.params.id;
@@ -302,6 +321,211 @@ app.delete('/api/categories/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
+    try {
+        const totalSalesResult = await Order.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: "$totalPrice" },
+                    totalOrders: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const totalProducts = await Product.countDocuments();
+        const totalUsers = await User.countDocuments();
+
+        const summaryStats = {
+            totalRevenue: totalSalesResult.length > 0 ? totalSalesResult[0].totalRevenue : 0,
+            totalOrders: totalSalesResult.length > 0 ? totalSalesResult[0].totalOrders : 0,
+            totalProducts: totalProducts,
+            totalUsers: totalUsers,
+            averageOrderValue: totalSalesResult.length > 0 && totalSalesResult[0].totalOrders > 0
+                ? totalSalesResult[0].totalRevenue / totalSalesResult[0].totalOrders
+                : 0
+        };
+
+        res.status(200).json(summaryStats);
+    } catch (error) {
+        console.error('Error fetching summary stats for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+
+app.get('/api/dashboard/sales-over-time', protect, admin, async (req, res) => {
+    try {
+        const salesData = await Order.aggregate([
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    totalRevenue: { $sum: "$totalPrice" },
+                    orderCount: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    date: "$_id",
+                    revenue: "$totalRevenue",
+                    orders: "$orderCount"
+                }
+            }
+        ]);
+
+        res.status(200).json(salesData);
+    } catch (error) {
+        console.error('Error fetching sales data for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+app.get('/api/dashboard/product-sales', protect, admin, async (req, res) => {
+    try {
+        const productSalesData = await Order.aggregate([
+            { $unwind: "$orderItems" },
+            {
+                $group: {
+                    _id: "$orderItems.product",
+                    totalQuantitySold: { $sum: "$orderItems.quantity" },
+                    totalProductRevenue: { $sum: { $multiply: ["$orderItems.quantity", "$orderItems.price"] } }
+                }
+            },
+            { $sort: { totalQuantitySold: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+             {
+                 $project: {
+                    _id: 0,
+                    name: "$productDetails.name",
+                    quantitySold: "$totalQuantitySold",
+                    revenue: "$totalProductRevenue"
+                }
+            }
+        ]);
+
+        res.status(200).json(productSalesData);
+    } catch (error) {
+        console.error('Error fetching product sales data for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+app.get('/api/dashboard/category-distribution', protect, admin, async (req, res) => {
+    try {
+        const categoryDistributionData = await Product.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    name: "$_id",
+                    value: "$count"
+                }
+            }
+        ]);
+
+        res.status(200).json(categoryDistributionData);
+    } catch (error) {
+        console.error('Error fetching category distribution data for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+app.get('/api/dashboard/order-status-distribution', protect, admin, async (req, res) => {
+    try {
+        const orderStatusData = await Order.aggregate([
+            {
+                $group: {
+                    _id: {
+                        $cond: {
+                            if: "$isDelivered",
+                            then: "Delivered",
+                            else: {
+                                $cond: {
+                                    if: "$isPaid",
+                                    then: "Paid (Not Delivered)",
+                                    else: "Pending Payment"
+                                }
+                            }
+                        }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+             {
+                $project: {
+                    _id: 0,
+                    status: "$_id",
+                    count: "$count"
+                }
+            }
+        ]);
+
+        res.status(200).json(orderStatusData);
+    } catch (error) {
+        console.error('Error fetching order status distribution data for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+app.get('/api/dashboard/user-registration-over-time', protect, admin, async (req, res) => {
+    try {
+        const registrationData = await User.aggregate([
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    date: "$_id",
+                    users: "$count"
+                }
+            }
+        ]);
+
+        res.status(200).json(registrationData);
+    } catch (error) {
+        console.error('Error fetching user registration data for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+app.get('/api/dashboard/recent-orders', protect, admin, async (req, res) => {
+    try {
+        const recentOrders = await Order.find({})
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate('user', 'name email');
+
+        res.status(200).json(recentOrders);
+    } catch (error) {
+        console.error('Error fetching recent orders for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+
 app.use((err, req, res, next) => {
     console.error("Unhandled error:", err.stack);
     res.status(500).send('Something broke!');

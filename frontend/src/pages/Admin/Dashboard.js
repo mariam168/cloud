@@ -1,98 +1,116 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell,
-} from 'recharts'; // Importing necessary Recharts components
-import { useLanguage } from '../../components/LanguageContext'; // Assuming LanguageContext is available
-
-// Define placeholder data types (adjust based on your actual backend data structure)
-// Example: Sales data over time
-// { date: 'Jan', sales: 4000, revenue: 2400 }
-// Example: Product sales count
-// { name: 'Product A', sales: 150 }
-// Example: Category distribution
-// { name: 'Electronics', value: 300 }
-
-
-const AdminChartsPage = ({ serverUrl = 'http://localhost:5000' }) => {
-    // Get translation function and current language from context
+} from 'recharts';
+import { useLanguage } from '../../components/LanguageContext';
+const AdminDashboardPage = ({ serverUrl = 'http://localhost:5000' }) => {
     const { t, language } = useLanguage();
-
-    // State for different types of chart data
+    const [summaryStats, setSummaryStats] = useState(null);
     const [salesData, setSalesData] = useState([]);
     const [productSalesData, setProductSalesData] = useState([]);
     const [categoryDistributionData, setCategoryDistributionData] = useState([]);
-
-    // State for loading and error handling
+    const [orderStatusData, setOrderStatusData] = useState([]);
+    const [userRegistrationData, setUserRegistrationData] = useState([]);
+    const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    // Fetch data from backend API endpoints
     useEffect(() => {
-        const fetchChartData = async () => {
+        const fetchDashboardData = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
-                // --- Fetch Sales Data (Example: Sales over time) ---
-                // Replace with your actual API endpoint for sales data
-                const salesRes = await fetch(`${serverUrl}/api/dashboard/sales-over-time`);
-                if (!salesRes.ok) throw new Error(`Failed to fetch sales data: ${salesRes.status}`);
-                const salesData = await salesRes.json();
-                setSalesData(salesData);
+                const statsRes = await axios.get(`${serverUrl}/api/dashboard/summary-stats`);
+                setSummaryStats(statsRes.data);
 
-                // --- Fetch Product Sales Data (Example: Top selling products) ---
-                // Replace with your actual API endpoint for product sales data
-                const productSalesRes = await fetch(`${serverUrl}/api/dashboard/product-sales`);
-                 if (!productSalesRes.ok) throw new Error(`Failed to fetch product sales data: ${productSalesRes.status}`);
-                const productSalesData = await productSalesRes.json();
-                setProductSalesData(productSalesData);
+                const salesRes = await axios.get(`${serverUrl}/api/dashboard/sales-over-time`);
+                setSalesData(salesRes.data);
 
-                // --- Fetch Category Distribution Data (Example: Sales/Product count by category) ---
-                // Replace with your actual API endpoint for category data
-                const categoryRes = await fetch(`${serverUrl}/api/dashboard/category-distribution`);
-                 if (!categoryRes.ok) throw new Error(`Failed to fetch category distribution data: ${categoryRes.status}`);
-                const categoryData = await categoryRes.json();
-                setCategoryDistributionData(categoryData);
+                const productSalesRes = await axios.get(`${serverUrl}/api/dashboard/product-sales`);
+                setProductSalesData(productSalesRes.data);
+
+                const categoryRes = await axios.get(`${serverUrl}/api/dashboard/category-distribution`);
+                setCategoryDistributionData(categoryRes.data);
+
+                const orderStatusRes = await axios.get(`${serverUrl}/api/dashboard/order-status-distribution`);
+                setOrderStatusData(orderStatusRes.data);
+
+                const userRegRes = await axios.get(`${serverUrl}/api/dashboard/user-registration-over-time`);
+                setUserRegistrationData(userRegRes.data);
+
+                const recentOrdersRes = await axios.get(`${serverUrl}/api/dashboard/recent-orders`);
+                setRecentOrders(recentOrdersRes.data);
 
 
             } catch (err) {
-                console.error("Error fetching chart data:", err);
-                setError(t.adminChartsPage?.errorFetchingData || 'حدث خطأ أثناء جلب البيانات.');
+                console.error("Error fetching dashboard data:", err);
+                setError(t.adminChartsPage?.errorFetchingData || 'Error fetching data.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchChartData();
-        // Add dependencies if the API endpoints or parameters change based on state/props
-    }, [serverUrl, t.adminChartsPage?.errorFetchingData]); // Re-run if serverUrl or translation changes
+        fetchDashboardData();
+    }, [serverUrl, t.adminChartsPage?.errorFetchingData]);
 
-    // Placeholder colors for charts (customize as needed)
-    const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+    const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A52A2A', '#800080'];
 
-    // Render loading state
     if (loading) {
-        return <div className="text-center text-gray-600 text-lg py-10">{t.adminChartsPage?.loadingData || 'جاري تحميل البيانات...'}</div>;
+        return <div className="text-center text-gray-600 text-lg py-10">{t.adminChartsPage?.loadingData || 'Loading Data...'}</div>;
     }
 
-    // Render error state
     if (error) {
-        return <div className="text-center text-red-600 text-lg p-4 bg-red-100 rounded-md py-10">{t.general?.error || 'خطأ'}: {error}</div>;
+        return <div className="text-center text-red-600 text-lg p-4 bg-red-100 rounded-md py-10">{t.general?.error || 'Error'}: {error}</div>;
     }
 
-    if (salesData.length === 0 && productSalesData.length === 0 && categoryDistributionData.length === 0) {
-         return <div className="text-center text-gray-500 text-lg py-10">{t.adminChartsPage?.noDataAvailable || 'لا توجد بيانات لعرض الرسوم البيانية.'}</div>;
+    if (!summaryStats && salesData.length === 0 && productSalesData.length === 0 && categoryDistributionData.length === 0 && orderStatusData.length === 0 && userRegistrationData.length === 0 && recentOrders.length === 0) {
+         return <div className="text-center text-gray-500 text-lg py-10">{t.adminChartsPage?.noDataAvailable || 'No data available to display dashboard.'}</div>;
     }
+
+
     return (
         <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen rounded-lg shadow-md">
             <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">
-                {t.adminChartsPage?.dashboardTitle || 'لوحة تحكم الإحصائيات'}
+                {t.adminChartsPage?.dashboardTitle || 'Dashboard Overview'}
             </h2>
+
+            {summaryStats && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center text-center">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-white">{t.adminChartsPage?.totalRevenue || 'Total Revenue'}</h3>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
+                             {t.currencySymbol || "EGP"} {summaryStats.totalRevenue?.toFixed(2) || '0.00'}
+                        </p>
+                    </div>
+                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center text-center">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-white">{t.adminChartsPage?.totalOrders || 'Total Orders'}</h3>
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                             {summaryStats.totalOrders || 0}
+                        </p>
+                    </div>
+                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center text-center">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-white">{t.adminChartsPage?.totalProducts || 'Total Products'}</h3>
+                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-2">
+                             {summaryStats.totalProducts || 0}
+                        </p>
+                    </div>
+                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center text-center">
+                        <h3 className="text-lg font-semibold text-gray-700 dark:text-white">{t.adminChartsPage?.totalUsers || 'Total Users'}</h3>
+                        <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
+                             {summaryStats.totalUsers || 0}
+                        </p>
+                    </div>
+                </div>
+            )}
+
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <h3 className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
-                        {t.adminChartsPage?.salesOverTimeTitle || 'المبيعات بمرور الوقت'}
+                        {t.adminChartsPage?.salesOverTimeTitle || 'Sales Over Time'}
                     </h3>
                     {salesData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
@@ -100,68 +118,131 @@ const AdminChartsPage = ({ serverUrl = 'http://localhost:5000' }) => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                                 <XAxis dataKey="date" stroke="#555" />
                                 <YAxis stroke="#555" />
-                                <Tooltip />
+                                <Tooltip formatter={(value, name) => {
+                                    if (name === 'Revenue') return [`${t.currencySymbol || "EGP"} ${value?.toFixed(2)}`, name];
+                                    return [value, name];
+                                }} />
                                 <Legend />
-                                <Line type="monotone" dataKey="sales" stroke="#8884d8" activeDot={{ r: 8 }} name={t.adminChartsPage?.salesLabel || 'المبيعات'} />
-
+                                <Line type="monotone" dataKey="revenue" stroke="#8884d8" activeDot={{ r: 8 }} name={t.adminChartsPage?.revenueLabel || 'Revenue'} />
+                                <Line type="monotone" dataKey="orders" stroke="#82ca9d" name={t.adminChartsPage?.orderCountLabel || 'Order Count'} />
                             </LineChart>
                         </ResponsiveContainer>
                     ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noSalesData || 'لا توجد بيانات مبيعات.'}</p>
+                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noSalesData || 'No sales data available.'}</p>
                     )}
                 </div>
+
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                      <h3 className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
-                        {t.adminChartsPage?.topProductsTitle || 'المنتجات الأكثر مبيعاً'}
+                        {t.adminChartsPage?.topProductsTitle || 'Top Selling Products'}
                     </h3>
                     {productSalesData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={productSalesData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                <XAxis dataKey="name" stroke="#555" />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="#555"
+                                    tickFormatter={(value) => value?.[language] || value?.en || value?.ar || value}
+                                />
                                 <YAxis stroke="#555" />
-                                <Tooltip />
+                                <Tooltip
+                                     formatter={(value, name, props) => {
+                                         if (name === 'quantitySold') {
+                                             return [`${value} ${t.adminChartsPage?.itemsSoldLabel || 'items sold'}`, props.payload.name?.[language] || props.payload.name?.en || props.payload.name?.ar || props.payload.name];
+                                         }
+                                          if (name === 'revenue') {
+                                             return [`${t.currencySymbol || "EGP"} ${value?.toFixed(2)}`, props.payload.name?.[language] || props.payload.name?.en || props.payload.name?.ar || props.payload.name];
+                                         }
+                                         return [value, name];
+                                     }}
+                                />
                                 <Legend />
-
-                                <Bar dataKey="sales" fill="#82ca9d" name={t.adminChartsPage?.salesCountLabel || 'عدد المبيعات'} />
+                                <Bar dataKey="quantitySold" fill="#82ca9d" name={t.adminChartsPage?.quantitySoldLabel || 'Quantity Sold'} />
+                                <Bar dataKey="revenue" fill="#8884d8" name={t.adminChartsPage?.revenueLabel || 'Revenue'} />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noProductSalesData || 'لا توجد بيانات مبيعات المنتجات.'}</p>
+                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noProductSalesData || 'No product sales data available.'}</p>
                     )}
                 </div>
-                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow lg:col-span-2"> 
+
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <h3 className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
-                        {t.adminChartsPage?.categoryDistributionTitle || 'توزيع حسب الفئة'}
+                        {t.adminChartsPage?.categoryDistributionTitle || 'Category Distribution'}
                     </h3>
                     {categoryDistributionData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 <Pie
                                     data={categoryDistributionData}
-                                    cx="50%" 
-                                    cy="50%" 
-                                    outerRadius={100} 
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={100}
                                     fill="#8884d8"
                                     dataKey="value"
-                                    nameKey="name" 
-                                    label 
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                                 >
                                     {categoryDistributionData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip />
+                                <Tooltip
+                                     formatter={(value, name, props) => [`${value} ${t.adminChartsPage?.items || 'items'}`, props.payload.name]}
+                                />
                                 <Legend />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noCategoryData || 'لا توجد بيانات فئات.'}</p>
+                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noCategoryData || 'No category data available.'}</p>
                     )}
                 </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                     <h3 className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
+                        {t.adminChartsPage?.orderStatusTitle || 'Order Status Distribution'}
+                    </h3>
+                    {orderStatusData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={orderStatusData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                <XAxis dataKey="status" stroke="#555" />
+                                <YAxis stroke="#555" />
+                                <Tooltip />
+                                <Legend />
+                                <Bar dataKey="count" fill="#ffc658" name={t.adminChartsPage?.orderCountLabel || 'Order Count'} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noOrderStatusData || 'No order status data available.'}</p>
+                    )}
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow lg:col-span-2">
+                    <h3 className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
+                        {t.adminChartsPage?.userRegistrationTitle || 'User Registration Over Time'}
+                    </h3>
+                    {userRegistrationData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={userRegistrationData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                <XAxis dataKey="date" stroke="#555" />
+                                <YAxis stroke="#555" />
+                                <Tooltip />
+                                <Legend />
+                                <Line type="monotone" dataKey="users" stroke="#ff7300" activeDot={{ r: 8 }} name={t.adminChartsPage?.usersRegisteredLabel || 'Users Registered'} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                         <p className="text-center text-gray-500 dark:text-gray-400">{t.adminChartsPage?.noUserRegistrationData || 'No user registration data available.'}</p>
+                    )}
+                </div>
+
+                 
             </div>
         </div>
     );
 };
 
-export default AdminChartsPage;
+export default AdminDashboardPage;
