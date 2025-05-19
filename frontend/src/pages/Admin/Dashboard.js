@@ -238,65 +238,7 @@ const AdminDashboardPage = ({ serverUrl = 'http://localhost:5000' }) => {
                     )}
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow lg:col-span-2">
-                    <h3 className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
-                        {t('adminDashboardPage.recentOrdersTitle') || 'Recent Orders'}
-                    </h3>
-                    {recentOrders.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead className="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.orderIdHeader') || 'Order ID'}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.userHeader') || 'User'}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.dateHeader') || 'Date'}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.totalHeader') || 'Total'}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.paidHeader') || 'Paid'}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.deliveredHeader') || 'Delivered'}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                    {recentOrders.map(order => (
-                                        <tr key={order._id}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                                {order._id}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {order.user ? order.user.name : 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {new Date(order.createdAt).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                 {t('shopPage.currencySymbol') || "EGP"}{order.totalPrice?.toFixed(2)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {order.isPaid ? (t('adminDashboardPage.yes') || 'Yes') : (t('adminDashboardPage.no') || 'No')}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {order.isDelivered ? (t('adminDashboardPage.yes') || 'Yes') : (t('adminDashboardPage.no') || 'No')}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noRecentOrdersData') || 'No recent orders available.'}</p>
-                    )}
-                </div>
+             
             </div>
         </div>
     );

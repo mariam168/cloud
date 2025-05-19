@@ -1,7 +1,37 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 const LanguageContext = createContext();
 const translations = {
     en: {
+       
+        loginPage: {
+            title: "Login",
+            emailLabel: "Email",
+            passwordLabel: "Password",
+            loginButton: "Login",
+            loginFailed: "Login failed. Please check your credentials.",
+             noAccount: "Don't have an account?",
+            loggingInButton: "Logging In...",
+            signUpLink: " Sign up here",
+            loginSuccess: "Login successful!",
+        },
+        registerPage: {
+            title: "Register",
+            nameLabel: "Name",
+            emailLabel: "Email",
+            passwordLabel: "Password",
+            confirmPasswordLabel: "Confirm Password",
+            registerButton: "Register",
+            passwordMismatch: "Passwords do not match",
+            registering: "Registering...",
+            registrationSuccess: "Registration successful!",
+            haveAccount: "Already have an account?",
+            loginTitle: "Login",
+            registerTitle: "Register",
+            alreadyHaveAccount : "Already have an account?",
+            signInLink: "Sign In Here",
+            submittingButton: "Submit",
+        },
         general: {
             loading: "Loading...",
             error: "Error",
@@ -377,7 +407,53 @@ const translations = {
             registerTitle: "Register",
         }
     },
+ 
     ar: {
+        loginPage: {
+            title: "تسجيل الدخول",
+            emailLabel: "البريد الالكتروني",
+            passwordLabel: "كلمة المرور",
+            loginButton: "تسجيل الدخول",
+            loginFailed: "فشل تسجيل الدخول. يرجى التحقق من بياناتك.",
+            noAccount: "ليس لديك حساب؟",
+            loggingInButton: "جار تسجيل الدخول",
+            signUpLink: " قم بالتسجيل هنا",
+            loginSuccess: "تم تسجيل الدخول بنجاح!",
+          
+        },
+        // registerPage: {
+        //     title: "Register",
+        //     nameLabel: "Name",
+        //     emailLabel: "Email",
+        //     passwordLabel: "Password",
+        //     confirmPasswordLabel: "Confirm Password",
+        //     registerButton: "Register",
+        //     passwordMismatch: "Passwords do not match",
+        //     registering: "Registering...",
+        //     registrationSuccess: "Registration successful!",
+        //     haveAccount: "Already have an account?",
+        //     loginTitle: "Login",
+        //     registerTitle: "Register",
+        //     alreadyHaveAccount : "Already have an account?",
+        //     signInLink: "Sign In Here",
+        // },
+        registerPage: {
+            title: "التسجيل",
+            nameLabel: "الاسم",
+            emailLabel: "البريد الالكتروني",
+            passwordLabel: "كلمة المرور",
+            confirmPasswordLabel: "تاكيد كلمة المرور",
+            registerButton: "تسجيل",
+            passwordMismatch: "كلمة المرور غير متطابقة",
+            registering: "جار التسجيل...",
+            registrationSuccess: "تم التسجيل بنجاح!",
+            haveAccount: "لديك حساب بالفعل؟",
+            loginTitle: "تسجيل الدخول",
+            registerTitle: "التسجيل",
+            alreadyHaveAccount : "لديك حساب بالفعل؟",
+            signInLink: "قم بتسجيل الدخول هنا",
+            submitButton: "اضافة",
+        },
         general: {
             loading: "جاري التحميل...",
             error: "خطأ",
