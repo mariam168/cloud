@@ -14,37 +14,37 @@ const AdminOrdersPage = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-       if (loadingAuth) {
-           return;
-       }
+        if (loadingAuth) {
+            return;
+        }
 
-       if (!isAuthenticated || !currentUser || currentUser.role !== 'admin') {
-           navigate('/');
-           setLoadingOrders(false);
-           return;
-       }
+        if (!isAuthenticated || !currentUser || currentUser.role !== 'admin') {
+            navigate('/');
+            setLoadingOrders(false);
+            return;
+        }
 
-       const fetchOrders = async () => {
-           setLoadingOrders(true);
-           setError(null);
-           try {
-               const config = {
-                   headers: {
-                       Authorization: `Bearer ${token}`,
-                   },
-               };
-               const response = await axios.get(`${API_BASE_URL}/api/orders`, config);
-               setOrders(response.data);
-           } catch (err) {
-               setError(t('adminOrdersPage.errorFetchingOrders') || 'Failed to fetch orders.');
-           } finally {
-               setLoadingOrders(false);
-           }
-       };
+        const fetchOrders = async () => {
+            setLoadingOrders(true);
+            setError(null);
+            try {
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                };
+                const response = await axios.get(`${API_BASE_URL}/api/orders`, config);
+                setOrders(response.data);
+            } catch (err) {
+                setError(t('adminOrdersPage.errorFetchingOrders') || 'Failed to fetch orders.');
+            } finally {
+                setLoadingOrders(false);
+            }
+        };
 
-       if (token && API_BASE_URL) {
-           fetchOrders();
-       }
+        if (token && API_BASE_URL) {
+            fetchOrders();
+        }
 
     }, [isAuthenticated, currentUser, token, API_BASE_URL, navigate, t, loadingAuth]);
 
@@ -143,7 +143,7 @@ const AdminOrdersPage = () => {
                                     )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link to={`/admin/orders/${order._id}`} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-600">
+                                    <Link to={`/orders/${order._id}`} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-600">
                                         {t('adminOrdersPage.details') || 'Details'}
                                     </Link>
                                 </td>

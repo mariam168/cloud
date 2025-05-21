@@ -1,4 +1,4 @@
-import { Home, Package, Folder, ShoppingCart, User } from 'lucide-react';
+import { Home, Package, Folder, ShoppingCart, User, Megaphone, Tag } from 'lucide-react'; // Added Megaphone and Tag icons
 import { useLanguage } from "../LanguageContext";
 import { Outlet, Link } from 'react-router-dom';
 
@@ -42,11 +42,27 @@ const DashboardLayout = () => {
                 </span>
               </Link>
             </li>
+            <li>
+              <Link to="/advertisements" className="flex items-center px-2 md:px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 group">
+                <Megaphone size={20} className="mr-0 md:mr-3 flex-shrink-0" />
+                <span className="hidden md:inline group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">
+                  {t('adminDashboardPage.advertisementManagement') || 'Advertisements'}
+                </span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/discounts" className="flex items-center px-2 md:px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 group">
+                <Tag size={20} className="mr-0 md:mr-3 flex-shrink-0" />
+                <span className="hidden md:inline group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200">
+                  {t('adminDashboardPage.discountManagement') || 'Discounts'}
+                </span>
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
       <div className="flex-1 p-4 md:p-8">
-        
+       
         <Outlet />
       </div>
     </div>

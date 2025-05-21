@@ -22,6 +22,9 @@ import CartPage from './pages/CartPage';
 import { Outlet } from 'react-router-dom';
 import CheckoutPage from './pages/CheckoutPage';
 import Orders from './pages/Admin/AdminOrdersPage';
+import AdvertisementList from './components/Admin/AdvertisementPage/AdvertisementList'; // New
+import DiscountList from './components/Admin/DiscountPage/DiscountList';
+import AdminOrderDetailsPage from './pages/Admin/AdminOrderDetailsPage';
 function Layout({ dark }) {
   const location = useLocation();
   const hideHeader = ['/login', '/register'].includes(location.pathname);
@@ -50,6 +53,9 @@ function Layout({ dark }) {
           <Route path="products" element={<ProductsPage />} />
           <Route path="categories" element={<CateoryPage />} />
           <Route path="orders" element={<Orders />} />
+            <Route path="advertisements" element={<AdvertisementList />} /> 
+                <Route path="discounts" element={<DiscountList />} /> 
+          <Route path="orders/:id" element={<AdminOrderDetailsPage />} />
         </Route>
       </Routes>
     </div>

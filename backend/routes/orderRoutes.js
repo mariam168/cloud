@@ -13,9 +13,11 @@ router.post('/', protect, async (req, res) => {
             shippingPrice,
             totalPrice,
         } = req.body;
+
         if (!orderItems || orderItems.length === 0) {
             return res.status(400).json({ message: 'No order items' });
         }
+
         const order = new Order({
             user: req.user.id, 
             orderItems,
@@ -25,13 +27,15 @@ router.post('/', protect, async (req, res) => {
             shippingPrice,
             totalPrice,
         });
+
         const createdOrder = await order.save();
         try {
-             await Cart.findOneAndDelete({ user: req.user.id });
-             console.log(`Cart cleared for user ${req.user.id} after order ${createdOrder._id}.`);
+            await Cart.findOneAndDelete({ user: req.user.id });
+            console.log(`Cart cleared for user ${req.user.id} after order ${createdOrder._id}.`);
         } catch (cartError) {
-             console.error(`Failed to clear cart for user ${req.user.id} after order ${createdOrder._id}:`, cartError);
+            console.error(`Failed to clear cart for user ${req.user.id} after order ${createdOrder._id}:`, cartError);
         }
+
         res.status(201).json(createdOrder);
     } catch (error) {
         console.error('Error creating order:', error);
@@ -41,9 +45,10 @@ router.post('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id).populate('user', 'name email');
+
         if (order) {
-            if (order.user._id.toString() !== req.user.id.toString() && !req.user.isAdmin) {
-                 return res.status(401).json({ message: 'Not authorized to view this order' });
+            if (order.user._id.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
+                return res.status(401).json({ message: 'Not authorized to view this order' });
             }
             res.status(200).json(order);
         } else {
@@ -54,6 +59,7 @@ router.get('/:id', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 router.get('/myorders', protect, async (req, res) => {
     try {
         const orders = await Order.find({ user: req.user.id });
@@ -64,25 +70,32 @@ router.get('/myorders', protect, async (req, res) => {
     }
 });
 router.get('/', protect, admin, async (req, res) => {
-     try {
-         const orders = await Order.find({}).populate('user', 'id name');
-         res.status(200).json(orders);
-     } catch (error) {
-         console.error('Error fetching all orders (Admin):', error);
-         res.status(500).json({ message: 'Internal Server Error', error: error.message });
-     }
+    try {
+        const orders = await Order.find({}).populate('user', 'id name');
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error('Error fetching all orders (Admin):', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
 });
 router.put('/:id/pay', protect, admin, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
-        if (order) {
-            order.isPaid = true;
-            order.paidAt = Date.now();
-            if (req.body.id) order.paymentResult.id = req.body.id;
-            if (req.body.status) order.paymentResult.status = req.body.status;
-            if (req.body.update_time) order.paymentResult.update_time = req.body.update_time;
-            if (req.body.email_address) order.paymentResult.email_address = req.body.email_address;
-            const updatedOrder = await order.save();
+        const updatedOrder = await Order.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: { 
+                    isPaid: true,
+                    paidAt: Date.now(),
+                    'paymentResult.id': req.body.id,
+                    'paymentResult.status': req.body.status,
+                    'paymentResult.update_time': req.body.update_time,
+                    'paymentResult.email_address': req.body.email_address,
+                },
+            },
+            { new: true, runValidators: false } 
+        ).populate('user', 'name email'); 
+
+        if (updatedOrder) {
             res.status(200).json(updatedOrder); 
         } else {
             res.status(404).json({ message: 'Order not found' });
@@ -92,14 +105,20 @@ router.put('/:id/pay', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
-
 router.put('/:id/deliver', protect, admin, async (req, res) => {
     try {
-      const order = await Order.findById(req.params.id);
-        if (order) {
-            order.isDelivered = true;
-            order.deliveredAt = Date.now();
-            const updatedOrder = await order.save();
+        const updatedOrder = await Order.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: { 
+                    isDelivered: true,
+                    deliveredAt: Date.now(),
+                },
+            },
+            { new: true, runValidators: false }
+        ).populate('user', 'name email'); 
+
+        if (updatedOrder) {
             res.status(200).json(updatedOrder); 
         } else {
             res.status(404).json({ message: 'Order not found' });
@@ -109,4 +128,5 @@ router.put('/:id/deliver', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 module.exports = router;

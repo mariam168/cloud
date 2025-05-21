@@ -11,11 +11,15 @@ const Category = require('./models/Category');
 const Cart = require('./models/Cart');
 const Order = require('./models/Order');
 const User = require('./models/User');
+const Advertisement = require('./models/Advertisement'); // New import
+const Discount = require('./models/Discount'); // New import
 
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const authRoutes = require('./routes/auth');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const advertisementRoutes = require('./routes/advertisementRoutes'); // New import
+const discountRoutes = require('./routes/discountRoutes'); // New import
 const { protect, admin } = require('./middleware/authMiddleware');
 
 const app = express();
@@ -24,20 +28,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const storage = multer.diskStorage({
+// Multer storage for products
+const productStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadsDir = path.join(__dirname, 'uploads');
+        const uploadsDir = path.join(__dirname, 'uploads/products');
         if (!fs.existsSync(uploadsDir)) {
             fs.mkdirSync(uploadsDir, { recursive: true });
         }
-        cb(null, 'uploads/');
+        cb(null, 'uploads/products/');
     },
     filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
-
-const upload = multer({ storage: storage });
+const uploadProduct = multer({ storage: productStorage });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -50,7 +54,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/advertisements', advertisementRoutes); // New route
+app.use('/api/discounts', discountRoutes); // New route
 
+// Product routes
 app.get('/api/products', async (req, res) => {
     try {
         const search = req.query.search || '';
@@ -70,21 +77,21 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-app.post('/api/product', protect, admin, upload.single('image'), async (req, res) => {
+app.post('/api/product', protect, admin, uploadProduct.single('image'), async (req, res) => {
     try {
         const { name_en, name_ar, price, description_en, description_ar, category } = req.body;
         let imagePath = '';
         if (req.file) {
-            imagePath = `/uploads/${req.file.filename}`;
+            imagePath = `/uploads/products/${req.file.filename}`;
         }
-        if (!name_en || name_en.trim() === "" || !name_ar || name_ar.trim() === "" || !price) {
+        if (!name_en || name_en.trim() === "" || !name_ar || name_ar.trim() === "" || price === undefined || price === null || Number(price) < 0) {
             if (req.file) {
-                 const filePath = path.join(__dirname, req.file.path);
-                 if (fs.existsSync(filePath)) {
-                     fs.unlink(filePath, (err) => {
-                         if (err) console.error("Error deleting failed upload:", err);
-                     });
-                 }
+                const filePath = path.join(__dirname, req.file.path);
+                if (fs.existsSync(filePath)) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) console.error("Error deleting failed upload:", err);
+                    });
+                }
             }
             return res.status(400).json({ message: 'Product English and Arabic names, and price are required' });
         }
@@ -99,14 +106,14 @@ app.post('/api/product', protect, admin, upload.single('image'), async (req, res
         res.status(201).json(newProduct);
     } catch (error) {
         console.error('Error saving product:', error);
-         if (req.file) {
+        if (req.file) {
             const filePath = path.join(__dirname, req.file.path);
-             if (fs.existsSync(filePath)) {
-                 fs.unlink(filePath, (err) => {
-                     if (err) console.error("Error deleting failed upload:", err);
-                 });
-             }
-         }
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err) => {
+                    if (err) console.error("Error deleting failed upload:", err);
+                });
+            }
+        }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
@@ -124,19 +131,19 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-app.put('/api/product/:id', protect, admin, upload.single('image'), async (req, res) => {
+app.put('/api/product/:id', protect, admin, uploadProduct.single('image'), async (req, res) => {
     try {
         const productId = req.params.id;
         const { name_en, name_ar, price, description_en, description_ar, category } = req.body;
         const productToUpdate = await Product.findById(productId);
         if (!productToUpdate) {
-             if (req.file) {
-                 const filePath = path.join(__dirname, req.file.path);
-                 if (fs.existsSync(filePath)) {
-                     fs.unlink(filePath, (err) => {
-                         if (err) console.error("Error deleting failed upload:", err);
-                     });
-                 }
+            if (req.file) {
+                const filePath = path.join(__dirname, req.file.path);
+                if (fs.existsSync(filePath)) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) console.error("Error deleting failed upload:", err);
+                    });
+                }
             }
             return res.status(404).json({ message: "Product not found" });
         }
@@ -155,31 +162,31 @@ app.put('/api/product/:id', protect, admin, upload.single('image'), async (req, 
                     });
                 }
             }
-            updatedData.image = `/uploads/${req.file.filename}`;
+            updatedData.image = `/uploads/products/${req.file.filename}`;
         } else {
-             updatedData.image = productToUpdate.image;
+            updatedData.image = productToUpdate.image;
         }
         if (!name_en || name_en.trim() === "" || !name_ar || name_ar.trim() === "" || price === undefined || price === null || Number(price) < 0) {
-             if (req.file) {
-                 const filePath = path.join(__dirname, req.file.path);
-                 if (fs.existsSync(filePath)) {
-                     fs.unlink(filePath, (err) => {
-                         if (err) console.error("Error deleting failed upload:", err);
-                     });
-                 }
+            if (req.file) {
+                const filePath = path.join(__dirname, req.file.path);
+                if (fs.existsSync(filePath)) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) console.error("Error deleting failed upload:", err);
+                    });
+                }
             }
             return res.status(400).json({ message: "Product English/Arabic names and a valid price are required." });
         }
         const updatedProduct = await Product.findByIdAndUpdate(productId, updatedData, { new: true, runValidators: true });
 
         if (!updatedProduct) {
-             if (req.file) {
-                 const filePath = path.join(__dirname, req.file.path);
-                 if (fs.existsSync(filePath)) {
-                     fs.unlink(filePath, (err) => {
-                         if (err) console.error("Error deleting failed upload:", err);
-                     });
-                 }
+            if (req.file) {
+                const filePath = path.join(__dirname, req.file.path);
+                if (fs.existsSync(filePath)) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) console.error("Error deleting failed upload:", err);
+                    });
+                }
             }
             return res.status(404).json({ message: 'Product not found after update attempt' });
         }
@@ -187,14 +194,14 @@ app.put('/api/product/:id', protect, admin, upload.single('image'), async (req, 
         res.status(200).json(updatedProduct);
     } catch (error) {
         console.error('Error updating product:', error);
-         if (req.file) {
-             const filePath = path.join(__dirname, req.file.path);
-             if (fs.existsSync(filePath)) {
-                 fs.unlink(filePath, (err) => {
-                     if (err) console.error("Error deleting failed upload:", err);
-                 });
-             }
-         }
+        if (req.file) {
+            const filePath = path.join(__dirname, req.file.path);
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err) => {
+                    if (err) console.error("Error deleting failed upload:", err);
+                });
+            }
+        }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
@@ -224,6 +231,7 @@ app.delete('/api/product/:id', protect, admin, async (req, res) => {
     }
 });
 
+// Category routes
 app.get('/api/categories', async (req, res) => {
     try {
         const categories = await Category.find().sort({ 'name.en': 1 });
@@ -249,17 +257,17 @@ app.post('/api/categories', protect, admin, async (req, res) => {
     } catch (error) {
         console.error('Error creating category:', error);
         if (error.code === 11000) {
-             if (error.keyPattern && error.keyPattern['name.en']) {
-                 return res.status(400).json({ message: 'Category English name already exists.' });
-             }
-             if (error.keyPattern && error.keyPattern['name.ar']) {
-                  return res.status(400).json({ message: 'Category Arabic name already exists.' });
-             }
+            if (error.keyPattern && error.keyPattern['name.en']) {
+                return res.status(400).json({ message: 'Category English name already exists.' });
+            }
+            if (error.keyPattern && error.keyPattern['name.ar']) {
+                return res.status(400).json({ message: 'Category Arabic name already exists.' });
+            }
             return res.status(400).json({ message: 'Category name must be unique.' });
         }
         if (error.name === 'ValidationError') {
-             const messages = Object.values(error.errors).map(val => val.message);
-             return res.status(400).json({ message: messages.join(', ') });
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ message: messages.join(', ') });
         }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
@@ -294,13 +302,13 @@ app.put('/api/categories/:id', protect, admin, async (req, res) => {
                 return res.status(400).json({ message: 'Category English name already exists.' });
             }
             if (error.keyPattern && error.keyPattern['name.ar']) {
-                 return res.status(400).json({ message: 'Category Arabic name already exists.' });
+                return res.status(400).json({ message: 'Category Arabic name already exists.' });
             }
-           return res.status(400).json({ message: 'Category name must be unique.' });
+            return res.status(400).json({ message: 'Category name must be unique.' });
         }
         if (error.name === 'ValidationError') {
-             const messages = Object.values(error.errors).map(val => val.message);
-             return res.status(400).json({ message: messages.join(', ') });
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ message: messages.join(', ') });
         }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
@@ -322,6 +330,7 @@ app.delete('/api/categories/:id', protect, admin, async (req, res) => {
     }
 });
 
+// Dashboard routes
 app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
     try {
         const totalSalesResult = await Order.aggregate([
@@ -353,7 +362,6 @@ app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
-
 
 app.get('/api/dashboard/sales-over-time', protect, admin, async (req, res) => {
     try {
@@ -405,8 +413,8 @@ app.get('/api/dashboard/product-sales', protect, admin, async (req, res) => {
                 }
             },
             { $unwind: "$productDetails" },
-             {
-                 $project: {
+            {
+                $project: {
                     _id: 0,
                     name: "$productDetails.name",
                     quantitySold: "$totalQuantitySold",
@@ -469,7 +477,7 @@ app.get('/api/dashboard/order-status-distribution', protect, admin, async (req, 
                     count: { $sum: 1 }
                 }
             },
-             {
+            {
                 $project: {
                     _id: 0,
                     status: "$_id",
@@ -521,6 +529,55 @@ app.get('/api/dashboard/recent-orders', protect, admin, async (req, res) => {
         res.status(200).json(recentOrders);
     } catch (error) {
         console.error('Error fetching recent orders for dashboard:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+// Hero Section data (from Advertisement model)
+app.get('/api/hero-slides', async (req, res) => {
+    try {
+        const slides = await Advertisement.find({ type: 'slide', isActive: true }).sort({ order: 1 });
+        res.status(200).json(slides.map(slide => ({
+            _id: slide._id,
+            title: slide.title, // This will be an object {en, ar}
+            desc: slide.description, // This will be an object {en, ar}
+            image: slide.image,
+            link: slide.link,
+            price: 'Special Offer!' // Placeholder, adjust as needed from your data
+        })));
+    } catch (error) {
+        console.error('Error fetching hero slides:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+});
+
+app.get('/api/hero-side-offers', async (req, res) => {
+    try {
+        const iphoneOffer = await Advertisement.findOne({ type: 'sideOffer', isActive: true, 'title.en': { $regex: /iphone/i } }).sort({ order: 1 });
+        const weeklyOffer = await Advertisement.findOne({ type: 'weeklyOffer', isActive: true }).sort({ order: 1 });
+
+        const sideOffers = {};
+        if (iphoneOffer) {
+            sideOffers.iphoneOffer = {
+                _id: iphoneOffer._id,
+                productName: iphoneOffer.title, // This will be an object {en, ar}
+                image: iphoneOffer.image,
+                price: 'Installments Available!', // Placeholder, adjust as needed
+                link: iphoneOffer.link
+            };
+        }
+        if (weeklyOffer) {
+            sideOffers.weeklyOffer = {
+                _id: weeklyOffer._id,
+                title: weeklyOffer.title, // This will be an object {en, ar}
+                description: weeklyOffer.description, // This will be an object {en, ar}
+                link: weeklyOffer.link
+            };
+        }
+
+        res.status(200).json(sideOffers);
+    } catch (error) {
+        console.error('Error fetching hero side offers:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
