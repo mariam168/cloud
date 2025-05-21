@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../components/LanguageContext'; // Import useLanguage
+import { useLanguage } from '../components/LanguageContext';
 
 const RegisterPage = () => {
-    const { t } = useLanguage(); // Get translation function
+    const { t } = useLanguage();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -13,54 +13,53 @@ const RegisterPage = () => {
         password2: '',
     });
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState(''); 
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { login, API_BASE_URL } = useAuth();
-
+    const { API_BASE_URL } = useAuth(); 
     const { name, email, password, password2 } = formData;
-
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
-
     const onSubmit = async e => {
         e.preventDefault();
+        setSuccessMessage(''); 
+        setError('');
         if (password !== password2) {
-            setError(t('registerPage.passwordMatchError') || 'Passwords do not match'); // Translate error message
+            setError(t('auth.passwordMismatch') || 'Passwords do not match');
             return;
         }
         setLoading(true);
-        setError('');
+
         try {
             const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { name, email, password });
-            login(res.data.user, res.data.token);
-            navigate('/');
-            alert(t('registerPage.registrationSuccess') || 'Registration successful! You are now logged in.'); // Translate success message
+            setSuccessMessage(t('auth.registerSuccess') || 'Registration successful! Please check your email for activation link.');
+            setFormData({ name: '', email: '', password: '', password2: '' });
         } catch (err) {
             const errors = err.response?.data?.errors;
             if (errors && Array.isArray(errors)) {
                 setError(errors.map(er => er.msg).join(', '));
             } else if (err.response?.data?.message) {
                 setError(err.response.data.message);
-            } else if (err.response?.data?.msg) {
-                setError(err.response.data.msg);
             } else {
-                setError(t('registerPage.registrationFailed') || 'Registration failed. Please try again or check server logs.'); // Translate generic error
+                setError(t('auth.registerError') || 'Registration failed. Please try again.');
             }
             console.error("Registration error:", err.response ? err.response : err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-100 to-purple-200 px-4 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300 ease-in-out">
             <div className="w-full max-w-md mx-auto mt-10 p-8 bg-white dark:bg-gray-700 shadow-xl rounded-lg transition-colors duration-300 ease-in-out">
                 <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-8">
-                    {t('registerPage.title') || 'Create New Account'} {/* Translate title */}
+                    {t('auth.registerTitle') || 'Create Your Account'}
                 </h1>
                 {error && <p className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm dark:bg-red-900/30 dark:text-red-300">{error}</p>}
+                {successMessage && <p className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm dark:bg-green-900/30 dark:text-green-300">{successMessage}</p>}
                 <form onSubmit={onSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {t('registerPage.nameLabel') || 'Name'} {/* Translate label */}
+                            {t('auth.nameLabel') || 'Full Name'}
                         </label>
                         <input
                             type="text"
@@ -73,7 +72,7 @@ const RegisterPage = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {t('registerPage.emailLabel') || 'Email Address'} {/* Translate label */}
+                            {t('auth.emailLabel') || 'Email Address'}
                         </label>
                         <input
                             type="email"
@@ -86,7 +85,7 @@ const RegisterPage = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {t('registerPage.passwordLabel') || 'Password'} {/* Translate label */}
+                            {t('auth.passwordLabel') || 'Password'}
                         </label>
                         <input
                             type="password"
@@ -100,7 +99,7 @@ const RegisterPage = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {t('registerPage.confirmPasswordLabel') || 'Confirm Password'} {/* Translate label */}
+                            {t('auth.confirmPasswordLabel') || 'Confirm Password'}
                         </label>
                         <input
                             type="password"
@@ -118,14 +117,14 @@ const RegisterPage = () => {
                             disabled={loading}
                             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-700 dark:hover:bg-indigo-600 transition duration-150 ease-in-out"
                         >
-                            {loading ? (t('registerPage.submittingButton') || 'Registering...') : (t('registerPage.registerButton') || 'Register')} {/* Translate button text */}
+                            {loading ? (t('general.submitting') || 'Registering...') : (t('auth.registerButton') || 'Register')}
                         </button>
                     </div>
                 </form>
                 <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-                    {t('registerPage.alreadyHaveAccount') || 'Already have an account?'}{' '} {/* Translate text */}
+                    {t('auth.loginPrompt') || 'Already have an account?'}{' '}
                     <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200 ease-in-out">
-                        {t('registerPage.signInLink') || 'Sign in here'} {/* Translate link text */}
+                        {t('auth.loginLink') || 'Login here'}
                     </Link>
                 </p>
             </div>

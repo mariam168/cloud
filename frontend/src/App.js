@@ -25,6 +25,10 @@ import Orders from './pages/Admin/AdminOrdersPage';
 import AdvertisementList from './components/Admin/AdvertisementPage/AdvertisementList'; // New
 import DiscountList from './components/Admin/DiscountPage/DiscountList';
 import AdminOrderDetailsPage from './pages/Admin/AdminOrderDetailsPage';
+// New Auth Pages
+import ActivationPage from './pages/ActivationPage'; // New
+import ForgotPasswordPage from './pages/ForgotPasswordPage'; // New
+import ResetPasswordPage from './pages/ResetPasswordPage'
 function Layout({ dark }) {
   const location = useLocation();
   const hideHeader = ['/login', '/register'].includes(location.pathname);
@@ -47,6 +51,9 @@ function Layout({ dark }) {
         <Route path="/wishlist" element={<WishlistPage />} /> 
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+<Route path="/activate/:token" element={<ActivationPage />} />
+                            <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
+                            <Route path="/resetpassword/:token" element={<ResetPasswordPage />} />
 
         <Route path="/" element={<DashboardLayout />}>
           <Route path="dashboard" element={<DashboardPage />} />
