@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -8,10 +8,31 @@ import { Loader2 } from 'lucide-react';
 const ForgotPasswordPage = () => {
     const { t } = useLanguage();
     const [email, setEmail] = useState('');
+    const [recaptchaToken, setRecaptchaToken] = useState(''); // New state for reCAPTCHA token
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { API_BASE_URL } = useAuth();
+
+    const recaptchaRef = useRef(null); // Ref for reCAPTCHA widget
+
+    // Load reCAPTCHA when component mounts
+    useEffect(() => {
+        if (window.grecaptcha && recaptchaRef.current && !recaptchaRef.current.hasRendered) {
+            recaptchaRef.current.hasRendered = true; // Prevent re-rendering
+            window.grecaptcha.render(recaptchaRef.current, {
+                sitekey: '6LdxtkMrAAAAACZQKQO1Zsg8sfYTUiv-EejfKkSZ', // Replace with your actual Site Key
+                callback: (token) => {
+                    setRecaptchaToken(token);
+                    setError(''); // Clear reCAPTCHA error on success
+                },
+                'expired-callback': () => {
+                    setRecaptchaToken('');
+                    setError(t('auth.recaptchaError') || 'reCAPTCHA expired. Please re-verify.');
+                },
+            });
+        }
+    }, [t]);
 
     const onSubmit = async e => {
         e.preventDefault();
@@ -19,14 +40,26 @@ const ForgotPasswordPage = () => {
         setMessage('');
         setError('');
 
+        if (!recaptchaToken) {
+            setError(t('auth.recaptchaError') || 'Please complete the reCAPTCHA.');
+            setLoading(false);
+            return;
+        }
+
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/auth/forgotpassword`, { email });
+            const res = await axios.post(`${API_BASE_URL}/api/auth/forgotpassword`, { email, recaptchaToken });
             setMessage(t('auth.resetEmailSent') || res.data.message);
             setEmail(''); // Clear email field
+            if (window.grecaptcha) {
+                window.grecaptcha.reset(); // Reset reCAPTCHA widget
+            }
         } catch (err) {
             const errorMessage = err.response?.data?.message || (t('auth.resetEmailError') || 'Failed to send password reset email.');
             setError(errorMessage);
             console.error("Forgot password error:", err.response ? err.response.data : err.message);
+            if (window.grecaptcha) {
+                window.grecaptcha.reset(); // Reset reCAPTCHA on error
+            }
         } finally {
             setLoading(false);
         }
@@ -60,6 +93,14 @@ const ForgotPasswordPage = () => {
                             className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white dark:placeholder-gray-400 transition-colors duration-300 ease-in-out"
                             placeholder="example@email.com"
                         />
+                    </div>
+
+                    {/* reCAPTCHA widget */}
+                    <div className="flex flex-col items-center">
+                        <div ref={recaptchaRef} className="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY_HERE"></div>
+                        {error && error.includes(t('auth.recaptchaError')) && (
+                            <p className="text-red-500 text-sm mt-2">{t('general.verifyHuman') || 'Please verify you are human.'}</p>
+                        )}
                     </div>
 
                     <button

@@ -47,6 +47,7 @@ const translations = {
             yes : "Yes",
             loadingOrders: "Loading orders...",
             errorFetchingData: "Failed to fetch data.",
+            verifyHuman: "Please verify you are human.",
         },
         shopPage: {
             searchProduct: "Search Product",
@@ -486,6 +487,9 @@ const translations = {
             emptyWishlist: "Your wishlist is currently empty.",
         },
         auth: {
+
+            recaptchaError: "Please complete the reCAPTCHA.", // This is the key!
+            
             email: "Email Address",
             password: "Password",
             signIn: "Sign In",

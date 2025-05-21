@@ -3,6 +3,8 @@ const router = express.Router();
 const { protect, admin } = require('../middleware/authMiddleware'); 
 const Order = require('../models/Order'); 
 const Cart = require('../models/Cart');
+
+// Create a new order (requires authentication)
 router.post('/', protect, async (req, res) => {
     try {
         const {
@@ -29,6 +31,8 @@ router.post('/', protect, async (req, res) => {
         });
 
         const createdOrder = await order.save();
+
+        // Clear the user's cart after a successful order
         try {
             await Cart.findOneAndDelete({ user: req.user.id });
             console.log(`Cart cleared for user ${req.user.id} after order ${createdOrder._id}.`);
@@ -42,12 +46,15 @@ router.post('/', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// Get order by ID (requires authentication, allows user to view their own order or admin to view any)
 router.get('/:id', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id).populate('user', 'name email');
 
         if (order) {
-            if (order.user._id.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
+            // ADDED CHECK: Ensure order.user exists before accessing its properties
+            if (order.user && order.user._id.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
                 return res.status(401).json({ message: 'Not authorized to view this order' });
             }
             res.status(200).json(order);
@@ -60,6 +67,7 @@ router.get('/:id', protect, async (req, res) => {
     }
 });
 
+// Get all orders for the logged-in user (requires authentication)
 router.get('/myorders', protect, async (req, res) => {
     try {
         const orders = await Order.find({ user: req.user.id });
@@ -69,6 +77,8 @@ router.get('/myorders', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// Get all orders (Admin only)
 router.get('/', protect, admin, async (req, res) => {
     try {
         const orders = await Order.find({}).populate('user', 'id name');
@@ -78,12 +88,14 @@ router.get('/', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// Update order to paid (Admin only)
 router.put('/:id/pay', protect, admin, async (req, res) => {
     try {
         const updatedOrder = await Order.findByIdAndUpdate(
             req.params.id,
             {
-                $set: { 
+                $set: {
                     isPaid: true,
                     paidAt: Date.now(),
                     'paymentResult.id': req.body.id,
@@ -92,8 +104,8 @@ router.put('/:id/pay', protect, admin, async (req, res) => {
                     'paymentResult.email_address': req.body.email_address,
                 },
             },
-            { new: true, runValidators: false } 
-        ).populate('user', 'name email'); 
+            { new: true, runValidators: false }
+        ).populate('user', 'name email');
 
         if (updatedOrder) {
             res.status(200).json(updatedOrder); 
@@ -105,18 +117,20 @@ router.put('/:id/pay', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// Update order to delivered (Admin only)
 router.put('/:id/deliver', protect, admin, async (req, res) => {
     try {
         const updatedOrder = await Order.findByIdAndUpdate(
             req.params.id,
             {
-                $set: { 
+                $set: {
                     isDelivered: true,
                     deliveredAt: Date.now(),
                 },
             },
             { new: true, runValidators: false }
-        ).populate('user', 'name email'); 
+        ).populate('user', 'name email');
 
         if (updatedOrder) {
             res.status(200).json(updatedOrder); 

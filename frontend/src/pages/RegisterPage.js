@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,28 +11,62 @@ const RegisterPage = () => {
         email: '',
         password: '',
         password2: '',
+        recaptchaToken: '', // New state for reCAPTCHA token
     });
     const [error, setError] = useState('');
-    const [successMessage, setSuccessMessage] = useState(''); 
+    const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { API_BASE_URL } = useAuth(); 
-    const { name, email, password, password2 } = formData;
+    const { API_BASE_URL } = useAuth();
+
+    const recaptchaRef = useRef(null); // Ref for reCAPTCHA widget
+
+    const { name, email, password, password2, recaptchaToken } = formData;
+
+    // Load reCAPTCHA when component mounts
+    useEffect(() => {
+        if (window.grecaptcha && recaptchaRef.current && !recaptchaRef.current.hasRendered) {
+            recaptchaRef.current.hasRendered = true; // Prevent re-rendering
+            window.grecaptcha.render(recaptchaRef.current, {
+                sitekey: '6LdxtkMrAAAAACZQKQO1Zsg8sfYTUiv-EejfKkSZ', // Replace with your actual Site Key
+                callback: (token) => {
+                    setFormData(prev => ({ ...prev, recaptchaToken: token }));
+                    setError(''); // Clear reCAPTCHA error on success
+                },
+                'expired-callback': () => {
+                    setFormData(prev => ({ ...prev, recaptchaToken: '' }));
+                    setError(t('auth.recaptchaError') || 'reCAPTCHA expired. Please re-verify.');
+                },
+            });
+        }
+    }, [t]);
+
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+
     const onSubmit = async e => {
         e.preventDefault();
-        setSuccessMessage(''); 
+        setSuccessMessage('');
         setError('');
+
         if (password !== password2) {
             setError(t('auth.passwordMismatch') || 'Passwords do not match');
             return;
         }
+
+        if (!recaptchaToken) {
+            setError(t('auth.recaptchaError') || 'Please complete the reCAPTCHA.');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { name, email, password });
+            const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { name, email, password, recaptchaToken });
             setSuccessMessage(t('auth.registerSuccess') || 'Registration successful! Please check your email for activation link.');
-            setFormData({ name: '', email: '', password: '', password2: '' });
+            setFormData({ name: '', email: '', password: '', password2: '', recaptchaToken: '' }); // Clear form and token
+            if (window.grecaptcha) {
+                window.grecaptcha.reset(); // Reset reCAPTCHA widget
+            }
         } catch (err) {
             const errors = err.response?.data?.errors;
             if (errors && Array.isArray(errors)) {
@@ -43,6 +77,9 @@ const RegisterPage = () => {
                 setError(t('auth.registerError') || 'Registration failed. Please try again.');
             }
             console.error("Registration error:", err.response ? err.response : err);
+            if (window.grecaptcha) {
+                window.grecaptcha.reset(); // Reset reCAPTCHA on error
+            }
         } finally {
             setLoading(false);
         }
@@ -111,6 +148,15 @@ const RegisterPage = () => {
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                         />
                     </div>
+                    
+                    {/* reCAPTCHA widget */}
+                    <div className="flex flex-col items-center">
+                        <div ref={recaptchaRef} className="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY_HERE"></div>
+                        {error && error.includes(t('auth.recaptchaError')) && (
+                            <p className="text-red-500 text-sm mt-2">{t('general.verifyHuman') || 'Please verify you are human.'}</p>
+                        )}
+                    </div>
+
                     <div>
                         <button
                             type="submit"
