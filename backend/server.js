@@ -24,6 +24,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const advertisementRoutes = require('./routes/advertisementRoutes');
 const discountRoutes = require('./routes/discountRoutes');
 const contactRoutes = require('./routes/contactRoutes'); // NEW: Import contact route
+// In your server.js or app.js (backend)
 
 // Import Middleware
 const { protect, admin } = require('./middleware/authMiddleware');

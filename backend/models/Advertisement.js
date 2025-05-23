@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const advertisementSchema = mongoose.Schema({
+const advertisementSchema = new mongoose.Schema({
     title: {
         en: { type: String, required: true },
         ar: { type: String, required: true }
@@ -9,32 +9,23 @@ const advertisementSchema = mongoose.Schema({
         en: { type: String },
         ar: { type: String }
     },
-    image: {
-        type: String, 
-        required: true
-    },
-    link: {
-        type: String, 
-        default: '#'
-    },
+    image: { type: String }, // Path to the uploaded image
+    link: { type: String, default: '#' },
     type: {
-        type: String, 
-        required: true,
-        enum: ['slide', 'sideOffer', 'weeklyOffer'], 
+        type: String,
+        enum: ['slide', 'sideOffer', 'weeklyOffer', 'other'], // Ensure these match your frontend dropdown values
         default: 'slide'
     },
-    isActive: {
-        type: Boolean,
-        default: true
-    },
-    order: {
-        type: Number, 
-        default: 0
-    }
-}, {
-    timestamps: true
+    isActive: { type: Boolean, default: true },
+    order: { type: Number, default: 0 }, // For ordering slides
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
 });
 
-const Advertisement = mongoose.model('Advertisement', advertisementSchema);
+// Update `updatedAt` on save
+advertisementSchema.pre('save', function(next) {
+    this.updatedAt = Date.now();
+    next();
+});
 
-module.exports = Advertisement;
+module.exports = mongoose.model('Advertisement', advertisementSchema);

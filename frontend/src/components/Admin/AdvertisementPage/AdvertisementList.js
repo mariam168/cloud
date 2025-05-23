@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrashAlt, FaPlus } from 'react-icons/fa';
-import EditAdvertisementModal from './EditAdvertisementModal';
+import EditAdvertisementModal from './EditAdvertisementModal'; // Assuming this file exists and works
 import AddAdvertisementPage from './AddAdvertisementPage';
-import { useLanguage } from '../../LanguageContext';
+import { useLanguage } from '../../LanguageContext'; // Correct path
 
 const AdvertisementList = () => {
     const { t, language } = useLanguage();
@@ -13,7 +13,7 @@ const AdvertisementList = () => {
     const [editingAdvertisement, setEditingAdvertisement] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
-    const SERVER_URL = 'http://localhost:5000';
+    const SERVER_URL = 'http://localhost:5000'; // Define SERVER_URL here
 
     const fetchAdvertisements = async () => {
         try {
