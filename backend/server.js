@@ -1,3 +1,4 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -6,58 +7,75 @@ const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 
+// Import Mongoose Models
 const Product = require('./models/Product');
 const Category = require('./models/Category');
 const Cart = require('./models/Cart');
 const Order = require('./models/Order');
 const User = require('./models/User');
-const Advertisement = require('./models/Advertisement'); // New import
-const Discount = require('./models/Discount'); // New import
+const Advertisement = require('./models/Advertisement');
+const Discount = require('./models/Discount');
 
+// Import Routes
 const wishlistRoutes = require('./routes/wishlistRoutes');
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth'); // CORRECTED BACK: Changed from './routes/authRoutes' to './routes/auth'
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const advertisementRoutes = require('./routes/advertisementRoutes'); // New import
-const discountRoutes = require('./routes/discountRoutes'); // New import
+const advertisementRoutes = require('./routes/advertisementRoutes');
+const discountRoutes = require('./routes/discountRoutes');
+const contactRoutes = require('./routes/contactRoutes'); // NEW: Import contact route
+
+// Import Middleware
 const { protect, admin } = require('./middleware/authMiddleware');
 
 const app = express();
 
-app.use(cors());
+// CORS configuration to allow requests from your frontend
+app.use(cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:3000', // Allow your React app
+    credentials: true // Allow cookies/auth headers
+}));
+
+// Body parsers for JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Multer storage for products
+// Multer storage for products (handles image uploads)
 const productStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadsDir = path.join(__dirname, 'uploads/products');
+        // Create the directory if it doesn't exist
         if (!fs.existsSync(uploadsDir)) {
             fs.mkdirSync(uploadsDir, { recursive: true });
         }
         cb(null, 'uploads/products/');
     },
     filename: function (req, file, cb) {
+        // Generate a unique filename
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
 const uploadProduct = multer({ storage: productStorage });
 
+// Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/productsDB';
 mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB connected to:', MONGO_URI))
     .catch((error) => console.error('MongoDB connection error:', error));
 
+// Use imported routes
 app.use('/api/auth', authRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/advertisements', advertisementRoutes); // New route
-app.use('/api/discounts', discountRoutes); // New route
+app.use('/api/advertisements', advertisementRoutes);
+app.use('/api/discounts', discountRoutes);
+app.use('/api/contact', contactRoutes); // NEW: Add contact route
 
-// Product routes
+// Product routes (as provided by you)
 app.get('/api/products', async (req, res) => {
     try {
         const search = req.query.search || '';
@@ -231,7 +249,7 @@ app.delete('/api/product/:id', protect, admin, async (req, res) => {
     }
 });
 
-// Category routes
+// Category routes (as provided by you)
 app.get('/api/categories', async (req, res) => {
     try {
         const categories = await Category.find().sort({ 'name.en': 1 });
@@ -330,7 +348,7 @@ app.delete('/api/categories/:id', protect, admin, async (req, res) => {
     }
 });
 
-// Dashboard routes
+// Dashboard routes (as provided by you)
 app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
     try {
         const totalSalesResult = await Order.aggregate([
@@ -583,11 +601,13 @@ app.get('/api/hero-side-offers', async (req, res) => {
 });
 
 
+// Error handling middleware (catch-all for unhandled errors)
 app.use((err, req, res, next) => {
     console.error("Unhandled error:", err.stack);
     res.status(500).send('Something broke!');
 });
 
+// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
