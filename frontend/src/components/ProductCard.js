@@ -63,7 +63,8 @@ const ProductCard = ({ product }) => {
         ? (product.image.startsWith("http") || product.image.startsWith("/"))
             ? product.image.startsWith("/") ? `http://localhost:5000${product.image}` : product.image
             : `http://localhost:5000/${product.image}`
-        : 'https://via.placeholder.com/300x200.png?text=No+Image';
+        : "https://www.pinterest.com/pin/539798705342659016/";
+     
 
     const productName = typeof product.name === 'object' ? (product.name?.[language] || product.name?.en || product.name?.ar) : product.name || 'Unnamed Product';
     const productDescription = typeof product.description === 'object' ? (product.description?.[language] || product.description?.en || product.description?.ar) : product.description || t.noDescription || 'No description available.';
@@ -75,7 +76,7 @@ const ProductCard = ({ product }) => {
                     src={imageUrl}
                     alt={productName}
                     className="w-full h-40 sm:h-48 object-contain mb-2 rounded-md"
-                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300x200.png?text=No+Image'; }}
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://www.pinterest.com/pin/539798705342659016/'; }}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button

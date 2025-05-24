@@ -10,7 +10,7 @@ const categorySchema = new mongoose.Schema({
     },
     ar: {
       type: String,
-      required: [true, 'Category Arabic name is required'], 
+      required: [true, 'Category Arabic name is required'],
       trim: true,
       minlength: [2, 'Category Arabic name must be at least 2 characters long'],
       maxlength: [50, 'Category Arabic name cannot exceed 50 characters']
@@ -27,15 +27,15 @@ const categorySchema = new mongoose.Schema({
       trim: true,
       maxlength: [200, 'Category Arabic description cannot exceed 200 characters']
     }
+  },
+  imageUrl: {
+    type: String, 
+    default: '' 
   }
 }, {
-  timestamps: true 
+  timestamps: true
 });
-
 categorySchema.index({ 'name.en': 1 }, { unique: true });
 categorySchema.index({ 'name.ar': 1 }, { unique: true });
-
-
 const Category = mongoose.model('Category', categorySchema);
-
 module.exports = Category;

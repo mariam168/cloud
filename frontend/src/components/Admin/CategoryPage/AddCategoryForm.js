@@ -1,55 +1,73 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useLanguage } from '../../LanguageContext'; 
+import { useLanguage } from '../../LanguageContext';
 
 const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
     const { t, language } = useLanguage();
     const [category, setCategory] = useState({
-        name_en: '', 
-        name_ar: '', 
-        description_en: '', 
+        name_en: '',
+        name_ar: '',
+        description_en: '',
         description_ar: '',
+        image: null, // إضافة حالة للصورة
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
+    const fileInputRef = useRef(null); // لسهولة الوصول إلى حقل الملف
+
     useEffect(() => {
         if (isOpen) {
-            setCategory({ name_en: '', name_ar: '', description_en: '', description_ar: '' });
+            setCategory({ name_en: '', name_ar: '', description_en: '', description_ar: '', image: null });
             setMessage({ text: '', type: '' });
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''; // مسح قيمة حقل الملف
+            }
         }
     }, [isOpen]);
 
-        
     const handleChange = (e) => {
         const { name, value } = e.target;
         setCategory(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleImageChange = (e) => {
+        setCategory(prev => ({ ...prev, image: e.target.files[0] })); // حفظ الملف المختار
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!category.name_en.trim() || !category.name_ar.trim()) {
             setMessage({ text: t.adminCategoryPage?.categoryNamesRequiredError || 'اسم الفئة باللغتين مطلوب.', type: 'error' });
             return;
         }
-        setIsSubmitting(true);
-        setMessage({ text: '', type: '' });     
 
-            try {
-            await axios.post(`${serverUrl}/api/categories`, {
-                name_en: category.name_en.trim(),   
-                name_ar: category.name_ar.trim(),
-                description_en: category.description_en.trim(), 
-                description_ar: category.description_ar.trim(),
+        setIsSubmitting(true);
+        setMessage({ text: '', type: '' });
+
+        const formData = new FormData();
+        formData.append('name_en', category.name_en.trim());
+        formData.append('name_ar', category.name_ar.trim());
+        formData.append('description_en', category.description_en.trim());
+        formData.append('description_ar', category.description_ar.trim());
+        if (category.image) {
+            formData.append('image', category.image); // إضافة الصورة إلى FormData
+        }
+
+        try {
+            await axios.post(`${serverUrl}/api/categories`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data', // مهم لرفع الملفات
+                },
             });
             setMessage({ text: t.adminCategoryPage?.addSuccess || 'تمت إضافة الفئة بنجاح!', type: 'success' });
-            setCategory({ name_en: '', name_ar: '', description_en: '', description_ar: '' });
-
+            setCategory({ name_en: '', name_ar: '', description_en: '', description_ar: '', image: null });
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
 
             if (onCategoryAdded) {
-                onCategoryAdded(); 
+                onCategoryAdded();
             }
         } catch (err) {
             console.error("Error adding category:", err.response ? err.response.data : err.message);
@@ -62,6 +80,7 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
             setIsSubmitting(false);
         }
     };
+
     if (!isOpen) {
         return null;
     }
@@ -92,12 +111,12 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
                         <input
                             type="text"
                             id="modal-category-name_en"
-                            name="name_en" 
+                            name="name_en"
                             value={category.name_en}
                             onChange={handleChange}
                             className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
                             required
-                            autoFocus 
+                            autoFocus
                         />
                     </div>
                     <div>
@@ -107,10 +126,10 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
                         <input
                             type="text"
                             id="modal-category-name_ar"
-                            name="name_ar" 
+                            name="name_ar"
                             value={category.name_ar}
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-right" // Added text-right
+                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-right"
                             required
                         />
                     </div>
@@ -120,7 +139,7 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
                         </label>
                         <textarea
                             id="modal-category-description_en"
-                            name="description_en" 
+                            name="description_en"
                             value={category.description_en}
                             onChange={handleChange}
                             rows="3"
@@ -133,11 +152,31 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
                         </label>
                         <textarea
                             id="modal-category-description_ar"
-                            name="description_ar" 
+                            name="description_ar"
                             value={category.description_ar}
                             onChange={handleChange}
                             rows="3"
-                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-right" // Added text-right
+                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-right"
+                        />
+                    </div>
+                    {/* حقل رفع الصورة */}
+                    <div>
+                        <label htmlFor="modal-category-image" className="block text-sm font-medium text-gray-700 mb-1">
+                            {t.adminCategoryPage?.categoryImageLabel || 'Category Image (Optional)'}
+                        </label>
+                        <input
+                            type="file"
+                            id="modal-category-image"
+                            name="image"
+                            onChange={handleImageChange}
+                            ref={fileInputRef}
+                            className="w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-purple-50 file:text-purple-700
+                                hover:file:bg-purple-100"
+                            accept="image/*" // قبول ملفات الصور فقط
                         />
                     </div>
                     <div className="flex justify-end space-x-3 pt-4">

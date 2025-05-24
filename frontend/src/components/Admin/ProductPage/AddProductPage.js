@@ -11,6 +11,7 @@ const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' })
         description_ar: "",
         price: "",
         category: "",
+        subCategory: "", // New state for subCategory
     });
     const [imageFile, setImageFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,6 +56,9 @@ const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' })
             if (product.category) {
                 formData.append("category", product.category);
             }
+            if (product.subCategory) { // Append subCategory if it exists
+                formData.append("subCategory", product.subCategory);
+            }
 
             await axios.post(`${serverUrl}/api/product`, formData, {
                 headers: {
@@ -63,7 +67,7 @@ const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' })
             });
 
             setSubmitMessage(t('productAdmin.addSuccess') || "Product added successfully!");
-            setProduct({ name_en: "", name_ar: "", description_en: "", description_ar: "", price: "", category: "" });
+            setProduct({ name_en: "", name_ar: "", description_en: "", description_ar: "", price: "", category: "", subCategory: "" }); // Reset subCategory
             setImageFile(null);
             const fileInput = document.getElementById("image");
             if (fileInput) fileInput.value = null;
@@ -159,6 +163,18 @@ const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' })
                     id="category"
                     name="category"
                     value={product.category}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                />
+            </div>
+            {/* New input for Sub-Category */}
+            <div>
+                <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-1">{t('productAdmin.subCategoryLabel') || 'Sub-Category (Optional)'}</label>
+                <input
+                    type="text"
+                    id="subCategory"
+                    name="subCategory"
+                    value={product.subCategory}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                 />

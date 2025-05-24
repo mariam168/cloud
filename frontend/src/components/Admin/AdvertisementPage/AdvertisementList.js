@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrashAlt, FaPlus } from 'react-icons/fa';
-import EditAdvertisementModal from './EditAdvertisementModal'; // Assuming this file exists and works
+import EditAdvertisementModal from './EditAdvertisementModal'; 
 import AddAdvertisementPage from './AddAdvertisementPage';
-import { useLanguage } from '../../LanguageContext'; // Correct path
-
+import { useLanguage } from '../../LanguageContext'; 
 const AdvertisementList = () => {
     const { t, language } = useLanguage();
     const [advertisements, setAdvertisements] = useState([]);
@@ -13,8 +12,12 @@ const AdvertisementList = () => {
     const [editingAdvertisement, setEditingAdvertisement] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
-    const SERVER_URL = 'http://localhost:5000'; // Define SERVER_URL here
-
+    const SERVER_URL = 'http://localhost:5000'; 
+    const formatDate = (dateString) => {
+        if (!dateString) return t('general.notApplicable') || 'N/A';
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(language, options);
+    };
     const fetchAdvertisements = async () => {
         try {
             setLoading(true);
@@ -28,11 +31,9 @@ const AdvertisementList = () => {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         fetchAdvertisements();
     }, []);
-
     const handleDelete = async (advertisementId, advertisementTitles) => {
         const advertisementTitle = advertisementTitles?.[language] || advertisementTitles?.en || advertisementTitles?.ar || t('general.unnamedItem');
         if (window.confirm(t('advertisementAdmin.confirmDelete', { advertisementTitle }))) {
@@ -46,17 +47,14 @@ const AdvertisementList = () => {
             }
         }
     };
-
     const handleOpenEditModal = (advertisement) => {
         setEditingAdvertisement(advertisement);
         setShowEditModal(true);
     };
-
     const handleCloseEditModal = () => {
         setShowEditModal(false);
         setEditingAdvertisement(null);
     };
-
     const handleAdvertisementUpdated = () => {
         fetchAdvertisements();
         handleCloseEditModal();
@@ -66,10 +64,8 @@ const AdvertisementList = () => {
         fetchAdvertisements();
         setShowAddModal(false);
     };
-
     if (loading) return <p className="text-center text-gray-600 dark:text-gray-300">{t('general.loading') || 'Loading...'}</p>;
     if (error) return <p className="text-center text-red-600 dark:text-red-400">{error}</p>;
-
     return (
         <div className="max-w-7xl mx-auto p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-6">
@@ -92,6 +88,11 @@ const AdvertisementList = () => {
                                 <th className="px-4 py-3">{t('advertisementAdmin.titleTable') || 'Title'}</th>
                                 <th className="px-4 py-3">{t('advertisementAdmin.descriptionTable') || 'Description'}</th>
                                 <th className="px-4 py-3">{t('advertisementAdmin.typeTable') || 'Type'}</th>
+                                <th className="px-4 py-3">{t('advertisementAdmin.startDate') || 'Start Date'}</th>
+                                <th className="px-4 py-3">{t('advertisementAdmin.endDate') || 'End Date'}</th>
+                                <th className="px-4 py-3">{t('advertisementAdmin.originalPrice') || 'Original Price'}</th>
+                                <th className="px-4 py-3">{t('advertisementAdmin.discountedPrice') || 'Discounted Price'}</th>
+                                <th className="px-4 py-3">{t('advertisementAdmin.currency') || 'Currency'}</th>
                                 <th className="px-4 py-3">{t('advertisementAdmin.activeTable') || 'Active'}</th>
                                 <th className="px-4 py-3">{t('advertisementAdmin.orderTable') || 'Order'}</th>
                                 <th className="px-4 py-3 text-center">{t('advertisementAdmin.actionsTable') || 'Actions'}</th>
@@ -102,11 +103,7 @@ const AdvertisementList = () => {
                                 <tr key={advertisement._id} className="border-t border-gray-200 dark:border-gray-700">
                                     <td className="px-4 py-3">
                                         <img
-                                            src={
-                                                advertisement.image
-                                                    ? `${SERVER_URL}${advertisement.image}`
-                                                    : 'https://placehold.co/80x80?text=No+Image'
-                                            }
+                                            src={advertisement.image ? `${SERVER_URL}${advertisement.image}` : ''} 
                                             alt={advertisement.title?.[language] || advertisement.title?.en || advertisement.title?.ar || t('general.unnamedItem')}
                                             className="w-16 h-16 object-cover rounded border border-gray-200 dark:border-gray-600"
                                         />
@@ -121,6 +118,17 @@ const AdvertisementList = () => {
                                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs dark:bg-blue-900/30 dark:text-blue-300">
                                             {advertisement.type || (t('advertisementAdmin.unknownType') || 'Unknown')}
                                         </span>
+                                    </td>
+                                    <td className="px-4 py-3">{formatDate(advertisement.startDate)}</td>
+                                    <td className="px-4 py-3">{formatDate(advertisement.endDate)}</td>
+                                    <td className="px-4 py-3">
+                                        {advertisement.originalPrice !== null ? advertisement.originalPrice : (t('general.notApplicable') || 'N/A')}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {advertisement.discountedPrice !== null ? advertisement.discountedPrice : (t('general.notApplicable') || 'N/A')}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {advertisement.currency || (t('general.notApplicable') || 'N/A')}
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         {advertisement.isActive ? (
@@ -169,7 +177,7 @@ const AdvertisementList = () => {
                             onClick={() => setShowAddModal(false)}
                             className="absolute top-2 right-4 text-xl font-bold text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400"
                         >
-                            &times;
+                            ×
                         </button>
                         <AddAdvertisementPage onAdvertisementAdded={handleAdvertisementAdded} serverUrl={SERVER_URL} />
                     </div>

@@ -1,17 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const Advertisement = require('../models/Advertisement'); // Adjust path to your model
+const Advertisement = require('../models/Advertisement'); 
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); // For file system operations (deleting old image)
-
-// Ensure the uploads directory exists
+const fs = require('fs');
 const uploadDir = path.join(__dirname, '../uploads/advertisements');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-
-// Multer setup for image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadDir);
@@ -22,14 +18,12 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-// GET all advertisements (with optional filters)
 router.get('/', async (req, res) => {
     try {
         const { type, isActive } = req.query;
         let query = {};
         if (type) query.type = type;
-        if (isActive !== undefined) query.isActive = isActive === 'true'; // Convert string to boolean
+        if (isActive !== undefined) query.isActive = isActive === 'true'; 
 
         const advertisements = await Advertisement.find(query).sort({ order: 1, createdAt: -1 });
         res.json(advertisements);
@@ -37,8 +31,6 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-
-// GET a single advertisement by ID
 router.get('/:id', async (req, res) => {
     try {
         const advertisement = await Advertisement.findById(req.params.id);
@@ -48,14 +40,15 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-
-// ADD a new advertisement
 router.post('/', upload.single('image'), async (req, res) => {
-    const { title_en, title_ar, description_en, description_ar, link, type, isActive, order } = req.body;
+    const { 
+        title_en, title_ar, description_en, description_ar, link, type, isActive, order,
+        startDate, endDate, originalPrice, discountedPrice, currency 
+    } = req.body;
     const imagePath = req.file ? `/uploads/advertisements/${req.file.filename}` : null;
 
     if (!title_en || !title_ar || !imagePath) {
-        if (imagePath) fs.unlinkSync(path.join(uploadDir, req.file.filename)); // Clean up uploaded file
+        if (imagePath) fs.unlinkSync(path.join(uploadDir, req.file.filename)); 
         return res.status(400).json({ message: 'Title (English & Arabic) and image are required.' });
     }
 
@@ -65,32 +58,35 @@ router.post('/', upload.single('image'), async (req, res) => {
         image: imagePath,
         link: link || '#',
         type: type || 'slide',
-        isActive: isActive === 'true' || isActive === true, // Ensure boolean
+        isActive: isActive === 'true' || isActive === true, 
         order: parseInt(order) || 0,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        originalPrice: originalPrice ? parseFloat(originalPrice) : null,
+        discountedPrice: discountedPrice ? parseFloat(discountedPrice) : null,
+        currency: currency || 'SAR', 
     });
 
     try {
         const newAdvertisement = await advertisement.save();
         res.status(201).json(newAdvertisement);
     } catch (err) {
-        // If an error occurs during save, delete the uploaded image
         if (req.file) {
             fs.unlinkSync(path.join(uploadDir, req.file.filename));
         }
         res.status(400).json({ message: err.message });
     }
 });
-
-// UPDATE an advertisement
 router.put('/:id', upload.single('image'), async (req, res) => {
-    const { title_en, title_ar, description_en, description_ar, link, type, isActive, order } = req.body;
+    const { 
+        title_en, title_ar, description_en, description_ar, link, type, isActive, order,
+        startDate, endDate, originalPrice, discountedPrice, currency 
+    } = req.body;
     let newImagePath = null;
 
     try {
         const advertisement = await Advertisement.findById(req.params.id);
         if (!advertisement) return res.status(404).json({ message: 'Advertisement not found' });
-
-        // If a new image is uploaded, delete the old one
         if (req.file) {
             newImagePath = `/uploads/advertisements/${req.file.filename}`;
             if (advertisement.image) {
@@ -111,24 +107,25 @@ router.put('/:id', upload.single('image'), async (req, res) => {
         advertisement.order = order !== undefined ? parseInt(order) : advertisement.order;
         if (newImagePath) advertisement.image = newImagePath;
 
+        advertisement.startDate = startDate ? new Date(startDate) : null;
+        advertisement.endDate = endDate ? new Date(endDate) : null;
+        advertisement.originalPrice = (originalPrice !== undefined && originalPrice !== '') ? parseFloat(originalPrice) : null;
+        advertisement.discountedPrice = (discountedPrice !== undefined && discountedPrice !== '') ? parseFloat(discountedPrice) : null;
+        advertisement.currency = currency !== undefined ? currency : advertisement.currency; 
+
         const updatedAdvertisement = await advertisement.save();
         res.json(updatedAdvertisement);
     } catch (err) {
-        // If an error occurs during save, delete the newly uploaded image (if any)
         if (req.file) {
             fs.unlinkSync(path.join(uploadDir, req.file.filename));
         }
         res.status(400).json({ message: err.message });
     }
 });
-
-// DELETE an advertisement
 router.delete('/:id', async (req, res) => {
     try {
         const advertisement = await Advertisement.findByIdAndDelete(req.params.id);
         if (!advertisement) return res.status(404).json({ message: 'Advertisement not found' });
-
-        // Delete the associated image file
         if (advertisement.image) {
             const imageToDeletePath = path.join(__dirname, '../', advertisement.image);
             if (fs.existsSync(imageToDeletePath)) {
@@ -141,7 +138,6 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// --- NEW ROUTE FOR HERO SIDE OFFERS ---
 router.get('/hero-side-offers', async (req, res) => {
     try {
         const sideOffers = await Advertisement.find({
@@ -152,7 +148,7 @@ router.get('/hero-side-offers', async (req, res) => {
         const responseData = {};
         sideOffers.forEach(offer => {
             if (offer.type === 'sideOffer') {
-                responseData.iphoneOffer = offer; // Map 'sideOffer' type to 'iphoneOffer' key
+                responseData.iphoneOffer = offer; 
             } else if (offer.type === 'weeklyOffer') {
                 responseData.weeklyOffer = offer;
             }

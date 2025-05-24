@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useLanguage } from '../../LanguageContext';
-
-const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localhost:5000' }) => {
+import { useLanguage } from '../../LanguageContext'; const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localhost:5000' }) => {
     const { t } = useLanguage();
     const [advertisement, setAdvertisement] = useState({
         title_en: "",
@@ -13,6 +11,11 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
         type: "slide", 
         isActive: true,
         order: 0,
+        startDate: "", 
+        endDate: "", 
+        originalPrice: "",
+        discountedPrice: "",
+        currency: "SAR", 
     });
     const [imageFile, setImageFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +60,11 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
             formData.append("isActive", advertisement.isActive);
             formData.append("order", advertisement.order);
             formData.append("image", imageFile);
-
+            formData.append("startDate", advertisement.startDate);
+            formData.append("endDate", advertisement.endDate);
+            formData.append("originalPrice", advertisement.originalPrice);
+            formData.append("discountedPrice", advertisement.discountedPrice);
+            formData.append("currency", advertisement.currency);
             await axios.post(`${serverUrl}/api/advertisements`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -67,7 +74,8 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
             setSubmitMessage(t('advertisementAdmin.addSuccess') || "Advertisement added successfully!");
             setAdvertisement({
                 title_en: "", title_ar: "", description_en: "", description_ar: "",
-                link: "", type: "slide", isActive: true, order: 0
+                link: "", type: "slide", isActive: true, order: 0,
+                startDate: "", endDate: "", originalPrice: "", discountedPrice: "", currency: "SAR",
             });
             setImageFile(null);
             const fileInput = document.getElementById("advertisement-image");
@@ -180,6 +188,64 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
                     min="0"
                 />
             </div>
+            <div>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('advertisementAdmin.startDate') || 'Start Date'}</label>
+                <input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    value={advertisement.startDate}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+            </div>
+            <div>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('advertisementAdmin.endDate') || 'End Date'}</label>
+                <input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    value={advertisement.endDate}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+            </div>
+            <div>
+                <label htmlFor="originalPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('advertisementAdmin.originalPrice') || 'Original Price'}</label>
+                <input
+                    type="number"
+                    id="originalPrice"
+                    name="originalPrice"
+                    value={advertisement.originalPrice}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    step="0.01" 
+                />
+            </div>
+            <div>
+                <label htmlFor="discountedPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('advertisementAdmin.discountedPrice') || 'Discounted Price'}</label>
+                <input
+                    type="number"
+                    id="discountedPrice"
+                    name="discountedPrice"
+                    value={advertisement.discountedPrice}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    step="0.01"
+                />
+            </div>
+            <div>
+                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('advertisementAdmin.currency') || 'Currency'}</label>
+                <input
+                    type="text"
+                    id="currency"
+                    name="currency"
+                    value={advertisement.currency}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+            </div>
+
             <div className="flex items-center">
                 <input
                     type="checkbox"

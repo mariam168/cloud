@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react';
-import ProductCard from '../components/ProductCard';
-import { useLanguage } from "../components/LanguageContext";
-import { useLocation } from 'react-router-dom';
-import { Filter, X } from 'lucide-react';
+import ProductCard from '../components/ProductCard'; // Assuming ProductCard is in this path
+import { useLanguage } from "../components/LanguageContext"; // Assuming LanguageContext is in this path
+import { useLocation } from 'react-router-dom'; // Import useLocation to read URL parameters
+import { Filter, X } from 'lucide-react'; // Icons for filter button
 
 const ShopPage = () => {
     const { t, language } = useLanguage();
-    const location = useLocation();
+    const location = useLocation(); // Hook to access the current URL location
     const [allProducts, setAllProducts] = useState([]);
     const [displayedProducts, setDisplayedProducts] = useState([]);
     const [sortBy, setSortBy] = useState('popularity');
-    const [selectedCategory, setSelectedCategory] = useState('All Categories');
+    const [selectedCategory, setSelectedCategory] = useState('All Categories'); // Default filter state
+    const [selectedSubCategory, setSelectedSubCategory] = useState('All Subcategories'); // State for subcategory filter
     const [priceRange, setPriceRange] = useState({ min: 0, max: 0 });
     const [selectedBrand, setSelectedBrand] = useState('All Brands');
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
+    const [availableSubCategories, setAvailableSubCategories] = useState([]); // State to store subcategories relevant to selected main category
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+    // Get the category and subcategory from URL query parameters
+    const searchParams = new URLSearchParams(location.search);
+    const categoryFromUrl = searchParams.get('category');
+    const subCategoryFromUrl = searchParams.get('subCategory'); // Get subCategory from URL
 
     useEffect(() => {
         const fetchProducts = async (searchTerm = '') => {
@@ -34,8 +41,9 @@ const ShopPage = () => {
                     return;
                 }
                 const productsData = await productsRes.json();
-                setAllProducts(productsData);
-                setDisplayedProducts(productsData);
+                setAllProducts(productsData); // Store all fetched products
+
+                // Calculate initial price range from fetched products
                 if (productsData.length > 0) {
                     const prices = productsData.map(p => p.price).filter(price => typeof price === 'number');
                     if (prices.length > 0) {
@@ -48,8 +56,11 @@ const ShopPage = () => {
                 } else {
                     setPriceRange({ min: 0, max: 0 });
                 }
+
+                // Extract unique brands from all products
                 const uniqueBrands = ['All Brands', ...new Set(productsData.map(p => p.brand).filter(Boolean))];
                 setBrands(uniqueBrands);
+
             } catch (err) {
                 console.error('Error fetching products:', err);
                 setError(t('shopPage.errorFetchingProducts') || 'Failed to load products.');
@@ -74,21 +85,72 @@ const ShopPage = () => {
             }
         };
 
-        const searchParams = new URLSearchParams(location.search);
         const searchTermFromUrl = searchParams.get('search');
         fetchProducts(searchTermFromUrl);
         fetchCategories();
-    }, [location.search, t]);
 
+        // Initialize selected category and subcategory from URL
+        if (categoryFromUrl) {
+            setSelectedCategory(categoryFromUrl);
+        } else {
+            setSelectedCategory('All Categories');
+        }
+        if (subCategoryFromUrl) {
+            setSelectedSubCategory(subCategoryFromUrl);
+        } else {
+            setSelectedSubCategory('All Subcategories');
+        }
+
+    }, [location.search, t]); // Dependencies for initial data fetch and URL param handling
+
+    // Effect to update available subcategories based on the selected main category
+    useEffect(() => {
+        let filteredProductsByMainCategory = allProducts;
+
+        // If a specific main category is selected (not 'All Categories')
+        if (selectedCategory !== 'All Categories') {
+            filteredProductsByMainCategory = allProducts.filter(product => {
+                const productCategoryName = typeof product.category === 'object'
+                    ? (product.category?.[language] || product.category?.en || product.category?.ar)
+                    : product.category;
+                return productCategoryName === selectedCategory;
+            });
+        }
+
+        // Extract unique subcategories from the filtered set
+        const uniqueSubCategories = ['All Subcategories', ...new Set(
+            filteredProductsByMainCategory
+                .map(p => p.subCategory)
+                .filter(Boolean) // Filter out null, undefined, empty strings
+        )];
+        setAvailableSubCategories(uniqueSubCategories);
+
+        // Reset selected subcategory if the current one is not available in the new list
+        if (!uniqueSubCategories.includes(selectedSubCategory)) {
+            setSelectedSubCategory('All Subcategories');
+        }
+
+    }, [allProducts, selectedCategory, language]); // Dependencies: re-run when allProducts or selectedCategory changes
+
+    // Effect for filtering and sorting products based on all current filters
     useEffect(() => {
         let filtered = allProducts.filter(product => {
-            const categoryName = typeof product.category === 'object' ? (product.category?.[language] || product.category?.en || product.category?.ar) : product.category;
-            const matchesCategory = selectedCategory === 'All Categories' || categoryName === selectedCategory;
+            const productCategoryName = typeof product.category === 'object'
+                ? (product.category?.[language] || product.category?.en || product.category?.ar)
+                : product.category;
+
+            const matchesCategory = selectedCategory === 'All Categories' || productCategoryName === selectedCategory;
+
+            const productSubCategoryName = product.subCategory || '';
+            const matchesSubCategory = selectedSubCategory === 'All Subcategories' || productSubCategoryName === selectedSubCategory;
+
             const productPrice = typeof product?.price === 'number' ? product.price : -1;
             const matchesPrice = productPrice >= priceRange.min && productPrice <= priceRange.max;
+
             const productBrand = product?.brand || '';
             const matchesBrand = selectedBrand === 'All Brands' || productBrand === selectedBrand;
-            return matchesCategory && matchesPrice && matchesBrand;
+
+            return matchesCategory && matchesSubCategory && matchesPrice && matchesBrand;
         });
 
         const sorted = [...filtered].sort((a, b) => {
@@ -109,8 +171,9 @@ const ShopPage = () => {
             return 0;
         });
         setDisplayedProducts(sorted);
-    }, [selectedCategory, priceRange, selectedBrand, sortBy, allProducts, language]);
+    }, [selectedCategory, selectedSubCategory, priceRange, selectedBrand, sortBy, allProducts, language]); // Re-run when these dependencies change
 
+    // Toggle filter sidebar visibility on mobile
     const toggleFilterVisibility = () => {
         setIsFilterVisible(!isFilterVisible);
     };
@@ -143,6 +206,7 @@ const ShopPage = () => {
     return (
         <section className="w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black py-16 px-4 transition-colors duration-500 ease-in-out md:px-8 lg:px-12">
             <div className="mx-auto max-w-screen-xl">
+                {/* Mobile filter toggle button */}
                 <div className="md:hidden flex justify-between items-center mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <span className="text-xl font-bold text-gray-800 dark:text-white">{t('shopPage.filter') || 'Filter'}</span>
                     <button
@@ -154,12 +218,14 @@ const ShopPage = () => {
                     </button>
                 </div>
                 <div className="flex flex-col md:flex-row gap-10 lg:gap-12">
+                    {/* Filter Sidebar */}
                     <aside className={`
                         fixed inset-y-0 left-0 w-3/4 sm:w-1/2 md:w-1/4 bg-white dark:bg-gray-800 shadow-2xl p-6 z-50 transform transition-transform duration-300 ease-in-out
                         md:relative md:translate-x-0 md:shadow-none md:p-0 md:bg-transparent dark:md:bg-transparent md:border-none
                         ${isFilterVisible ? 'translate-x-0' : '-translate-x-full'}
                         md:h-fit md:sticky md:top-28 md:rounded-xl md:shadow-lg md:border md:border-gray-200 dark:md:border-gray-700
                     `}>
+                        {/* Close button for mobile filter sidebar */}
                         <div className="md:hidden flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{t('shopPage.filter') || 'Filter'}</h3>
                             <button
@@ -169,6 +235,7 @@ const ShopPage = () => {
                                 <X size={24} />
                             </button>
                         </div>
+                        {/* Category Filter */}
                         <div className="mb-8">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                                 {t('shopPage.filterByCategory') || 'Filter by Category'}
@@ -182,7 +249,12 @@ const ShopPage = () => {
                                                 ? 'bg-blue-100 dark:bg-blue-700 text-blue-800 dark:text-blue-100 font-semibold'
                                                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'}
                                         `}
-                                        onClick={() => { setSelectedCategory(category._id === 'All Categories' ? 'All Categories' : category.name.en); if (!window.matchMedia('(min-width: 768px)').matches) setIsFilterVisible(false); }}
+                                        onClick={() => {
+                                            setSelectedCategory(category._id === 'All Categories' ? 'All Categories' : category.name.en);
+                                            // No need to manually reset selectedSubCategory here,
+                                            // as the dedicated useEffect for availableSubCategories will handle it.
+                                            if (!window.matchMedia('(min-width: 768px)').matches) setIsFilterVisible(false);
+                                        }}
                                     >
                                         {(category.name?.[language] || category.name?.en || category.name?.ar || category._id)}
                                         {` (${allProducts.filter(p => {
@@ -193,6 +265,38 @@ const ShopPage = () => {
                                 ))}
                             </ul>
                         </div>
+
+                        {/* Subcategory Filter (Now dynamically populated) */}
+                        <div className="mb-8">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                                {t('shopPage.filterBySubCategory') || 'Filter by Sub-Category'}
+                            </h3>
+                            <ul className="space-y-2">
+                                {availableSubCategories.map(subCategory => (
+                                    <li
+                                        key={subCategory}
+                                        className={`cursor-pointer py-2 px-3 rounded-md transition-all duration-200 ease-in-out text-base
+                                            ${selectedSubCategory === subCategory
+                                                ? 'bg-blue-100 dark:bg-blue-700 text-blue-800 dark:text-blue-100 font-semibold'
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'}
+                                        `}
+                                        onClick={() => { setSelectedSubCategory(subCategory); if (!window.matchMedia('(min-width: 768px)').matches) setIsFilterVisible(false); }}
+                                    >
+                                        {subCategory}
+                                        {` (${allProducts.filter(p => {
+                                            const productCategoryName = typeof p.category === 'object'
+                                                ? (p.category?.[language] || p.category?.en || p.category?.ar)
+                                                : p.category;
+                                            // Only count products that match the selected main category AND the current subCategory
+                                            return (selectedCategory === 'All Categories' || productCategoryName === selectedCategory) &&
+                                                   (subCategory === 'All Subcategories' || p.subCategory === subCategory);
+                                        }).length})`}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Price Range Filter */}
                         <div className="mb-8">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                                 {t('shopPage.priceRange') || 'Price Range'}
@@ -220,6 +324,7 @@ const ShopPage = () => {
                                 <span>{t('shopPage.currencySymbol') || '$'}{priceRange.max.toFixed(2)}</span>
                             </div>
                         </div>
+                        {/* Brand Filter */}
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                                 {t('shopPage.filterByBrand') || 'Filter by Brand'}
@@ -245,13 +350,16 @@ const ShopPage = () => {
                             </div>
                         </div>
                     </aside>
+                    {/* Overlay for mobile filter sidebar */}
                     {isFilterVisible && (
                         <div
                             className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
                             onClick={toggleFilterVisibility}
                         ></div>
                     )}
+                    {/* Product Display Area */}
                     <div className="w-full md:w-3/4">
+                        {/* Sort and display count section */}
                         <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-8 border border-gray-200 dark:border-gray-700">
                             <div className="flex items-center mb-4 sm:mb-0">
                                 <span className="text-gray-700 dark:text-gray-300 mr-3 text-base font-semibold">{t('shopPage.sortBy') || 'Sort by:'}</span>
@@ -270,6 +378,7 @@ const ShopPage = () => {
                                 {t('shopPage.showingItems') || 'Showing'}: <span className="font-semibold">{displayedProducts.length}</span> {t('shopPage.items') || 'items'}
                             </div>
                         </div>
+                        {/* Product Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                             {displayedProducts.length === 0 ? (
                                 <div className="col-span-full text-center text-gray-600 dark:text-gray-400 py-16 text-xl font-semibold">

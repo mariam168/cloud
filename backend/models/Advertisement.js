@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const advertisementSchema = new mongoose.Schema({
     title: {
         en: { type: String, required: true },
@@ -9,20 +8,24 @@ const advertisementSchema = new mongoose.Schema({
         en: { type: String },
         ar: { type: String }
     },
-    image: { type: String }, // Path to the uploaded image
+    image: { type: String }, 
     link: { type: String, default: '#' },
     type: {
         type: String,
-        enum: ['slide', 'sideOffer', 'weeklyOffer', 'other'], // Ensure these match your frontend dropdown values
+        enum: ['slide', 'sideOffer', 'weeklyOffer', 'other'], 
         default: 'slide'
     },
     isActive: { type: Boolean, default: true },
-    order: { type: Number, default: 0 }, // For ordering slides
+    order: { type: Number, default: 0 }, 
+    startDate: { type: Date, default: null }, 
+    endDate: { type: Date, default: null }, 
+    originalPrice: { type: Number, default: null }, 
+    discountedPrice: { type: Number, default: null }, 
+    currency: { type: String, default: 'SAR' }, 
+
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
-
-// Update `updatedAt` on save
 advertisementSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();

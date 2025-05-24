@@ -1,6 +1,7 @@
+// components/Advertisement/EditAdvertisementModal.jsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLanguage } from '../../LanguageContext';
+import { useLanguage } from '../../LanguageContext'; 
 
 const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated, serverUrl }) => {
     const { t } = useLanguage();
@@ -13,9 +14,14 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
         type: 'slide',
         isActive: true,
         order: 0,
+        startDate: '',
+        endDate: '',
+        originalPrice: '',
+        discountedPrice: '',
+        currency: '',
     });
     const [imageFile, setImageFile] = useState(null);
-    const [currentImageUrl, setCurrentImageUrl] = useState('');
+    const [currentImageUrl, setCurrentImageUrl] = useState(''); 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
@@ -30,8 +36,13 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                 type: advertisement.type || 'slide',
                 isActive: advertisement.isActive,
                 order: advertisement.order || 0,
+                startDate: advertisement.startDate ? new Date(advertisement.startDate).toISOString().slice(0, 10) : '',
+                endDate: advertisement.endDate ? new Date(advertisement.endDate).toISOString().slice(0, 10) : '',
+                originalPrice: advertisement.originalPrice !== null ? advertisement.originalPrice : '',
+                discountedPrice: advertisement.discountedPrice !== null ? advertisement.discountedPrice : '',
+                currency: advertisement.currency || 'SAR',
             });
-            setCurrentImageUrl(advertisement.image ? `${serverUrl}${advertisement.image}` : '');
+            setCurrentImageUrl(advertisement.image ? `${serverUrl}${advertisement.image}` : ''); 
         }
     }, [advertisement, serverUrl]);
 
@@ -48,7 +59,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
         } else if (advertisement && advertisement.image) {
             setCurrentImageUrl(`${serverUrl}${advertisement.image}`);
         } else {
-            setCurrentImageUrl('');
+            setCurrentImageUrl(''); 
         }
     };
 
@@ -75,6 +86,11 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
         if (imageFile) {
             formData.append('image', imageFile);
         }
+        formData.append('startDate', editedAdvertisement.startDate);
+        formData.append('endDate', editedAdvertisement.endDate);
+        formData.append('originalPrice', editedAdvertisement.originalPrice);
+        formData.append('discountedPrice', editedAdvertisement.discountedPrice);
+        formData.append('currency', editedAdvertisement.currency);
 
         try {
             const response = await axios.put(`${serverUrl}/api/advertisements/${advertisement._id}`, formData, {
@@ -85,13 +101,14 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
             onAdvertisementUpdated(response.data);
             alert(t('advertisementAdmin.updateSuccess') || "Advertisement updated successfully!");
             onClose();
-        } catch (err) {
+        } catch (err) { // المتغير هنا هو 'err'
             console.error("Error updating advertisement:", err.response ? err.response.data : err.message);
             setErrorMessage(
                 (t('advertisementAdmin.updateError') || "An error occurred while updating the advertisement.") +
+                // تم تصحيح 'error' إلى 'err' في السطور التالية
                 (err.response && err.response.data && typeof err.response.data === 'string'
                     ? err.response.data
-                    : err.response?.data?.message || err.message)
+                    : err.response?.data?.message || err.message) 
             );
         } finally {
             setIsSubmitting(false);
@@ -189,6 +206,65 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                             min="0"
                         />
                     </div>
+
+                    <div>
+                        <label htmlFor="edit-startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('advertisementAdmin.startDate') || 'Start Date'}</label>
+                        <input
+                            type="date"
+                            id="edit-startDate"
+                            name="startDate"
+                            value={editedAdvertisement.startDate}
+                            onChange={handleChange}
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="edit-endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('advertisementAdmin.endDate') || 'End Date'}</label>
+                        <input
+                            type="date"
+                            id="edit-endDate"
+                            name="endDate"
+                            value={editedAdvertisement.endDate}
+                            onChange={handleChange}
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="edit-originalPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('advertisementAdmin.originalPrice') || 'Original Price'}</label>
+                        <input
+                            type="number"
+                            id="edit-originalPrice"
+                            name="originalPrice"
+                            value={editedAdvertisement.originalPrice}
+                            onChange={handleChange}
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            step="0.01"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="edit-discountedPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('advertisementAdmin.discountedPrice') || 'Discounted Price'}</label>
+                        <input
+                            type="number"
+                            id="edit-discountedPrice"
+                            name="discountedPrice"
+                            value={editedAdvertisement.discountedPrice}
+                            onChange={handleChange}
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            step="0.01"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="edit-currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('advertisementAdmin.currency') || 'Currency'}</label>
+                        <input
+                            type="text"
+                            id="edit-currency"
+                            name="currency"
+                            value={editedAdvertisement.currency}
+                            onChange={handleChange}
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                    </div>
+
                     <div className="flex items-center">
                         <input
                             type="checkbox"
@@ -202,7 +278,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                     </div>
                     <div>
                         <label htmlFor="edit-image" className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t('advertisementAdmin.imageOptional') || 'Image (Optional to change current)'}</label>
-                        {currentImageUrl && (
+                        {currentImageUrl && ( 
                             <img src={currentImageUrl} alt="Current advertisement" className="mt-2 mb-2 w-32 h-32 object-cover rounded" />
                         )}
                         <input

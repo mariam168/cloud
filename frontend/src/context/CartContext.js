@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
@@ -63,7 +64,13 @@ export const CartProvider = ({ children }) => {
             navigate('/login');
             return;
         }
-        if (!product || !product._id) {
+        // هنا نقوم بتعديل كيفية استخراج product._id:
+        // إذا كان المنتج هو كائن إعلان (advertisement) من الـ Hero Section أو AllOffersPage
+        // فسيكون الـ _id في المسار الرئيسي للكائن.
+        // إذا كان منتجاً من صفحة منتجات (product card) فغالباً _id سيكون في المسار الرئيسي.
+        const productId = product._id; 
+        
+        if (!productId) {
             alert('بيانات المنتج غير مكتملة!');
             return;
         }
@@ -74,11 +81,12 @@ export const CartProvider = ({ children }) => {
         }
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/cart/${product._id}`, { quantity: numQuantity }, {
+            const response = await axios.post(`${API_BASE_URL}/api/cart/${productId}`, { quantity: numQuantity }, { // استخدام productId هنا
                 headers: { Authorization: `Bearer ${token}` }
             });
             setCartItems(response.data.cart || []);
-            console.log(`تمت إضافة ${numQuantity} من المنتج ${typeof product.name === 'object' ? (product.name.en || product.name.ar || 'Unnamed Product') : product.name} للسلة.`);
+            const productName = typeof product.title === 'object' ? (product.title.en || product.title.ar || 'Unnamed Product') : product.name; // للتعامل مع الإعلانات كمنتجات
+            console.log(`تمت إضافة ${numQuantity} من المنتج ${productName} للسلة.`);
         } catch (error) {
             console.error('Error adding product to cart:', error.response?.data?.message || error.message);
             alert(`حدث خطأ أثناء إضافة المنتج للسلة: ${error.response?.data?.message || error.message}`);
@@ -99,6 +107,7 @@ export const CartProvider = ({ children }) => {
         }
     };
 
+    // تحديث isInCart للتحقق من productId مباشرة
     const isInCart = (productId) => {
         if (!productId) return false;
         return cartItems.some(item => item.product && item.product.toString() === productId.toString());
@@ -110,12 +119,13 @@ export const CartProvider = ({ children }) => {
             navigate('/login');
             return;
         }
-        if (!product || !product._id) {
+        const productId = product._id;
+        if (!productId) {
             alert('بيانات المنتج غير مكتملة.');
             return;
         }
-        if (isInCart(product._id)) {
-            await removeFromCart(product._id);
+        if (isInCart(productId)) {
+            await removeFromCart(productId);
         } else {
             await addToCart(product, 1);
         }
@@ -169,7 +179,7 @@ export const CartProvider = ({ children }) => {
             clearCart,
             loadingCart,
             fetchCart,
-            getCartCount,
+            getCartCount, // هذا يعيد الرقم، لا مجموعة العناصر
             cartInitialized
         }}>
             {children}
