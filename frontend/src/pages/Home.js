@@ -6,9 +6,9 @@ export default function Home() {
     return (
         <div>
             <HeroSection />
-                   <TrendingProducts />
-                   <CategoryList />
-                   <Features />
+            <TrendingProducts />
+            <CategoryList />
+            <Features />
         </div>
     );
 }

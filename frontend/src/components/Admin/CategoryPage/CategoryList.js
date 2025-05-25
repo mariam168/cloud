@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import EditCategoryModal from './EditCategoryModal';
-import { useLanguage } from '../../LanguageContext'; // Adjust path if necessary
+import { useLanguage } from '../../LanguageContext';
 
 const CategoryList = ({ refreshTrigger, serverUrl, onCategoryAction }) => {
     const { t, language } = useLanguage();
@@ -28,7 +28,7 @@ const CategoryList = ({ refreshTrigger, serverUrl, onCategoryAction }) => {
 
     useEffect(() => {
         fetchCategories();
-    }, [refreshTrigger, serverUrl, language]); // Re-fetch when refreshTrigger, serverUrl, or language changes
+    }, [refreshTrigger, serverUrl, language]); 
 
     const handleDelete = async (categoryId, categoryNames) => {
         const categoryName = categoryNames?.[language] || categoryNames?.en || categoryNames?.ar || 'this category';
@@ -36,8 +36,8 @@ const CategoryList = ({ refreshTrigger, serverUrl, onCategoryAction }) => {
             try {
                 await axios.delete(`${serverUrl}/api/categories/${categoryId}`);
                 alert(t.adminCategoryPage?.deleteSuccess || "Category deleted successfully!");
-                if (onCategoryAction) onCategoryAction(); // Trigger parent refresh
-                else fetchCategories(); // Fallback to local refresh
+                if (onCategoryAction) onCategoryAction(); 
+                else fetchCategories(); 
             } catch (err) {
                 console.error("Error deleting category:", err.response ? err.response.data : err.message);
                 alert(t.adminCategoryPage?.errorDeletingCategory || "An error occurred while deleting the category.");
@@ -56,9 +56,9 @@ const CategoryList = ({ refreshTrigger, serverUrl, onCategoryAction }) => {
     };
 
     const handleCategoryUpdated = () => {
-        if (onCategoryAction) onCategoryAction(); // Trigger parent refresh
-        else fetchCategories(); // Fallback to local refresh
-        handleCloseEditModal(); // Close modal after update
+        if (onCategoryAction) onCategoryAction(); 
+        else fetchCategories(); 
+        handleCloseEditModal(); 
     };
 
     if (loading) return <p className="text-center text-gray-600 text-lg py-5">{t.adminCategoryPage?.loadingCategories || 'Loading Categories...'}</p>;
@@ -73,9 +73,8 @@ const CategoryList = ({ refreshTrigger, serverUrl, onCategoryAction }) => {
                     {categories.map(category => (
                         <li key={category._id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
                             <div className="flex items-center">
-                                {category.imageUrl && ( // Display image only if imageUrl exists
+                                {category.imageUrl && ( 
                                     <img
-                                        // This is the crucial part: combine serverUrl with the relative path
                                         src={`${serverUrl}${category.imageUrl}`}
                                         alt={category.name?.[language] || category.name?.en || 'Category Image'}
                                         className="w-16 h-16 object-cover rounded-md mr-4"

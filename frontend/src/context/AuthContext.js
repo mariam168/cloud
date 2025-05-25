@@ -7,7 +7,7 @@ export const useAuth = () => {
     return useContext(AuthContext);
 };
 
-const API_BASE_URL = 'http://localhost:5000'; // Make sure this matches your backend URL
+const API_BASE_URL = 'http://localhost:5000';
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }) => {
         
         if (storedToken && storedUser) {
             try {
-                // Parse the stored user data, which now includes isActivated
                 setCurrentUser(JSON.parse(storedUser)); 
                 axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
                 setToken(storedToken); 
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }) => {
         const responseInterceptor = axios.interceptors.response.use(
             response => response,
             error => {
-                // If a 401 is caught and there was an Authorization header, it means the token is invalid/expired
                 if (error.response && error.response.status === 401 && axios.defaults.headers.common['Authorization']) {
                     console.warn("AuthContext: Interceptor caught 401, logging out.");
                     logout(); 

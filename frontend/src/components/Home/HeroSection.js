@@ -1,7 +1,7 @@
-// components/HeroSection.jsx
+
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Tag, Calendar, Percent, Copy, Search } from "lucide-react"; 
-import { useLanguage } from "../../components/LanguageContext"; // تأكد من المسار الصحيح
+import { useLanguage } from "../../components/LanguageContext";
 import axios from 'axios';
 import { Link } from 'react-router-dom'; 
 
@@ -25,15 +25,11 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                 const slidesRes = await axios.get(`${serverUrl}/api/advertisements?type=slide&isActive=true`);
                 const sortedSlides = slidesRes.data.sort((a, b) => (a.order || 0) - (b.order || 0));
                 setSlidesData(sortedSlides);
-                // console.log("Slides Data Received:", sortedSlides); 
-
                 const sideOffersRes = await axios.get(`${serverUrl}/api/hero-side-offers`);
                 setSideOffersData(sideOffersRes.data);
-                // console.log("Side Offers Data Received:", sideOffersRes.data); 
 
                 const discountsRes = await axios.get(`${serverUrl}/api/discounts/active`);
                 setDiscountsData(discountsRes.data);
-                // console.log("Discounts Data Received:", discountsRes.data); 
 
             } catch (err) {
                 console.error("Error fetching hero section data:", err);
@@ -81,8 +77,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
     };
 
     const currentSlideContent = slidesLength > 0 ? slidesData[current] : null;
-
-    // Helper function to format currency using Intl.NumberFormat
     const formatCurrency = (amount, currencyCode = 'SAR') => {
         if (amount === null || amount === undefined) return 'N/A';
         const options = {
@@ -98,8 +92,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
             return `${currencyCode} ${amount?.toFixed(2)}`; 
         }
     };
-
-    // Helper function to format dates
     const formatDate = (dateString) => {
         if (!dateString) return t('general.notApplicable') || 'N/A';
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -141,8 +133,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
     return (
         <section className="w-full py-12 px-4 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-black transition-colors duration-500 ease-in-out sm:py-16 md:py-20 lg:py-24 overflow-hidden font-sans">
             <div className="mx-auto grid max-w-7xl h-full grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-
-                {/* --- Main Carousel Slide --- */}
                 {currentSlideContent && (
                     <div
                         className="relative col-span-1 md:col-span-2 flex flex-col items-center justify-center gap-6 rounded-3xl bg-white p-8 shadow-2xl dark:bg-gray-800 md:flex-row overflow-hidden border border-gray-100 dark:border-gray-700 transform transition-all duration-500 ease-in-out hover:scale-[1.005] group/main"
@@ -247,8 +237,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                         )}
                     </div>
                 )}
-
-                {/* --- Side Offers & Discounts Column --- */}
                 <div className="col-span-1 flex flex-col gap-6">
                     {sideOffersData.iphoneOffer && (
                         <a href={sideOffersData.iphoneOffer.link || '#'} className="block">
@@ -303,8 +291,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                             </div>
                         </a>
                     )}
-                    
-                    {/* --- NEW: All Offers Card --- */}
                     <Link to="/all-offers" className="block mt-4">
                         <div className="flex items-center gap-4 rounded-3xl bg-gradient-to-r from-purple-50 to-pink-50 p-6 shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 dark:from-purple-900 dark:to-pink-900 border border-purple-200 dark:border-purple-700 cursor-pointer text-center">
                             <div className="flex-1">
@@ -320,7 +306,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                             </div>
                         </div>
                     </Link>
-                    {/* --- END NEW: All Offers Card --- */}
 
                     {discountsData.length > 0 && (
                         <div className="flex flex-col gap-4 mt-2">

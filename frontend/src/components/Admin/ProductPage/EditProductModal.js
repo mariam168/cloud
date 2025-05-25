@@ -11,7 +11,7 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
         description_ar: '',
         price: '',
         category: '',
-        subCategory: '', // New state for subCategory
+        subCategory: '', 
     });
     const [imageFile, setImageFile] = useState(null);
     const [currentImageUrl, setCurrentImageUrl] = useState('');
@@ -27,7 +27,7 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
                 description_ar: product.description?.ar || '',
                 price: product.price || '',
                 category: product.category || '',
-                subCategory: product.subCategory || '', // Initialize subCategory from product
+                subCategory: product.subCategory || '',
             });
             setCurrentImageUrl(product.image ? `${serverUrl}${product.image}` : '');
         }
@@ -68,7 +68,7 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
         formData.append('description_ar', editedProduct.description_ar);
         formData.append('price', editedProduct.price);
         formData.append('category', editedProduct.category);
-        formData.append('subCategory', editedProduct.subCategory); // Append subCategory
+        formData.append('subCategory', editedProduct.subCategory); 
         if (imageFile) {
             formData.append('image', imageFile);
         }
@@ -80,9 +80,7 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
                 },
             });
             onProductUpdated(response.data);
-            // Replaced alert with a custom message box or similar UI for better UX
-            // For this example, I'll use a simple console log and rely on the parent component to show success message
-            console.log(t('productAdmin.updateSuccess') || "Product updated successfully!");
+           console.log(t('productAdmin.updateSuccess') || "Product updated successfully!");
             onClose();
         } catch (err) {
             console.error("Error updating product:", err.response ? err.response.data : err.message);
@@ -176,7 +174,6 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
                             className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                         />
                     </div>
-                    {/* New input for Sub-Category */}
                     <div>
                         <label htmlFor="edit-subCategory" className="block text-sm font-medium text-gray-700">{t('productAdmin.subCategoryLabel') || 'Sub-Category'}</label>
                         <input

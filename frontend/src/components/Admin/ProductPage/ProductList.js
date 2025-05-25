@@ -35,13 +35,12 @@ const ProductList = () => {
 
     const handleDelete = async (productId, productNames) => {
         const productName = productNames?.[language] || productNames?.en || productNames?.ar || t('general.unnamedProduct');
-        // Using a custom modal/dialog instead of window.confirm for better UX in Canvas
-        const confirmDelete = window.confirm(t('adminProduct.confirmDelete', productName)); // Replace with your custom modal logic
+        const confirmDelete = window.confirm(t('adminProduct.confirmDelete', productName));
         if (confirmDelete) {
             try {
                 await axios.delete(`${SERVER_URL}/api/product/${productId}`);
                 setProducts(prev => prev.filter(p => p._id !== productId));
-                alert(t('adminProduct.deleteSuccess') || 'Product deleted successfully!'); // Replace with custom success message UI
+                alert(t('adminProduct.deleteSuccess') || 'Product deleted successfully!'); 
             } catch (err) {
                 console.error('Error deleting product:', err);
                 alert((t('adminProduct.errorDeletingProduct') || 'An error occurred while deleting the product.') + (err.response?.data?.message || err.message)); // Replace with custom error message UI

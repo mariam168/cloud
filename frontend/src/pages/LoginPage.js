@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../components/LanguageContext';
-
 const LoginPage = () => {
     const { t } = useLanguage();
     const [formData, setFormData] = useState({ email: '', password: '' });

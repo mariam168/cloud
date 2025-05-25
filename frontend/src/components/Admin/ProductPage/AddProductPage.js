@@ -11,7 +11,7 @@ const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' })
         description_ar: "",
         price: "",
         category: "",
-        subCategory: "", // New state for subCategory
+        subCategory: "", 
     });
     const [imageFile, setImageFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -167,7 +167,6 @@ const AddProductPage = ({ onProductAdded, serverUrl = 'http://localhost:5000' })
                     className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                 />
             </div>
-            {/* New input for Sub-Category */}
             <div>
                 <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-1">{t('productAdmin.subCategoryLabel') || 'Sub-Category (Optional)'}</label>
                 <input

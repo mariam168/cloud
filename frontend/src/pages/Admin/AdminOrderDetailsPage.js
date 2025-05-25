@@ -68,8 +68,6 @@ const AdminOrderDetailsPage = () => {
             console.log("Missing token, API_BASE_URL, or id. Not calling fetchOrderDetails yet.");
         }
     }, [id, isAuthenticated, currentUser, token, API_BASE_URL, navigate, t, loadingAuth]);
-
-    // Effect to clear UI messages after a delay
     useEffect(() => {
         if (uiMessage.text) {
             const timer = setTimeout(() => {
@@ -93,7 +91,7 @@ const AdminOrderDetailsPage = () => {
                 id: 'mock_payment_id_' + Date.now(),
                 status: 'COMPLETED',
                 update_time: new Date().toISOString(),
-                email_address: order.user?.email, // Use optional chaining here
+                email_address: order.user?.email, 
             };
             const response = await axios.put(`${API_BASE_URL}/api/orders/${id}/pay`, paymentResult, config);
             setOrder(response.data);
@@ -177,12 +175,9 @@ const AdminOrderDetailsPage = () => {
                 <ChevronLeft size={20} className="mr-2" />
                 {t('general.back') || 'Back to Orders'}
             </Link>
-
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 border-b pb-4 border-gray-200 dark:border-gray-700">
                 {t('adminOrdersPage.orderDetails') || 'Order Details'} - {order._id}
             </h1>
-
-            {/* UI Message Display */}
             {uiMessage.text && (
                 <div className={`p-4 mb-6 rounded-lg text-white font-semibold flex items-center justify-center gap-2
                     ${uiMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}
@@ -193,9 +188,7 @@ const AdminOrderDetailsPage = () => {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Order Summary / Shipping / Payment */}
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Shipping Address */}
                     <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <MapPin size={24} className="mr-3 text-indigo-600 dark:text-indigo-400" />
@@ -226,8 +219,6 @@ const AdminOrderDetailsPage = () => {
                             </button>
                         )}
                     </div>
-
-                    {/* Payment Method & Status */}
                     <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <DollarSign size={24} className="mr-3 text-green-600 dark:text-green-400" />
@@ -258,8 +249,6 @@ const AdminOrderDetailsPage = () => {
                             </button>
                         )}
                     </div>
-
-                    {/* Order Items */}
                     <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <Package size={24} className="mr-3 text-purple-600 dark:text-purple-400" />
@@ -286,16 +275,12 @@ const AdminOrderDetailsPage = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Order Summary / User Info */}
                 <div className="lg:col-span-1 space-y-8">
-                    {/* User Information */}
                     <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <User size={24} className="mr-3 text-blue-600 dark:text-blue-400" />
                             {t('adminOrdersPage.customerInfo') || 'Customer Information'}
                         </h2>
-                        {/* Apply optional chaining here */}
                         <p className="text-gray-700 dark:text-gray-300">
                             <strong>{t('adminOrdersPage.name') || 'Name'}:</strong> {order.user?.name || t('general.notAvailable') || 'N/A'}
                         </p>
@@ -303,8 +288,6 @@ const AdminOrderDetailsPage = () => {
                             <strong>{t('adminOrdersPage.email') || 'Email'}:</strong> {order.user?.email || t('general.notAvailable') || 'N/A'}
                         </p>
                     </div>
-
-                    {/* Order Totals */}
                     <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <DollarSign size={24} className="mr-3 text-yellow-600 dark:text-yellow-400" />
@@ -329,8 +312,6 @@ const AdminOrderDetailsPage = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Order Dates */}
                     <div className="bg-gray-50 dark:bg-slate-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <Calendar size={24} className="mr-3 text-orange-600 dark:text-orange-400" />
@@ -339,12 +320,12 @@ const AdminOrderDetailsPage = () => {
                         <p className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
                             <Clock size={16} /> <strong>{t('adminOrdersPage.orderedAt') || 'Ordered At'}:</strong> {formatDateTime(order.createdAt)}
                         </p>
-                        {order.isPaid && order.paidAt && ( // Only show if paid and paidAt exists
+                        {order.isPaid && order.paidAt && ( 
                             <p className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mt-2">
                                 <CheckCircle size={16} className="text-green-600" /> <strong>{t('adminOrdersPage.paidAt') || 'Paid At'}:</strong> {formatDateTime(order.paidAt)}
                             </p>
                         )}
-                        {order.isDelivered && order.deliveredAt && ( // Only show if delivered and deliveredAt exists
+                        {order.isDelivered && order.deliveredAt && ( 
                             <p className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mt-2">
                                 <Truck size={16} className="text-indigo-600" /> <strong>{t('adminOrdersPage.deliveredAt') || 'Delivered At'}:</strong> {formatDateTime(order.deliveredAt)}
                             </p>

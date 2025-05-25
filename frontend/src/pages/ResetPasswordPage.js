@@ -7,7 +7,7 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 const ResetPasswordPage = () => {
     const { t } = useLanguage();
-    const { token } = useParams(); // Get the reset token from the URL
+    const { token } = useParams()
     const navigate = useNavigate();
     const { API_BASE_URL } = useAuth();
 
@@ -18,11 +18,9 @@ const ResetPasswordPage = () => {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [tokenStatus, setTokenStatus] = useState('loading'); // 'loading', 'valid', 'invalid'
+    const [tokenStatus, setTokenStatus] = useState('loading');
 
     const { password, password2 } = formData;
-
-    // Effect to validate the token when the component mounts
     useEffect(() => {
         const validateResetToken = async () => {
             if (!token) {
@@ -30,17 +28,14 @@ const ResetPasswordPage = () => {
                 setError(t('auth.tokenExpired') || 'Reset link is missing or invalid.');
                 return;
             }
-
-            // Prevent re-validation if already valid or invalid
             if (tokenStatus !== 'loading') {
                 return;
             }
 
             try {
-                // Use the new GET endpoint to validate the token without consuming it
                 await axios.get(`${API_BASE_URL}/api/auth/validate-reset-token/${token}`);
                 setTokenStatus('valid');
-                setError(''); // Clear any previous errors if token is valid
+                setError('');
             } catch (err) {
                 setTokenStatus('invalid');
                 const errorMessage = err.response?.data?.message || (t('auth.tokenExpired') || 'This link is invalid or has expired.');
@@ -49,8 +44,8 @@ const ResetPasswordPage = () => {
             }
         };
 
-        validateResetToken(); // Call the validation function when component mounts
-    }, [token, API_BASE_URL, t, tokenStatus]); // Dependencies: re-run if token, API_BASE_URL, language, or tokenStatus changes
+        validateResetToken();
+    }, [token, API_BASE_URL, t, tokenStatus]);
 
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -67,12 +62,9 @@ const ResetPasswordPage = () => {
         }
 
         try {
-            // This is the actual password reset submission using the PUT endpoint
             const res = await axios.put(`${API_BASE_URL}/api/auth/resetpassword/${token}`, { password, password2 }); // Send both passwords
             setMessage(t('auth.passwordResetSuccess') || res.data.message);
-            setFormData({ password: '', password2: '' }); // Clear form
-            
-            // Redirect to login after a short delay
+            setFormData({ password: '', password2: '' });
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
@@ -91,12 +83,8 @@ const ResetPasswordPage = () => {
                 <h1 className="text-3xl font-bold text-center text-purple-700 dark:text-purple-400 mb-6 transition-colors duration-300 ease-in-out">
                     {t('auth.resetPasswordTitle') || 'Reset Password'}
                 </h1>
-
-                {/* Display general error/success messages */}
                 {error && <p className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm dark:bg-red-900/30 dark:text-red-300">{error}</p>}
                 {message && <p className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm dark:bg-green-900/30 dark:text-green-300">{message}</p>}
-
-                {/* Conditional rendering based on token status */}
                 {tokenStatus === 'loading' && (
                     <div className="flex flex-col items-center py-8">
                         <Loader2 className="animate-spin h-12 w-12 text-purple-600 mb-4" />

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useLanguage } from "../components/LanguageContext"; // Adjust path if needed
+import { useLanguage } from "../components/LanguageContext"; 
 
 const ContactUs = () => {
-    const { t, language } = useLanguage(); // Get language from context to set dir
-
+    const { t, language } = useLanguage(); 
     const [formData, setFormData] = useState({
         name: '',
         subject: '',
@@ -11,10 +10,8 @@ const ContactUs = () => {
         phone: '',
         message: '',
     });
-
-    const [submissionMessage, setSubmissionMessage] = useState(null); // State for message
-    const [isLoading, setIsLoading] = useState(false); // State for loading indicator
-
+    const [submissionMessage, setSubmissionMessage] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -25,10 +22,8 @@ const ContactUs = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSubmissionMessage(null); // Clear previous messages
-        setIsLoading(true); // Set loading to true
-
-        // Log the API URL to console for debugging
+        setSubmissionMessage(null); 
+        setIsLoading(true); 
         const apiUrl = process.env.REACT_APP_API_URL;
         console.log('API URL from .env (ContactUs.jsx):', apiUrl);
 
@@ -38,15 +33,12 @@ const ContactUs = () => {
                 text: 'API URL is not defined. Please ensure REACT_APP_API_URL is set in your frontend .env file and restart the development server.'
             });
             setIsLoading(false);
-            return; // Stop execution if API URL is missing
+            return; 
         }
 
         const endpoint = `${apiUrl}/api/contact`;
         console.log('Full API Endpoint (ContactUs.jsx):', endpoint);
-
-
         try {
-            // Make the actual API call to your backend
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -65,14 +57,13 @@ const ContactUs = () => {
                     message: '',
                 });
             } else {
-                // Attempt to parse JSON error, fallback to text if not JSON
                 const contentType = response.headers.get("content-type");
                 let errorText = 'Failed to submit message.';
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     const errorData = await response.json();
                     errorText = errorData.message || errorText;
                 } else {
-                    errorText = await response.text(); // Read as text if not JSON
+                    errorText = await response.text(); 
                 }
 
                 setSubmissionMessage({ type: 'error', text: errorText || t('contactUsPage.errorMessage') || 'Failed to submit message.' });
@@ -81,7 +72,7 @@ const ContactUs = () => {
             console.error('Error submitting form:', error);
             setSubmissionMessage({ type: 'error', text: t('contactUsPage.errorMessage') || 'An error occurred during submission. Please check your network connection or server logs.' });
         } finally {
-            setIsLoading(false); // Set loading to false regardless of success or failure
+            setIsLoading(false); 
         }
     };
 
@@ -173,7 +164,7 @@ const ContactUs = () => {
                         <div className="md:col-span-2 flex justify-center md:justify-start">
                             <button
                                 type="submit"
-                                disabled={isLoading} // Disable button while loading
+                                disabled={isLoading} 
                                 className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
                                     isLoading ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}

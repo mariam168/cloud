@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
-import { useLanguage } from '../LanguageContext';
+import { useLanguage } from '../../components/LanguageContext';
 import { ShoppingCart, Heart, Search, Phone, Store } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useWishlist } from '../../context/WishlistContext';
-import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext'; 
+import { useCart } from '../../context/CartContext'; 
 
 const MainHeader = () => {
     const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
-    const { getCartCount, loadingCart, cartInitialized } = useCart();
+    const { cartItems, loadingCart, cartInitialized } = useCart();
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
-    const { wishlistCount } = useWishlist();
+    const { isAuthenticated, currentUser } = useAuth();
+    const { wishlistItems, loadingWishlist } = useWishlist();
 
     const handleSearch = () => {
         if (!searchTerm.trim()) {
             navigate('/shop');
             return;
         }
-        navigate(`/shop?search=${encodeURIComponent(searchTerm)}`);
+        navigate(`/shop?search=${encodeURIComponent(searchTerm.trim())}`);
     };
 
     const handleKeyPress = (e) => {
@@ -27,8 +27,8 @@ const MainHeader = () => {
             handleSearch();
         }
     };
-
-    const cartItemCount = cartInitialized && !loadingCart ? getCartCount() : 0;
+    const cartItemCount = cartInitialized && !loadingCart && Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + (item.quantity || 0), 0) : 0;
+    const favItemCount = !loadingWishlist && Array.isArray(wishlistItems) ? wishlistItems.length : 0;
 
     return (
         <div className="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 sm:px-6 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900 transition-colors duration-300 ease-in-out">
@@ -72,9 +72,9 @@ const MainHeader = () => {
                              aria-label={t('mainHeader.myWishlist') || "My Wishlist"}
                         >
                             <Heart className="h-6 w-6" />
-                            {wishlistCount > 0 && (
+                            {favItemCount > 0 && (
                                 <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white ring-2 ring-white dark:ring-gray-900">
-                                    {wishlistCount}
+                                    {favItemCount}
                                 </span>
                             )}
                         </Link>

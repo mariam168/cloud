@@ -6,9 +6,7 @@ const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const router = express.Router();
 const crypto = require('crypto');
-const axios = require('axios'); // Import axios for making HTTP requests
-
-// Function to verify reCAPTCHA token
+const axios = require('axios');
 const verifyRecaptcha = async (req, res, next) => {
     const { recaptchaToken } = req.body;
 
@@ -23,7 +21,7 @@ const verifyRecaptcha = async (req, res, next) => {
             `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`
         );
 
-        console.log("Google reCAPTCHA API Response:", response.data); // Log the full response from Google
+        console.log("Google reCAPTCHA API Response:", response.data); 
 
         const { success, score } = response.data;
 
@@ -33,26 +31,21 @@ const verifyRecaptcha = async (req, res, next) => {
         }
 
         console.log("reCAPTCHA verification successful.");
-        next(); // reCAPTCHA verified, proceed to next middleware/route handler
+        next(); 
     } catch (error) {
         console.error('Error during reCAPTCHA verification (axios request failed or unexpected response):', error.message);
-        // Log the full error object if available
         if (error.response) {
             console.error('Axios error response data:', error.response.data);
             console.error('Axios error response status:', error.response.status);
             console.error('Axios error response headers:', error.response.headers);
         } else if (error.request) {
-            console.error('Axios error request:', error.request); // The request was made but no response was received
+            console.error('Axios error request:', error.request); 
         } else {
-            console.error('Axios error message:', error.message); // Something happened in setting up the request that triggered an Error
+            console.error('Axios error message:', error.message);
         }
         return res.status(500).json({ message: 'Server error during reCAPTCHA verification.' });
     }
 };
-
-// @route   POST api/auth/register
-// @desc    Register user & send activation email
-// @access  Public
 router.post(
     '/register',
     [
@@ -60,7 +53,7 @@ router.post(
         check('email', 'Please include a valid email').isEmail(),
         check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 }),
     ],
-    verifyRecaptcha, // Add reCAPTCHA verification middleware here
+    verifyRecaptcha, 
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -84,15 +77,13 @@ router.post(
                 email,
                 password,
                 role: role || 'user',
-                isActivated: false, // User is not activated by default
+                isActivated: false, 
             });
 
             console.log("Generating activation token.");
-            const activationToken = user.getActivationToken(); // This updates user object
-            
+            const activationToken = user.getActivationToken(); 
             console.log("Saving user to database with activation token.");
-            await user.save(); // Save user with hashed password and activation token
-
+            await user.save(); 
             console.log("User saved. Preparing activation email.");
             const activationUrl = `${process.env.CLIENT_URL}/activate/${activationToken}`;
             const message = `
@@ -123,9 +114,9 @@ router.post(
                 console.log("Success response sent.");
             } catch (emailError) {
                 console.error('Error sending activation email or sending response:', emailError);
-                user.activationToken = undefined; // Clear token if email failed
+                user.activationToken = undefined; 
                 user.activationTokenExpire = undefined;
-                await user.save({ validateBeforeSave: false }); // Save without re-validating
+                await user.save({ validateBeforeSave: false }); 
                 return res.status(500).json({ message: 'Error sending activation email. Please try again later.' });
             }
 
@@ -135,10 +126,6 @@ router.post(
         }
     }
 );
-
-// @route   GET api/auth/activate/:token
-// @desc    Activate user account
-// @access  Public
 router.get('/activate/:token', async (req, res) => {
     console.log("Activation route hit.");
     const activationToken = crypto
@@ -150,7 +137,7 @@ router.get('/activate/:token', async (req, res) => {
         console.log("Searching for user with activation token.");
         const user = await User.findOne({
             activationToken,
-            activationTokenExpire: { $gt: Date.now() }, // Token not expired
+            activationTokenExpire: { $gt: Date.now() }, 
         });
 
         if (!user) {
@@ -176,18 +163,12 @@ router.get('/activate/:token', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-
-// @route   POST api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
 router.post(
     '/login',
     [
         check('email', 'Please include a valid email').isEmail(),
         check('password', 'Password is required').exists(),
     ],
-    // No reCAPTCHA for login, as it can be annoying for legitimate users
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -244,10 +225,6 @@ router.post(
         }
     }
 );
-
-// @route   POST api/auth/forgotpassword
-// @desc    Request password reset link
-// @access  Public
 router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
     const { email } = req.body;
     console.log("Forgot password request for email:", email);
@@ -257,13 +234,11 @@ router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
 
         if (!user) {
             console.log("User not found for forgot password:", email);
-            // It's good practice not to reveal if an email exists for security reasons
             return res.status(200).json({ success: true, message: 'If a user with that email exists, a password reset email has been sent.' });
         }
 
         console.log("Generating reset token.");
         const resetToken = user.getResetPasswordToken();
-        await user.save(); // Save user with hashed reset token and expiry
         console.log("User saved with reset token.");
 
         const resetUrl = `${process.env.CLIENT_URL}/resetpassword/${resetToken}`;
@@ -290,9 +265,9 @@ router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
             console.log("Forgot password success response sent.");
         } catch (emailError) {
             console.error('Error sending reset password email or sending response:', emailError);
-            user.resetPasswordToken = undefined; // Clear token if email failed
+            user.resetPasswordToken = undefined; 
             user.resetPasswordExpire = undefined;
-            await user.save({ validateBeforeSave: false }); // Save without re-validating
+            await user.save({ validateBeforeSave: false }); 
             return res.status(500).json({ message: 'Error sending password reset email. Please try again later.' });
         }
     } catch (err) {
@@ -300,10 +275,6 @@ router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-// @route   GET api/auth/validate-reset-token/:token
-// @desc    Validate if a reset token is valid and not expired without consuming it
-// @access  Public
 router.get('/validate-reset-token/:token', async (req, res) => {
     console.log("Validate reset token route hit.");
     const resetPasswordToken = crypto
@@ -329,11 +300,6 @@ router.get('/validate-reset-token/:token', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-
-// @route   PUT api/auth/resetpassword/:token
-// @desc    Reset password
-// @access  Public
 router.put('/resetpassword/:token', async (req, res) => {
     console.log("Reset password route hit (for actual password change).");
     const resetPasswordToken = crypto
@@ -345,14 +311,12 @@ router.put('/resetpassword/:token', async (req, res) => {
         const user = await User.findOne({
             resetPasswordToken,
             resetPasswordExpire: { $gt: Date.now() },
-        }).select('+password'); // Select password to be able to modify it
+        }).select('+password'); 
 
         if (!user) {
             console.log("Invalid or expired reset token found during password change attempt.");
             return res.status(400).json({ message: 'Invalid or expired reset token.' });
         }
-
-        // Check if passwords match (added for frontend validation consistency)
         if (req.body.password !== req.body.password2) {
             console.log("Passwords do not match during password change attempt.");
             return res.status(400).json({ message: 'Passwords do not match.' });
@@ -360,10 +324,9 @@ router.put('/resetpassword/:token', async (req, res) => {
 
         console.log("User found. Setting new password and clearing token.");
         user.password = req.body.password;
-        user.resetPasswordToken = undefined; // Clear token ONLY AFTER successful password change
+        user.resetPasswordToken = undefined; 
         user.resetPasswordExpire = undefined;
-
-        await user.save(); // Mongoose pre-save hook will hash the new password
+        await user.save(); 
         console.log("Password reset and user saved successfully.");
 
         res.status(200).json({ success: true, message: 'Password reset successfully.' });

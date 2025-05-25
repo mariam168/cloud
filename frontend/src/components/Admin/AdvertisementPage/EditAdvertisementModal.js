@@ -1,4 +1,4 @@
-// components/Advertisement/EditAdvertisementModal.jsx
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../../LanguageContext'; 

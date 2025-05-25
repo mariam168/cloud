@@ -1,4 +1,4 @@
-import { Home, Package, Folder, ShoppingCart, User, Megaphone, Tag } from 'lucide-react'; // Added Megaphone and Tag icons
+import { Home, Package, Folder, ShoppingCart, User, Megaphone, Tag } from 'lucide-react'; 
 import { useLanguage } from "../LanguageContext";
 import { Outlet, Link } from 'react-router-dom';
 

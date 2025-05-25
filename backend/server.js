@@ -299,8 +299,6 @@ app.post('/api/categories', protect, admin, uploadCategory.single('image'), asyn
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
-
-// PUT (Update) category by ID (with optional image upload)
 app.put('/api/categories/:id', protect, admin, uploadCategory.single('image'), async (req, res) => {
     try {
         const categoryId = req.params.id;

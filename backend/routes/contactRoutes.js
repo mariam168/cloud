@@ -1,40 +1,30 @@
-// routes/contactRoutes.js
+
 const express = require('express');
-const router = express.Router(); // Ensure express.Router() is initialized
+const router = express.Router(); 
 const nodemailer = require('nodemailer');
 
-// @desc    Send contact form message
-// @route   POST /api/contact
-// @access  Public
 router.post('/', async (req, res) => {
     const { name, subject, email, phone, message } = req.body;
-
-    // Basic validation
     if (!name || !subject || !email || !message) {
         return res.status(400).json({ message: 'Please fill in all required fields (Name, Subject, Email, Message).' });
     }
 
     try {
-        // 1. Create a Nodemailer transporter
-        // Use your Gmail credentials from .env
         const transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
             port: process.env.EMAIL_PORT,
-            secure: false, // true for 465, false for other ports (like 587)
+            secure: false, 
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
             },
             tls: {
-                // Do not fail on invalid certs
                 rejectUnauthorized: false
             }
         });
-
-        // 2. Define email content
         const mailOptions = {
-            from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`, // Sender address
-            to: process.env.EMAIL_USER, // Your email address where you want to receive messages
+            from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+            to: process.env.EMAIL_USER,
             subject: `New Contact Message: ${subject} from ${name}`,
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -51,8 +41,6 @@ router.post('/', async (req, res) => {
                 </div>
             `,
         };
-
-        // 3. Send the email
         await transporter.sendMail(mailOptions);
 
         console.log(`Contact message sent from ${email}`);
@@ -60,7 +48,6 @@ router.post('/', async (req, res) => {
 
     } catch (error) {
         console.error('Error sending contact message:', error);
-        // Provide more specific error messages for debugging
         if (error.code === 'EAUTH') {
             res.status(500).json({ message: 'Email sending failed: Authentication error. Check EMAIL_USER and EMAIL_PASS in .env. For Gmail, use an App Password if 2FA is enabled.' });
         } else if (error.code === 'ECONNREFUSED') {
@@ -71,4 +58,4 @@ router.post('/', async (req, res) => {
     }
 });
 
-module.exports = router; // Ensure the router is exported
+module.exports = router;

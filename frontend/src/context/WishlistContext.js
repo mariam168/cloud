@@ -1,7 +1,8 @@
-import { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../components/LanguageContext';
 
 const WishlistContext = createContext();
 
@@ -12,132 +13,142 @@ export const useWishlist = () => {
   }
   return context;
 };
-
 export const WishlistProvider = ({ children }) => {
+  const { t } = useLanguage();
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
-  const { isAuthenticated, currentUser, API_BASE_URL, token } = useAuth();
+  const { isAuthenticated, currentUser, API_BASE_URL, token } = useAuth(); 
   const navigate = useNavigate();
-
   const fetchWishlist = useCallback(async () => {
     if (isAuthenticated && API_BASE_URL && token) {
       setLoadingWishlist(true);
       try {
-        // التأكد من إرسال التوكن لطلب المفضلة
         const response = await axios.get(`${API_BASE_URL}/api/wishlist`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        setWishlistItems(response.data || []);
+        setWishlistItems(response.data || []); 
+        console.log("WishlistContext: Fetched wishlist successfully.", response.data);
       } catch (error) {
-        console.error('WishlistContext: Failed to fetch wishlist:', error.response ? error.response.data : error.message);
+        console.error('WishlistContext: Failed to fetch wishlist:', error.response?.data?.message || error.message);
+        setWishlistItems([]); 
       } finally {
-        setLoadingWishlist(false); 
+        setLoadingWishlist(false);
       }
     } else {
-      setWishlistItems([]);
+      setWishlistItems([]); 
     }
-  }, [isAuthenticated, API_BASE_URL, token]); // إضافة token إلى dep array
-
+  }, [isAuthenticated, API_BASE_URL, token]);
   useEffect(() => {
-    if (isAuthenticated && currentUser && token) { // إضافة token إلى dep array
-      fetchWishlist(); 
+    if (isAuthenticated && currentUser && token) {
+      fetchWishlist();
     } else if (!isAuthenticated) {
-      setWishlistItems([]);
+      setWishlistItems([]); 
     }
-  }, [isAuthenticated, currentUser, token, fetchWishlist]); // إضافة token إلى dep array
-
-  const addToWishlist = async (product) => {
-    console.log("WishlistContext: addToWishlist called with product:", product);
+  }, [isAuthenticated, currentUser, token, fetchWishlist]); 
+  const addToWishlist = async (productOrProductId) => {
     if (!isAuthenticated || !API_BASE_URL) {
-      alert('Please login to add items to your wishlist.');
+      alert(t('wishlist.loginRequired') || 'Please login to add items to your wishlist.');
       navigate('/login');
       return;
     }
-    const productId = product._id; // التأكد من الحصول على الـ ID بغض النظر عن نوع الكائن
-    if (!productId) {
-      console.error("WishlistContext: Product ID is undefined in addToWishlist!", product);
-      alert("لا يمكن إضافة المنتج للمفضلة: بيانات المنتج غير مكتملة عند الإضافة.");
-      return;
+
+    let productId = '';
+    if (typeof productOrProductId === 'string') {
+        productId = productOrProductId;
+    } else if (typeof productOrProductId === 'object' && productOrProductId !== null) {
+        productId = productOrProductId._id;
+    } else {
+        alert(t('wishlist.productDataIncompleteAdd') || 'Product data is incomplete!');
+        return;
     }
-    // في حال كانت wishlistItems تحوي فقط الـ IDs:
-    if (wishlistItems.some(item => item.toString() === productId.toString())) {
-        console.log("WishlistContext: Product already in wishlist:", productId);
-        return; 
+
+    if (!productId) { 
+        alert(t('wishlist.productDataIncompleteAdd') || 'Product data is incomplete!');
+        return;
+    }
+    if (isFavorite(productId)) { 
+        console.log("WishlistContext: Product already in wishlist (local check):", productId);
+        alert(t('wishlist.alreadyInWishlist') || "Product is already in your wishlist.");
+        return;
     }
 
     try {
-      // التأكد من إرسال التوكن لطلب الإضافة
-      const response = await axios.post(`${API_BASE_URL}/api/wishlist/${productId}`, {}, { // استخدام productId هنا
+      const response = await axios.post(`${API_BASE_URL}/api/wishlist/${productId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // تحديث قائمة المفضلة من الاستجابة أو إعادة جلبها بالكامل
-      setWishlistItems(response.data.wishlist || []); 
-      console.log("WishlistContext: Added to wishlist (server response), product ID:", productId);
+      setWishlistItems(response.data.wishlist || []);
+      console.log("WishlistContext: Added to wishlist (server response). Product ID:", productId, "Updated wishlist:", response.data.wishlist);
+      alert(t('wishlist.addedSuccess') || "Product added to wishlist successfully!");
     } catch (error) {
-      console.error('WishlistContext: Failed to add to wishlist:', error.response ? error.response : error);
-      alert(`Could not add product to wishlist. Server said: ${error.response?.data?.message || error.message}`);
+      console.error('WishlistContext: Failed to add to wishlist:', error.response?.data?.message || error.message);
+      alert(`${t('wishlist.addFailed') || 'Could not add product to wishlist. '}${error.response?.data?.message || error.message}`);
     }
   };
-
   const removeFromWishlist = async (productId) => {
-    console.log("WishlistContext: removeFromWishlist called with productId:", productId);
     if (!isAuthenticated || !API_BASE_URL) return;
     if (!productId) {
         console.error("WishlistContext: Product ID is undefined in removeFromWishlist!");
-        alert("لا يمكن إزالة المنتج من المفضلة: معرّف المنتج مفقود.");
+        alert(t('wishlist.productDataIncompleteRemove') || "Cannot remove product from wishlist: Product ID is missing.");
         return;
     }
-
+    if (!isFavorite(productId)) { 
+        console.log("WishlistContext: Product not found in wishlist for removal (local check):", productId);
+        return;
+    }
     try {
-      // التأكد من إرسال التوكن لطلب الحذف
-      const response = await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, { // استخدام productId هنا
+      const response = await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, {
           headers: { Authorization: `Bearer ${token}` }
       });
-      setWishlistItems(response.data.wishlist || []);
-      console.log("WishlistContext: Removed from wishlist (server), product ID:", productId);
+      setWishlistItems(response.data.wishlist || []); 
+      console.log("WishlistContext: Removed from wishlist (server response). Product ID:", productId, "Updated wishlist:", response.data.wishlist);
+      alert(t('wishlist.removedSuccess') || "Product removed from wishlist successfully!");
     } catch (error) {
-      console.error('WishlistContext: Failed to remove from wishlist:', error.response ? error.response.data : error.message);
-      alert('Could not remove product from wishlist.');
+      console.error('WishlistContext: Failed to remove from wishlist:', error.response?.data?.message || error.message);
+      alert(`${t('wishlist.removeFailed') || 'Could not remove product from wishlist. '}${error.response?.data?.message || error.message}`);
     }
   };
-
-  const isFavorite = (productId) => {
-    if (!productId) return false;
-    // إذا كانت wishlistItems تخزن فقط الـ IDs:
-    return wishlistItems.some(item => item.toString() === productId.toString());
-    // إذا كانت تخزن كائنات المنتجات:
-    // return wishlistItems.some(item => item._id && item._id.toString() === productId.toString());
-  };
-
-  const toggleFavorite = async (product) => {
-    console.log("WishlistContext: toggleFavorite called with product:", product);
+  const isFavorite = useCallback((productId) => {
+    if (!productId || !Array.isArray(wishlistItems)) {
+        return false;
+    }
+    return wishlistItems.some(item => item && item._id && item._id.toString() === productId.toString());
+  }, [wishlistItems]); 
+  const toggleFavorite = async (productOrProductId) => {
     if (!isAuthenticated) {
-        alert("يرجى تسجيل الدخول لاستخدام المفضلة.");
-        navigate('/login'); 
+        alert(t('wishlist.loginRequiredToggle') || "Please log in to use the wishlist.");
+        navigate('/login');
         return;
     }
-    const productId = product._id; // التأكد من الحصول على الـ ID بغض النظر عن نوع الكائن
-    if (!productId) {
-        console.error("WishlistContext: Product ID is undefined in toggleFavorite!", product);
-        alert("لا يمكن تبديل حالة المفضلة: بيانات المنتج غير مكتملة.");
-        return;
-    }
-    if (isFavorite(productId)) { // استخدام productId هنا
-      await removeFromWishlist(productId); // استخدام productId هنا
+
+    let productId;
+    if (typeof productOrProductId === 'string') {
+        productId = productOrProductId;
+    } else if (typeof productOrProductId === 'object' && productOrProductId !== null) {
+        productId = productOrProductId._id;
     } else {
-      await addToWishlist(product); 
+        alert(t('wishlist.productDataIncompleteToggle') || "Cannot toggle favorite status: Product data is incomplete.");
+        return;
+    }
+
+    if (!productId) { 
+        alert(t('wishlist.productDataIncompleteToggle') || "Cannot toggle favorite status: Product data is incomplete.");
+        return;
+    }
+    if (isFavorite(productId)) { 
+      await removeFromWishlist(productId);
+    } else {
+      await addToWishlist(productOrProductId);
     }
   };
-
   const value = {
     wishlistItems, 
     addToWishlist,
-    removeFromWishlist, 
-    isFavorite, 
+    removeFromWishlist,
+    isFavorite,
     toggleFavorite,
-    wishlistCount: wishlistItems.length, // يعتمد على أن wishlistItems هي مصفوفة IDs أو كائنات Product
+    wishlistCount: wishlistItems.length, 
     loadingWishlist,
-    fetchWishlist, 
+    fetchWishlist,
   };
   return (
     <WishlistContext.Provider value={value}>

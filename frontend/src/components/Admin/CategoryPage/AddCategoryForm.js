@@ -9,18 +9,18 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
         name_ar: '',
         description_en: '',
         description_ar: '',
-        image: null, // إضافة حالة للصورة
+        image: null, 
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
-    const fileInputRef = useRef(null); // لسهولة الوصول إلى حقل الملف
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         if (isOpen) {
             setCategory({ name_en: '', name_ar: '', description_en: '', description_ar: '', image: null });
             setMessage({ text: '', type: '' });
             if (fileInputRef.current) {
-                fileInputRef.current.value = ''; // مسح قيمة حقل الملف
+                fileInputRef.current.value = ''; 
             }
         }
     }, [isOpen]);
@@ -31,7 +31,7 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
     };
 
     const handleImageChange = (e) => {
-        setCategory(prev => ({ ...prev, image: e.target.files[0] })); // حفظ الملف المختار
+        setCategory(prev => ({ ...prev, image: e.target.files[0] })); 
     };
 
     const handleSubmit = async (e) => {
@@ -51,13 +51,13 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
         formData.append('description_en', category.description_en.trim());
         formData.append('description_ar', category.description_ar.trim());
         if (category.image) {
-            formData.append('image', category.image); // إضافة الصورة إلى FormData
+            formData.append('image', category.image);
         }
 
         try {
             await axios.post(`${serverUrl}/api/categories`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data', // مهم لرفع الملفات
+                    'Content-Type': 'multipart/form-data', 
                 },
             });
             setMessage({ text: t.adminCategoryPage?.addSuccess || 'تمت إضافة الفئة بنجاح!', type: 'success' });
@@ -159,7 +159,6 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
                             className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-right"
                         />
                     </div>
-                    {/* حقل رفع الصورة */}
                     <div>
                         <label htmlFor="modal-category-image" className="block text-sm font-medium text-gray-700 mb-1">
                             {t.adminCategoryPage?.categoryImageLabel || 'Category Image (Optional)'}
@@ -176,7 +175,7 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded, serverUrl }) => {
                                 file:text-sm file:font-semibold
                                 file:bg-purple-50 file:text-purple-700
                                 hover:file:bg-purple-100"
-                            accept="image/*" // قبول ملفات الصور فقط
+                            accept="image/*" 
                         />
                     </div>
                     <div className="flex justify-end space-x-3 pt-4">

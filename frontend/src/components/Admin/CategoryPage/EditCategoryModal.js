@@ -9,12 +9,12 @@ const EditCategoryModal = ({ category, onClose, onCategoryUpdated, serverUrl }) 
         name_ar: '',
         description_en: '',
         description_ar: '',
-        image: null, // For new image file
-        currentImageUrl: '', // To display the existing image
+        image: null, 
+        currentImageUrl: '', 
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const fileInputRef = useRef(null); // Ref to clear file input
+    const fileInputRef = useRef(null); 
 
     useEffect(() => {
         if (category) {
@@ -23,12 +23,12 @@ const EditCategoryModal = ({ category, onClose, onCategoryUpdated, serverUrl }) 
                 name_ar: category.name?.ar || '',
                 description_en: category.description?.en || '',
                 description_ar: category.description?.ar || '',
-                image: null, // No new file selected initially
-                currentImageUrl: category.imageUrl || '', // Set existing image URL
+                image: null, 
+                currentImageUrl: category.imageUrl || '',
             });
             setErrorMessage('');
             if (fileInputRef.current) {
-                fileInputRef.current.value = ''; // Clear file input value
+                fileInputRef.current.value = '';
             }
         }
     }, [category]);
@@ -39,7 +39,7 @@ const EditCategoryModal = ({ category, onClose, onCategoryUpdated, serverUrl }) 
     };
 
     const handleImageChange = (e) => {
-        setEditedCategory(prev => ({ ...prev, image: e.target.files[0] })); // Store the file object
+        setEditedCategory(prev => ({ ...prev, image: e.target.files[0] })); 
     };
 
     const handleSubmit = async (e) => {
@@ -59,18 +59,18 @@ const EditCategoryModal = ({ category, onClose, onCategoryUpdated, serverUrl }) 
         formData.append('description_en', editedCategory.description_en.trim());
         formData.append('description_ar', editedCategory.description_ar.trim());
         if (editedCategory.image) {
-            formData.append('image', editedCategory.image); // Append the new image file
+            formData.append('image', editedCategory.image); 
         }
 
         try {
             await axios.put(`${serverUrl}/api/categories/${category._id}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data', // Essential for file uploads
+                    'Content-Type': 'multipart/form-data', 
                 },
             });
             alert(t.adminCategoryPage?.updateSuccess || "Category updated successfully!");
             if (onCategoryUpdated) {
-                onCategoryUpdated(); // Trigger refresh in parent component
+                onCategoryUpdated(); 
             }
             onClose();
         } catch (err) {
@@ -146,15 +146,13 @@ const EditCategoryModal = ({ category, onClose, onCategoryUpdated, serverUrl }) 
                             className="mt-1 w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 text-right"
                         />
                     </div>
-                    {/* Image Upload Field */}
                     <div>
                         <label htmlFor="edit-category-image" className="block text-sm font-medium text-gray-700 mb-1">
                             {t.adminCategoryPage?.categoryImageLabel || 'Category Image (Optional)'}
                         </label>
-                        {editedCategory.currentImageUrl && ( // Display current image if exists
+                        {editedCategory.currentImageUrl && ( 
                             <div className="mb-2">
                                 <p className="text-xs text-gray-500 mb-1">{t.adminCategoryPage?.currentImage || 'Current Image'}:</p>
-                                {/* Correctly construct URL: serverUrl + relative path */}
                                 <img src={`${serverUrl}${editedCategory.currentImageUrl}`} alt="Current Category" className="w-24 h-24 object-cover rounded-md" />
                             </div>
                         )}

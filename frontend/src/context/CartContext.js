@@ -64,10 +64,6 @@ export const CartProvider = ({ children }) => {
             navigate('/login');
             return;
         }
-        // هنا نقوم بتعديل كيفية استخراج product._id:
-        // إذا كان المنتج هو كائن إعلان (advertisement) من الـ Hero Section أو AllOffersPage
-        // فسيكون الـ _id في المسار الرئيسي للكائن.
-        // إذا كان منتجاً من صفحة منتجات (product card) فغالباً _id سيكون في المسار الرئيسي.
         const productId = product._id; 
         
         if (!productId) {
@@ -106,8 +102,6 @@ export const CartProvider = ({ children }) => {
             alert(`فشل في إزالة المنتج من السلة: ${error.response?.data?.message || error.message}`);
         }
     };
-
-    // تحديث isInCart للتحقق من productId مباشرة
     const isInCart = (productId) => {
         if (!productId) return false;
         return cartItems.some(item => item.product && item.product.toString() === productId.toString());
@@ -179,7 +173,7 @@ export const CartProvider = ({ children }) => {
             clearCart,
             loadingCart,
             fetchCart,
-            getCartCount, // هذا يعيد الرقم، لا مجموعة العناصر
+            getCartCount, 
             cartInitialized
         }}>
             {children}

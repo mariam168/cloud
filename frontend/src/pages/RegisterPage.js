@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // Import useRef
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,27 +11,23 @@ const RegisterPage = () => {
         email: '',
         password: '',
         password2: '',
-        recaptchaToken: '', // New state for reCAPTCHA token
+        recaptchaToken: '',
     });
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { API_BASE_URL } = useAuth();
-
-    const recaptchaRef = useRef(null); // Ref for reCAPTCHA widget
-
+    const recaptchaRef = useRef(null);
     const { name, email, password, password2, recaptchaToken } = formData;
-
-    // Load reCAPTCHA when component mounts
     useEffect(() => {
         if (window.grecaptcha && recaptchaRef.current && !recaptchaRef.current.hasRendered) {
-            recaptchaRef.current.hasRendered = true; // Prevent re-rendering
+            recaptchaRef.current.hasRendered = true;
             window.grecaptcha.render(recaptchaRef.current, {
-                sitekey: '6LdxtkMrAAAAACZQKQO1Zsg8sfYTUiv-EejfKkSZ', // Replace with your actual Site Key
+                sitekey: '6LdxtkMrAAAAACZQKQO1Zsg8sfYTUiv-EejfKkSZ',
                 callback: (token) => {
                     setFormData(prev => ({ ...prev, recaptchaToken: token }));
-                    setError(''); // Clear reCAPTCHA error on success
+                    setError('');
                 },
                 'expired-callback': () => {
                     setFormData(prev => ({ ...prev, recaptchaToken: '' }));
@@ -63,9 +59,9 @@ const RegisterPage = () => {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { name, email, password, recaptchaToken });
             setSuccessMessage(t('auth.registerSuccess') || 'Registration successful! Please check your email for activation link.');
-            setFormData({ name: '', email: '', password: '', password2: '', recaptchaToken: '' }); // Clear form and token
+            setFormData({ name: '', email: '', password: '', password2: '', recaptchaToken: '' });
             if (window.grecaptcha) {
-                window.grecaptcha.reset(); // Reset reCAPTCHA widget
+                window.grecaptcha.reset();
             }
         } catch (err) {
             const errors = err.response?.data?.errors;
@@ -78,7 +74,7 @@ const RegisterPage = () => {
             }
             console.error("Registration error:", err.response ? err.response : err);
             if (window.grecaptcha) {
-                window.grecaptcha.reset(); // Reset reCAPTCHA on error
+                window.grecaptcha.reset();
             }
         } finally {
             setLoading(false);
@@ -148,8 +144,6 @@ const RegisterPage = () => {
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                         />
                     </div>
-                    
-                    {/* reCAPTCHA widget */}
                     <div className="flex flex-col items-center">
                         <div ref={recaptchaRef} className="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY_HERE"></div>
                         {error && error.includes(t('auth.recaptchaError')) && (

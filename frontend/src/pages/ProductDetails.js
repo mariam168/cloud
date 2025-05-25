@@ -1,49 +1,76 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Minus, ShoppingCart, Heart, ShieldCheck, Truck, Award } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Heart, ShieldCheck, Truck, Award, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../components/LanguageContext';
+import { useWishlist } from '../context/WishlistContext';
 
 const ProductDetails = () => {
     const { id } = useParams();
     const { t, language } = useLanguage();
+    const navigate = useNavigate();
+    const { API_BASE_URL, isAuthenticated } = useAuth();
+
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [quantity, setQuantity] = useState(1);
-    const [isWishlisted, setIsWishlisted] = useState(false);
-    const { addToCart, isInCart, updateCartItemQuantity, cartItems } = useCart();
-    const { isAuthenticated } = useAuth();
 
-    useEffect(() => {
+    const { addToCart, isInCart, loadingCart } = useCart();
+    const { toggleFavorite, isFavorite, loadingWishlist } = useWishlist();
+
+    const formatPrice = useCallback((price) => {
+        if (price === undefined || price === null) return t('general.notApplicable') || 'N/A';
+        try {
+            const currencyCode = t('shopPage.currencyCode') || 'SAR';
+            if (!/^[A-Z]{3}$/.test(currencyCode)) {
+                console.warn(`Invalid currency code from translation: "${currencyCode}". Falling back to SAR.`);
+                return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(price));
+            }
+            return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', {
+                style: 'currency',
+                currency: currencyCode,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(Number(price));
+        } catch (e) {
+            console.error("Error formatting currency in ProductDetails:", e);
+            return `${t('shopPage.currencySymbol') || '$'}${Number(price).toFixed(2)}`;
+        }
+    }, [language, t]);
+
+    const fetchProductDetails = useCallback(async () => {
         setLoading(true);
         setError(null);
-        axios.get(`http://localhost:5000/api/products/${id}`)
-            .then(res => {
-                if (res.data) {
-                    setProduct(res.data);
-                    setLoading(false);
-                } else {
-                    setError('Product data not found.');
-                    setLoading(false);
-                }
-            })
-            .catch(err => {
-                console.error('Error fetching product:', err);
-                if (err.response && err.response.status === 404) {
-                    setError('Product not found.');
-                } else {
-                    setError('Failed to load product. Please check your connection or try again.');
-                }
-                setLoading(false);
-            });
-    }, [id]);
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/products/${id}`);
+            if (res.data) {
+                setProduct(res.data);
+                setQuantity(1);
+            } else {
+                setError(t('productDetailsPage.productDataNotFound') || 'Product data not found.');
+            }
+        } catch (err) {
+            console.error('Error fetching product:', err.response ? err.response.data : err.message);
+            if (err.response && err.response.status === 404) {
+                setError(t('productDetailsPage.notFound') || 'Product not found.');
+            } else {
+                setError(t('productDetailsPage.failedToLoad') || 'Failed to load product. Please check your connection or try again.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [id, API_BASE_URL, t]);
+
+    useEffect(() => {
+        fetchProductDetails();
+    }, [fetchProductDetails]);
 
     const handleQuantityChange = (event) => {
         const value = event.target.value;
-        setQuantity(value === '' ? '' : parseInt(value, 10));
+        setQuantity(value === '' ? '' : Math.max(1, parseInt(value, 10)));
     };
 
     const incrementQuantity = () => {
@@ -54,32 +81,40 @@ const ProductDetails = () => {
         setQuantity(prev => (typeof prev === 'number' && prev > 1 ? prev - 1 : 1));
     };
 
-    const handleWishlistToggle = () => {
+    const handleAddToCart = () => {
         if (!isAuthenticated) {
-            alert(t('productDetailsPage.pleaseLoginToAddFavorites') || 'Please log in to add to favorites.');
+            alert(t('cart.loginRequired') || 'Please log in to add products to your cart.');
+            navigate('/login');
             return;
         }
-        setIsWishlisted(prev => !prev);
-        console.log(`Wishlist toggled for product ${id}. New state: ${!isWishlisted}`);
-    };
-
-    const handleAddToCart = () => {
         if (!product) return;
         const quantityToAdd = typeof quantity === 'number' && quantity > 0 ? quantity : 1;
         addToCart(product, quantityToAdd);
     };
 
+    const handleToggleFavorite = () => {
+        if (!isAuthenticated) {
+            alert(t('wishlist.loginRequired') || 'Please log in to add to favorites.');
+            navigate('/login');
+            return;
+        }
+        if (!product) return;
+        toggleFavorite(product);
+    };
+
+    const productIsFavorite = product ? isFavorite(product._id) : false;
     const productInCart = product ? isInCart(product._id) : false;
-    const cartItem = product ? cartItems.find(item => item.product && item.product.toString() === product._id.toString()) : null;
-    const currentCartQuantity = cartItem ? cartItem.quantity : 0;
+
+    const handleImageError = (e) => {
+        e.target.onerror = null;
+        e.target.src = '/images/placeholder-product-image.png';
+        e.target.alt = t('general.imageFailedToLoad') || "Image failed to load";
+    };
 
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300">
-                <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Loader2 className="animate-spin h-10 w-10 text-blue-600 mb-4" />
                 <span>{t('general.loading') || 'Loading...'}</span>
             </div>
         );
@@ -95,15 +130,14 @@ const ProductDetails = () => {
     if (!product) {
         return (
             <div className="flex items-center justify-center min-h-[60vh] text-xl text-gray-700 dark:text-gray-300">
-                Product data is missing.
+                {t('productDetailsPage.productDataMissing') || 'Product data is missing.'}
             </div>
         );
     }
     const displayQuantity = typeof quantity === 'number' && quantity > 0 ? quantity : '';
-    const productName = product.name?.[language] || product.name?.en || product.name?.ar || t('general.unnamedProduct') || 'Unnamed Product';
-    const productDescription = product.description?.[language] || product.description?.en || product.description?.ar || t('adminProduct.noDescription') || 'No detailed description available for this product.';
-    const productCategory = product.category || t('adminProduct.uncategorized') || 'Uncategorized';
-
+    const productName = product.name?.[language] || product.name?.en || product.name?.ar || t('general.unnamedProduct');
+    const productDescription = product.description?.[language] || product.description?.en || product.description?.ar || t('adminProduct.noDescription');
+    const productCategory = product.category?.name?.[language] || product.category?.name?.en || product.category?.name?.ar || product.category || t('adminProduct.uncategorized');
 
     return (
         <div className="container mx-auto p-4 md:p-8 max-w-7xl bg-white dark:bg-slate-900 shadow-2xl rounded-xl my-8">
@@ -112,14 +146,14 @@ const ProductDetails = () => {
                     <div className="w-full max-w-md md:max-w-lg lg:max-w-full p-4 bg-gray-100 dark:bg-slate-800 rounded-xl shadow-inner flex items-center justify-center overflow-hidden">
                         {product.image ? (
                             <img
-                                src={`http://localhost:5000${product.image}`}
+                                src={`${API_BASE_URL}${product.image}`}
                                 alt={productName}
                                 className="w-full h-auto max-h-[500px] object-contain rounded-lg transition-transform duration-300 ease-in-out hover:scale-105"
-                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/500?text=Image+Not+Available' }}
+                                onError={handleImageError}
                             />
                         ) : (
                             <div className="w-full h-[500px] flex items-center justify-center text-gray-500 dark:text-gray-400 text-lg">
-                                No Image Available
+                                {t('general.noImageAvailable') || 'No Image Available'}
                             </div>
                         )}
                     </div>
@@ -150,7 +184,7 @@ const ProductDetails = () => {
                     </div>
                     <div className="flex items-baseline gap-2 pb-4 border-b border-gray-200 dark:border-gray-700">
                         <p className="text-3xl md:text-4xl font-extrabold text-green-600 dark:text-green-400">
-                             {t('shopPage.currencySymbol') || "$"}{product.price ? Number(product.price).toFixed(2) : 'N/A'}
+                            {formatPrice(product.price)}
                         </p>
                     </div>
                     <div className="flex flex-col gap-4 pb-6 border-b border-gray-200 dark:border-gray-700">
@@ -170,12 +204,13 @@ const ProductDetails = () => {
                                     value={displayQuantity}
                                     onChange={handleQuantityChange}
                                     onBlur={() => {
-                                         if (typeof quantity !== 'number' || quantity < 1) {
-                                             setQuantity(1);
-                                         }
+                                        if (typeof quantity !== 'number' || quantity < 1) {
+                                            setQuantity(1);
+                                        }
                                     }}
                                     className="w-12 text-center border-none focus:ring-0 bg-transparent text-gray-800 dark:text-white [-moz-appearance:_textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0"
                                     min="1"
+                                    step="1"
                                     aria-label="Product quantity"
                                 />
                                 <button
@@ -198,22 +233,22 @@ const ProductDetails = () => {
                             </button>
                             <button
                                 className={`p-3 rounded-lg shadow-md transition-colors duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-700
-                                     ${isWishlisted
-                                        ? 'bg-pink-500 hover:bg-pink-600 text-white'
+                                     ${productIsFavorite
+                                        ? 'bg-red-500 hover:bg-red-600'
                                         : 'bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-gray-300'
-                                     }
+                                    }
                                 `}
-                                onClick={handleWishlistToggle}
-                                aria-label={isWishlisted ? (t('shopPage.removeFromFavorites') || 'Remove from favorites') : (t('shopPage.addToFavorites') || 'Add to favorites')}
-                                title={isWishlisted ? (t('shopPage.removeFromFavorites') || 'Remove from Favorites') : (t('shopPage.addToFavorites') || 'Add to Favorites')}
+                                onClick={handleToggleFavorite}
+                                aria-label={productIsFavorite ? (t('shopPage.removeFromFavorites') || 'Remove from favorites') : (t('shopPage.addToFavorites') || 'Add to favorites')}
+                                title={productIsFavorite ? (t('shopPage.removeFromFavorites') || 'Remove from Favorites') : (t('shopPage.addToFavorites') || 'Add to Favorites')}
                             >
-                                <Heart size={24} fill={isWishlisted ? 'white' : 'none'} stroke={isWishlisted ? 'white' : 'currentColor'} />
+                                <Heart size={24} fill={productIsFavorite ? 'white' : 'none'} />
                             </button>
                         </div>
                     </div>
                     <div className="flex justify-around items-center text-gray-600 dark:text-gray-400 text-xs mt-4">
                         <div className="flex flex-col items-center text-center">
-                            <ShieldCheck size={24} /> 
+                            <ShieldCheck size={24} />
                             <span>{t('productDetailsPage.securePayment') || 'Secure Payment'}</span>
                         </div>
                         <div className="flex flex-col items-center text-center">
@@ -221,7 +256,7 @@ const ProductDetails = () => {
                             <span>{t('productDetailsPage.fastShipping') || 'Fast Shipping'}</span>
                         </div>
                         <div className="flex flex-col items-center text-center">
-                            <Award size={24} /> 
+                            <Award size={24} />
                             <span>{t('productDetailsPage.qualityGuarantee') || 'Quality Guarantee'}</span>
                         </div>
                     </div>
