@@ -6,8 +6,9 @@ export default function Home() {
     return (
         <div>
             <HeroSection />
-            <TrendingProducts />
             <CategoryList />
+            <TrendingProducts />
+            
             <Features />
         </div>
     );

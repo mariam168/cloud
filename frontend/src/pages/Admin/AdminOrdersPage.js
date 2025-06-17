@@ -1,17 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../components/LanguageContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, XCircle, CheckCircle } from 'lucide-react'; 
+import { useToast } from '../../components/ToastNotification';
 
 const AdminOrdersPage = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const { isAuthenticated, currentUser, token, API_BASE_URL, loadingAuth } = useAuth();
     const navigate = useNavigate();
+    const { showToast } = useToast(); 
+    
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [error, setError] = useState(null);
+
+    const fetchOrders = useCallback(async () => {
+        setLoadingOrders(true);
+        setError(null);
+        try {
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            };
+            // هذا المسار يجلب جميع الطلبات للادمن
+            const response = await axios.get(`${API_BASE_URL}/api/orders`, config); 
+            setOrders(response.data);
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message;
+            setError(t('adminOrdersPage.errorFetchingOrders', { message: errorMessage }) || `Failed to fetch orders: ${errorMessage}`);
+            showToast(t('adminOrdersPage.errorFetchingOrdersToast') || 'فشل في جلب الطلبات.', 'error'); 
+        } finally {
+            setLoadingOrders(false);
+        }
+    }, [token, API_BASE_URL, t, showToast]);
 
     useEffect(() => {
         if (loadingAuth) {
@@ -20,33 +44,32 @@ const AdminOrdersPage = () => {
 
         if (!isAuthenticated || !currentUser || currentUser.role !== 'admin') {
             navigate('/');
+            showToast(t('general.unauthorizedAccess') || 'غير مصرح لك بالوصول.', 'error'); 
             setLoadingOrders(false);
             return;
         }
-
-        const fetchOrders = async () => {
-            setLoadingOrders(true);
-            setError(null);
-            try {
-                const config = {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                };
-                const response = await axios.get(`${API_BASE_URL}/api/orders`, config);
-                setOrders(response.data);
-            } catch (err) {
-                setError(t('adminOrdersPage.errorFetchingOrders') || 'Failed to fetch orders.');
-            } finally {
-                setLoadingOrders(false);
-            }
-        };
 
         if (token && API_BASE_URL) {
             fetchOrders();
         }
 
-    }, [isAuthenticated, currentUser, token, API_BASE_URL, navigate, t, loadingAuth]);
+    }, [isAuthenticated, currentUser, token, API_BASE_URL, navigate, t, loadingAuth, fetchOrders, showToast]);
+
+    const formatPrice = useCallback((price) => {
+        if (price === undefined || price === null) return t('general.priceNotAvailable');
+        try {
+            const currencyCode = t('general.currencyCode');
+            return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', {
+                style: 'currency',
+                currency: currencyCode,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(Number(price));
+        } catch (e) {
+            console.error("Error formatting currency in AdminOrdersPage:", e);
+            return `${t('general.currencySymbol')}${Number(price).toFixed(2)}`;
+        }
+    }, [language, t]);
 
     if (loadingAuth || loadingOrders) {
         return (
@@ -115,34 +138,35 @@ const AdminOrdersPage = () => {
                                     {order.user ? order.user.name || order.user.email : 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US') : 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    ${order.totalPrice?.toFixed(2) || '0.00'}
+                                    {formatPrice(order.totalPrice)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     {order.isPaid ? (
                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                                            {t('adminOrdersPage.yes') || 'Yes'}
+                                            <CheckCircle size={16} className="inline mr-1" /> {t('adminOrdersPage.yes') || 'Yes'}
                                         </span>
                                     ) : (
                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-                                            {t('adminOrdersPage.no') || 'No'}
+                                            <XCircle size={16} className="inline mr-1" /> {t('adminOrdersPage.no') || 'No'}
                                         </span>
                                     )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     {order.isDelivered ? (
                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                                            {t('adminOrdersPage.yes') || 'Yes'}
+                                            <CheckCircle size={16} className="inline mr-1" /> {t('adminOrdersPage.yes') || 'Yes'}
                                         </span>
                                     ) : (
                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-                                            {t('adminOrdersPage.no') || 'No'}
+                                            <XCircle size={16} className="inline mr-1" /> {t('adminOrdersPage.no') || 'No'}
                                         </span>
                                     )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    {/* توجيه إلى صفحة تفاصيل الطلب الجديدة للادمن */}
                                     <Link to={`/orders/${order._id}`} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-600">
                                         {t('adminOrdersPage.details') || 'Details'}
                                     </Link>

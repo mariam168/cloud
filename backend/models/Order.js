@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const orderItemSchema = mongoose.Schema({
     product: {
         type: mongoose.Schema.Types.ObjectId,
@@ -15,10 +16,10 @@ const orderItemSchema = mongoose.Schema({
             required: true 
         }
     },
-    image: {
+    image: { // This will store the final image used for the order item (main product or variant image)
         type: String 
     },
-    price: {
+    price: { // This will store the final price for this specific order item (base + variant adjustment)
         type: Number,
         required: true
     },
@@ -27,10 +28,31 @@ const orderItemSchema = mongoose.Schema({
         required: true,
         default: 1,
         min: 1 
+    },
+    // Add selectedVariant to reference the specific variant purchased
+    selectedVariant: { 
+        type: mongoose.Schema.Types.ObjectId,
+        default: null // Will be null for non-variant products
+    },
+    // Add variantDetails to store a snapshot of the variant's properties at the time of order
+    variantDetails: {
+        _id: false,
+        options: [{
+            _id: false,
+            optionName: { type: String },
+            optionValue: { type: String },
+        }],
+        image: { type: String },
+        priceAdjustment: { type: Number, default: 0 },
+        sku: { type: String },
+        // Important: We store the stock count at the time of order if needed for records,
+        // but it doesn't affect current stock. The actual stock decrement happens in the route.
+        // stock: { type: Number } 
     }
 }, {
     _id: false
 });
+
 const orderSchema = mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -88,6 +110,7 @@ const orderSchema = mongoose.Schema({
 }, {
     timestamps: true,
 });
+
 const Order = mongoose.model('Order', orderSchema);
 
 module.exports = Order;

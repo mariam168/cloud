@@ -30,7 +30,7 @@ function App() {
                             onClick={() => setShowAddCategoryModal(true)}
                             className="bg-purple-600 text-white py-2 px-4 sm:px-5 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 text-sm sm:text-base"
                         >
-                            {t('adminDashboardPage.addCategoryButton') || '+ Add New Category'}
+                            {t('adminCategoryPage.addCategoryButton') || '+ Add New Category'}
                         </button>
                     </div>
                     <div>

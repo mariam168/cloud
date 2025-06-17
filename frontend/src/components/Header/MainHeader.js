@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../components/LanguageContext';
-import { ShoppingCart, Heart, Search, Phone, Store } from 'lucide-react';
+import { ShoppingCart, Heart, Search, Phone, Store, UserCircle } from 'lucide-react'; 
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext'; 
 import { useCart } from '../../context/CartContext'; 
 
 const MainHeader = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage(); 
     const [searchTerm, setSearchTerm] = useState('');
     const { cartItems, loadingCart, cartInitialized } = useCart();
     const navigate = useNavigate();
@@ -27,22 +27,37 @@ const MainHeader = () => {
             handleSearch();
         }
     };
+
     const cartItemCount = cartInitialized && !loadingCart && Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + (item.quantity || 0), 0) : 0;
     const favItemCount = !loadingWishlist && Array.isArray(wishlistItems) ? wishlistItems.length : 0;
 
-    return (
-        <div className="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 sm:px-6 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900 transition-colors duration-300 ease-in-out">
-            <div className="container mx-auto flex flex-wrap items-center justify-between gap-y-3 gap-x-4 sm:gap-x-6">
+    // استخدام هذه الفئات الديناميكية للـ border-radius
+    const searchInputRoundedClass = language === 'ar' ? 'rounded-r-full' : 'rounded-l-full';
+    const searchButtonRoundedClass = language === 'ar' ? 'rounded-l-full' : 'rounded-r-full';
 
-                <Link to="/" className="flex items-center gap-2 text-2xl font-extrabold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 ease-in-out">
+    return (
+        <div 
+            className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-lg dark:shadow-2xl py-4 transition-all duration-300 ease-in-out"
+            dir={language === 'ar' ? 'rtl' : 'ltr'} 
+        >
+            <div className="container mx-auto px-4 sm:px-6 py-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[auto_1fr_auto] items-center gap-y-4 gap-x-4">
+                {/* Logo - Order 1 (Top Left) */}
+                <Link 
+                    to="/" 
+                    className="flex items-center gap-2 text-2xl md:text-3xl font-extrabold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 ease-in-out flex-shrink-0 tracking-wide col-span-2 md:col-span-1 order-1"
+                >
                     <Store className="h-8 w-8 text-blue-800 dark:text-blue-300" />
                     <span>{t('mainHeader.siteName') || "TechXpress"}</span>
                 </Link>
 
-                <div className="flex flex-grow max-w-full md:max-w-xl items-center rounded-full border border-gray-300 dark:border-gray-600 shadow-inner overflow-hidden order-3 sm:order-2 w-full focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-200 ease-in-out">
+                {/* Search Bar - Order 3 on small, Order 2 on medium+ (center) */}
+                <div className="flex flex-grow items-center order-3 col-span-2 md:col-span-1 md:order-2 w-full mx-auto md:mx-0 
+                                  border border-gray-300 dark:border-gray-600 rounded-full focus-within:ring-3 focus-within:ring-blue-500 
+                                  focus-within:border-blue-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg dark:hover:shadow-xl">
                     <input
                         type="text"
-                        className="flex-grow px-4 py-2.5 outline-none bg-transparent text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                        className={`flex-grow px-4 py-2.5 outline-none bg-transparent text-gray-800 dark:text-gray-200 
+                                    placeholder-gray-500 dark:placeholder-gray-400 text-sm md:text-base ${searchInputRoundedClass}`}
                         placeholder={t('mainHeader.searchPlaceholder') || "Search for products..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -50,43 +65,73 @@ const MainHeader = () => {
                     />
                     <button
                         onClick={handleSearch}
-                        className="bg-blue-600 px-5 py-2.5 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 ease-in-out flex items-center justify-center"
+                        className={`bg-blue-600 h-full px-5 py-2.5 text-white hover:bg-blue-700 dark:bg-blue-700 
+                                    dark:hover:bg-blue-600 transition-colors duration-200 ease-in-out flex items-center justify-center ${searchButtonRoundedClass}`}
                         aria-label={t('mainHeader.searchPlaceholder') || "Search"}
                     >
                         <Search size={20} />
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4 sm:gap-5 order-2 sm:order-3">
-                    <div className="hidden md:flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                        <Phone className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                {/* Action Buttons (Hotline, User, Wishlist, Cart) - Order 2 on small, Order 3 on medium+ (right) */}
+                <div className="flex items-center gap-3 sm:gap-4 justify-end order-2 md:order-3 col-span-2 md:col-span-1">
+                    {/* Hotline - Hidden on small screens */}
+                    <div className="hidden lg:flex items-center gap-2 text-gray-600 dark:text-gray-300 flex-shrink-0">
+                        <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                         <div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">{t('mainHeader.hotline') || "Hotline"}</div>
-                            <div className="font-semibold text-gray-800 dark:text-gray-200">(+100) 123 456 7890</div>
+                            <div className="font-bold text-gray-800 dark:text-white tracking-wide text-sm">(+100) 123 456 7890</div>
                         </div>
                     </div>
 
-                    {isAuthenticated && (
-                        <Link to="/wishlist" className="relative text-gray-700 dark:text-gray-200 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200 ease-in-out"
-                             title={t('mainHeader.myWishlist') || "My Wishlist"}
-                             aria-label={t('mainHeader.myWishlist') || "My Wishlist"}
+                    {/* User Profile / Login */}
+                    {isAuthenticated ? (
+                        <Link 
+                            to="/profile" 
+                            className="flex items-center gap-1 text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ease-in-out px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                            title={t('mainHeader.myProfile') || "My Profile"}
+                            aria-label={t('mainHeader.myProfile') || "My Profile"}
                         >
-                            <Heart className="h-6 w-6" />
-                            {favItemCount > 0 && (
-                                <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white ring-2 ring-white dark:ring-gray-900">
-                                    {favItemCount}
-                                </span>
-                            )}
+                            <UserCircle className="h-6 w-6" />
+                            <span className="hidden sm:inline-block text-sm font-medium whitespace-nowrap">{currentUser?.name || t('mainHeader.myAccount') || "My Account"}</span>
+                        </Link>
+                    ) : (
+                        <Link 
+                            to="/login" 
+                            className="flex items-center gap-1 text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ease-in-out px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                            title={t('mainHeader.loginRegister') || "Login/Register"}
+                            aria-label={t('mainHeader.loginRegister') || "Login/Register"}
+                        >
+                            <UserCircle className="h-6 w-6" />
+                            <span className="hidden sm:inline-block text-sm font-medium whitespace-nowrap">{t('mainHeader.login') || "Login"}</span>
                         </Link>
                     )}
 
-                    <Link to="/cart" className="relative text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ease-in-out"
-                         title={t('mainHeader.myCart') || "My Cart"}
-                         aria-label={t('mainHeader.myCart') || "My Cart"}
+                    {/* Wishlist */}
+                    <Link 
+                        to="/wishlist" 
+                        className="relative p-2 rounded-full text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 ease-in-out"
+                        title={t('mainHeader.myWishlist') || "My Wishlist"}
+                        aria-label={t('mainHeader.myWishlist') || "My Wishlist"}
+                    >
+                        <Heart className="h-6 w-6" />
+                        {favItemCount > 0 && (
+                            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[0.6rem] font-extrabold text-white ring-1 ring-white dark:ring-gray-900">
+                                {favItemCount}
+                            </span>
+                        )}
+                    </Link>
+
+                    {/* Shopping Cart */}
+                    <Link 
+                        to="/cart" 
+                        className="relative p-2 rounded-full text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 ease-in-out"
+                        title={t('mainHeader.myCart') || "My Cart"}
+                        aria-label={t('mainHeader.myCart') || "My Cart"}
                     >
                         <ShoppingCart className="h-6 w-6" />
                         {cartItemCount > 0 && (
-                            <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white ring-2 ring-white dark:ring-gray-900">
+                            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[0.6rem] font-extrabold text-white ring-1 ring-white dark:ring-gray-900">
                                 {cartItemCount}
                             </span>
                         )}

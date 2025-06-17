@@ -224,4 +224,4 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
     );
 };
 
-export default EditDiscountModal;
+export default EditDiscountModal

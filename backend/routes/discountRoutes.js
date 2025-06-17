@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Discount = require('../models/Discount');
 const { protect, admin } = require('../middleware/authMiddleware');
+
 router.get('/active', async (req, res) => {
     try {
         const currentDate = new Date();
@@ -16,6 +17,7 @@ router.get('/active', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 router.get('/', protect, admin, async (req, res) => {
     try {
         const discounts = await Discount.find({});
@@ -25,6 +27,7 @@ router.get('/', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 router.get('/:id', protect, admin, async (req, res) => {
     try {
         const discount = await Discount.findById(req.params.id);
@@ -37,6 +40,7 @@ router.get('/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 router.post('/', protect, admin, async (req, res) => {
     try {
         const { code, percentage, fixedAmount, minOrderAmount, maxDiscountAmount, startDate, endDate, isActive } = req.body;
@@ -49,7 +53,7 @@ router.post('/', protect, admin, async (req, res) => {
             maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
             startDate: new Date(startDate),
             endDate: new Date(endDate),
-            isActive: isActive === 'true' 
+            isActive: Boolean(isActive) // تم التعديل هنا
         });
 
         await newDiscount.save();
@@ -66,6 +70,7 @@ router.post('/', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 router.put('/:id', protect, admin, async (req, res) => {
     try {
         const discountId = req.params.id;
@@ -79,7 +84,7 @@ router.put('/:id', protect, admin, async (req, res) => {
             maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
             startDate: new Date(startDate),
             endDate: new Date(endDate),
-            isActive: isActive === 'true'
+            isActive: Boolean(isActive) // تم التعديل هنا
         };
 
         const updatedDiscount = await Discount.findByIdAndUpdate(discountId, updatedData, { new: true, runValidators: true });
@@ -101,6 +106,7 @@ router.put('/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
 router.delete('/:id', protect, admin, async (req, res) => {
     try {
         const discountId = req.params.id;

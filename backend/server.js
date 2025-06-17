@@ -5,6 +5,8 @@ const path = require('path');
 const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs'); 
+
+// استيراد الـ Models
 const Product = require('./models/Product');
 const Category = require('./models/Category'); 
 const Cart = require('./models/Cart');
@@ -12,6 +14,8 @@ const Order = require('./models/Order');
 const User = require('./models/User');
 const Advertisement = require('./models/Advertisement');
 const Discount = require('./models/Discount');
+
+// استيراد الـ Routes الأخرى
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const authRoutes = require('./routes/auth');
 const cartRoutes = require('./routes/cartRoutes');
@@ -19,15 +23,27 @@ const orderRoutes = require('./routes/orderRoutes');
 const advertisementRoutes = require('./routes/advertisementRoutes');
 const discountRoutes = require('./routes/discountRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+
+// استيراد الـ Middleware
 const { protect, admin } = require('./middleware/authMiddleware');
+
 const app = express();
+
+// إعداد CORS
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000', 
     credentials: true 
 }));
+
+// إعداد تحليل طلبات الـ JSON والـ URL-encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// خدمة ملفات الـ uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --------------------------------------------------------------------------------------
+// Multer Storage for Products
 const productStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadsDir = path.join(__dirname, 'uploads/products');
@@ -40,7 +56,28 @@ const productStorage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
-const uploadProduct = multer({ storage: productStorage });
+const uploadProduct = multer({ storage: productStorage }); 
+
+// Helper function to delete files
+const deleteFile = (filePath) => {
+    if (!filePath || filePath.trim() === '') return; 
+
+    const fullPath = path.join(__dirname, filePath);
+    if (fs.existsSync(fullPath)) {
+        fs.unlink(fullPath, (err) => {
+            if (err && err.code !== 'ENOENT') { 
+                console.error(`Error deleting file: ${fullPath}`, err);
+            } else if (!err) {
+                console.log(`Successfully deleted old file: ${fullPath}`);
+            }
+        });
+    } else {
+        console.log(`File not found, skipping deletion: ${fullPath}`);
+    }
+};
+// --------------------------------------------------------------------------------------
+
+// Multer Storage for Categories
 const categoryStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadsDir = path.join(__dirname, 'uploads/categories');
@@ -54,17 +91,27 @@ const categoryStorage = multer.diskStorage({
     }
 });
 const uploadCategory = multer({ storage: categoryStorage });
+
+// الاتصال بقاعدة البيانات
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/productsDB';
 mongoose.connect(MONGO_URI)
     .then(() => console.log('MongoDB connected to:', MONGO_URI))
     .catch((error) => console.error('MongoDB connection error:', error));
+
+// مسارات الـ API الأخرى
 app.use('/api/advertisements', advertisementRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/wishlist', wishlistRoutes);
-app.use('/api/cart', cartRoutes);
+app.use('/api/cart', cartRoutes); 
 app.use('/api/orders', orderRoutes);
 app.use('/api/discounts', discountRoutes);
 app.use('/api/contact', contactRoutes);
+
+// --------------------------------------------------------------------------------------
+// مسارات المنتجات - تم تعديل محتواها لتدعم الميزات الجديدة
+// --------------------------------------------------------------------------------------
+
+// GET /api/products - جلب جميع المنتجات (مع البحث)
 app.get('/api/products', async (req, res) => {
     try {
         const search = req.query.search || '';
@@ -73,7 +120,19 @@ app.get('/api/products', async (req, res) => {
         if (search) {
             query.$or = [
                 { 'name.en': { $regex: search, $options: 'i' } },
-                { 'name.ar': { $regex: search, $options: 'i' } }
+                { 'name.ar': { $regex: search, $options: 'i' } },
+                { 'description.en': { $regex: search, $options: 'i' } },
+                { 'description.ar': { $regex: search, $options: 'i' } },
+                { 'category': { $regex: search, $options: 'i' } },
+                { 'subCategory': { $regex: search, $options: 'i' } },
+                // إضافة البحث في الخصائص الديناميكية
+                { 'attributes.brand': { $regex: search, $options: 'i' } },
+                { 'attributes.processor': { $regex: search, $options: 'i' } },
+                { 'attributes.material': { $regex: search, $options: 'i' } },
+                // البحث في قيم الـ variations (optionName, optionValue)
+                { 'variations.options.optionName': { $regex: search, $options: 'i' } }, 
+                { 'variations.options.optionValue': { $regex: search, $options: 'i' } }, 
+                { 'variations.sku': { $regex: search, $options: 'i' } }, 
             ];
         }
         const products = await Product.find(query).sort({ createdAt: -1 });
@@ -83,47 +142,127 @@ app.get('/api/products', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
-app.post('/api/product', protect, admin, uploadProduct.single('image'), async (req, res) => {
+
+// POST /api/product - إضافة منتج جديد
+app.post('/api/product', protect, admin, uploadProduct.fields([
+    { name: 'mainImage', maxCount: 1 },         
+    { name: 'additionalImages', maxCount: 10 }, 
+    { name: 'videos', maxCount: 3 },             
+    { name: 'variantImages', maxCount: 50 }   // اسم جديد لصور الـ variants
+]), async (req, res) => {
     try {
-        const { name_en, name_ar, price, description_en, description_ar, category } = req.body;
-        let imagePath = '';
-        if (req.file) {
-            imagePath = path.join('/uploads/products', req.file.filename);
+        const { name_en, name_ar, price, description_en, description_ar, category, subCategory, attributes: attributesString, variations: variationsString } = req.body;
+        
+        let attributes = {};
+        if (attributesString) {
+            try {
+                attributes = JSON.parse(attributesString);
+            } catch (parseErr) {
+                console.error("Error parsing attributes JSON:", parseErr);
+                return res.status(400).json({ message: "Invalid attributes format", error: parseErr.message });
+            }
         }
+
+        let variations = [];
+        if (variationsString) {
+            try {
+                // Parse variations string to array of objects
+                variations = JSON.parse(variationsString);
+            } catch (parseErr) {
+                console.error("Error parsing variations JSON:", parseErr);
+                return res.status(400).json({ message: "Invalid variations format", error: parseErr.message });
+            }
+        }
+
+        const mainImage = req.files.mainImage ? `/uploads/products/${req.files.mainImage[0].filename}` : '';
+        const additionalImages = req.files.additionalImages ? req.files.additionalImages.map(file => `/uploads/products/${file.filename}`) : [];
+        const videos = req.files.videos ? req.files.videos.map(file => `/uploads/products/${file.filename}`) : [];
+        
+        // معالجة صور الـ variants المرفوعة (هنا req.files.variantImages ستكون مصفوفة)
+        const uploadedVariantImages = req.files.variantImages || []; 
+
+        // ربط الصور المرفوعة بالـ variants الصحيحة
+        const finalVariations = variations.map((variantData, index) => {
+            // نستخدم tempFileIndex الذي أرسلناه من الـ frontend لربط الصورة
+            const fileForThisVariant = uploadedVariantImages[variantData.tempFileIndex]; 
+            if (variantData.tempFileIndex !== undefined && fileForThisVariant) {
+                return {
+                    ...variantData,
+                    image: `/uploads/products/${fileForThisVariant.filename}` // تعيين مسار الصورة الجديدة
+                };
+            }
+            // إذا لم يتم رفع ملف جديد لهذا الـ variant، احتفظ بالصورة الموجودة أو اتركها null
+            return { ...variantData, image: variantData.image || null }; 
+        });
+
+        // التحقق الأساسي من الحقول المطلوبة
         if (!name_en || name_en.trim() === "" || !name_ar || name_ar.trim() === "" || price === undefined || price === null || Number(price) < 0) {
-            if (req.file) {
-                const filePath = req.file.path; 
-                if (fs.existsSync(filePath)) {
-                    fs.unlink(filePath, (err) => {
-                        if (err) console.error("Error deleting failed product upload:", err);
-                    });
+            // حذف جميع الملفات التي تم رفعها إذا فشل التحقق
+            deleteFile(mainImage);
+            additionalImages.forEach(deleteFile);
+            videos.forEach(deleteFile);
+            uploadedVariantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
+            return res.status(400).json({ message: 'Product English and Arabic names, and price are required.' });
+        }
+
+        // تحقق من الـ variations: كل variant يجب أن يحتوي على خيارات
+        if (finalVariations.length > 0) {
+            for (const variant of finalVariations) {
+                if (!variant.options || variant.options.length === 0) {
+                    // حذف جميع الملفات التي تم رفعها
+                    deleteFile(mainImage);
+                    additionalImages.forEach(deleteFile);
+                    videos.forEach(deleteFile);
+                    uploadedVariantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
+                    return res.status(400).json({ message: 'Each product variant must have at least one option.' });
+                }
+                for (const option of variant.options) {
+                    if (!option.optionName || !option.optionValue) {
+                         // حذف جميع الملفات التي تم رفعها
+                        deleteFile(mainImage);
+                        additionalImages.forEach(deleteFile);
+                        videos.forEach(deleteFile);
+                        uploadedVariantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
+                        return res.status(400).json({ message: 'All variant options must have a name and value.' });
+                    }
                 }
             }
-            return res.status(400).json({ message: 'Product English and Arabic names, and price are required' });
         }
+
+
         const newProduct = new Product({
             name: { en: name_en, ar: name_ar },
             price: Number(price),
             description: { en: description_en, ar: description_ar },
-            image: imagePath,
-            category
+            mainImage: mainImage,
+            additionalImages: additionalImages,
+            videos: videos,
+            category: category,
+            subCategory: subCategory,
+            attributes: attributes,
+            variations: finalVariations, // حفظ الـ variations المعالجة
         });
-        await newProduct.save();
-        res.status(201).json(newProduct);
+
+        const savedProduct = await newProduct.save();
+        res.status(201).json(savedProduct);
 
     } catch (error) {
         console.error('Error saving product:', error);
-        if (req.file) {
-            const filePath = req.file.path;
-            if (fs.existsSync(filePath)) {
-                fs.unlink(filePath, (err) => {
-                    if (err) console.error("Error deleting failed product upload due to server error:", err);
-                });
-            }
+        // حذف جميع الملفات التي تم رفعها في حالة حدوث خطأ في السيرفر
+        if (req.files) {
+            if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+            if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+            if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+            if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`)); // Iterate directly on array
+        }
+        if (error.code === 11000) { // خطأ تكرار (مثلاً لـ SKU إذا كان فريداً)
+            return res.status(400).json({ message: 'Duplicate value detected. Please check unique fields like SKU.', error: error.message });
         }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// GET /api/products/:id - جلب منتج بواسطة الـ ID
 app.get('/api/products/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -136,79 +275,228 @@ app.get('/api/products/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
-app.put('/api/product/:id', protect, admin, uploadProduct.single('image'), async (req, res) => {
+
+// PUT /api/product/:id - تحديث منتج
+app.put('/api/product/:id', protect, admin, uploadProduct.fields([
+    { name: 'mainImage', maxCount: 1 },
+    { name: 'additionalImages', maxCount: 10 },
+    { name: 'videos', maxCount: 3 },
+    { name: 'variantImages', maxCount: 50 } // لصور الـ variants الجديدة أو المحدثة
+]), async (req, res) => {
     try {
         const productId = req.params.id;
-        const { name_en, name_ar, price, description_en, description_ar, category } = req.body;
+        const { 
+            name_en, name_ar, price, description_en, description_ar, 
+            category, subCategory, 
+            attributes: attributesString, 
+            variations: variationsString, // مصفوفة الـ variations المحدثة (مع _id للموجودة)
+            existingImages, existingVideos, clearMainImage
+        } = req.body;
+
         const productToUpdate = await Product.findById(productId);
         if (!productToUpdate) {
-            if (req.file) {
-                const filePath = req.file.path;
-                if (fs.existsSync(filePath)) {
-                    fs.unlink(filePath, (err) => {
-                        if (err) console.error("Error deleting failed product update upload:", err);
-                    });
-                }
+            // حذف أي ملفات تم رفعها إذا لم يتم العثور على المنتج
+            if (req.files) {
+                if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+                if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
             }
             return res.status(404).json({ message: "Product not found" });
         }
+
+        // التحقق الأساسي من الحقول المطلوبة
         if (!name_en || name_en.trim() === "" || !name_ar || name_ar.trim() === "" || price === undefined || price === null || Number(price) < 0) {
-            if (req.file) {
-                const filePath = req.file.path;
-                if (fs.existsSync(filePath)) {
-                    fs.unlink(filePath, (err) => {
-                        if (err) console.error("Error deleting failed product update upload due to validation:", err);
-                    });
-                }
+            // حذف أي ملفات تم رفعها إذا فشل التحقق
+            if (req.files) {
+                if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+                if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
             }
             return res.status(400).json({ message: "Product English/Arabic names and a valid price are required." });
         }
+
+        let attributes = {};
+        if (attributesString) {
+            try {
+                attributes = JSON.parse(attributesString);
+            } catch (parseErr) {
+                console.error("Error parsing attributes JSON:", parseErr);
+                return res.status(400).json({ message: "Invalid attributes format", error: parseErr.message });
+            }
+        }
+
+        let newVariationsData = [];
+        if (variationsString) {
+            try {
+                newVariationsData = JSON.parse(variationsString);
+            } catch (parseErr) {
+                console.error("Error parsing variations JSON:", parseErr);
+                return res.status(400).json({ message: "Invalid variations format", error: parseErr.message });
+            }
+        }
+
+        // تحقق من الـ variations: كل variant يجب أن يحتوي على خيارات
+        if (newVariationsData.length > 0) {
+            for (const variant of newVariationsData) {
+                if (!variant.options || variant.options.length === 0) {
+                    // حذف جميع الملفات التي تم رفعها
+                    if (req.files) {
+                        if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+                        if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                        if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                        if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
+                    }
+                    return res.status(400).json({ message: 'Each product variant must have at least one option.' });
+                }
+                for (const option of variant.options) {
+                    if (!option.optionName || !option.optionValue) {
+                         // حذف جميع الملفات التي تم رفعها
+                        if (req.files) {
+                            if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+                            if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                            if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                            if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
+                        }
+                        return res.status(400).json({ message: 'All variant options must have a name and value.' });
+                    }
+                }
+            }
+        }
+
+        const uploadedVariantImages = req.files.variantImages || []; // هذا سيكون مصفوفة من الملفات
+
+        // منطق معالجة صور الـ variants وتحديد مصفوفة الـ variations النهائية
+        const finalVariations = [];
+        const oldVariantImagesToDelete = []; // لتتبع صور الـ variants المحذوفة أو التي تم استبدالها
+
+        // الخطوة 1: معالجة الـ variants الموجودة مسبقاً وتحديد ما تم حذفه أو استبدال صورته
+        productToUpdate.variations.forEach(oldVariant => {
+            // ابحث عن الـ variant المقابل في البيانات الجديدة المرسلة من الواجهة الأمامية
+            const correspondingNewVariant = newVariationsData.find(newV => 
+                String(newV._id) === String(oldVariant._id) // المطابقة بواسطة _id
+            );
+
+            if (!correspondingNewVariant) {
+                // هذا الـ variant القديم تم حذفه، قم بتمييز صورته للحذف
+                if (oldVariant.image) {
+                    oldVariantImagesToDelete.push(oldVariant.image);
+                }
+            } else {
+                // هذا الـ variant ما زال موجوداً. تحقق مما إذا كان يتم استبدال صورته أو مسحها.
+                // نستخدم tempFileIndex الذي أرسلناه من الـ frontend لربط الصورة
+                const fileForThisVariant = uploadedVariantImages[correspondingNewVariant.tempFileIndex]; 
+                
+                if (correspondingNewVariant.tempFileIndex !== undefined && fileForThisVariant) { // Check if new file was sent
+                    // تم رفع صورة جديدة لهذا الـ variant الموجود، قم بحذف الصورة القديمة
+                    if (oldVariant.image) {
+                        oldVariantImagesToDelete.push(oldVariant.image);
+                    }
+                    // قم بتعيين مسار الصورة الجديدة للـ variant المقابل في البيانات الجديدة
+                    correspondingNewVariant.image = `/uploads/products/${fileForThisVariant.filename}`;
+                } else if (correspondingNewVariant.image === null || correspondingNewVariant.image === '') {
+                    // الواجهة الأمامية طلبت صراحةً مسح صورة هذا الـ variant
+                    if (oldVariant.image) {
+                        oldVariantImagesToDelete.push(oldVariant.image);
+                    }
+                    correspondingNewVariant.image = ''; // مسح مسار الصورة
+                } else {
+                    // لا توجد صورة جديدة، ولم يتم طلب مسحها صراحةً، لذا احتفظ بمسار الصورة القديمة
+                    correspondingNewVariant.image = oldVariant.image;
+                }
+            }
+        });
+
+        // الخطوة 2: الآن، أضف جميع بيانات الـ newVariationsData المعالجة إلى finalVariations.
+        // هذا يشمل الـ variants الموجودة التي تم تحديث صورها/بياناتها، والـ variants الجديدة كلياً.
+        newVariationsData.forEach((variant) => {
+            finalVariations.push({
+                _id: variant._id, // الاحتفاظ بـ _id للـ variants الموجودة
+                options: variant.options,
+                image: variant.image,
+                priceAdjustment: variant.priceAdjustment,
+                stock: variant.stock,
+                sku: variant.sku
+            });
+        });
+
+        // تنفيذ عمليات حذف صور الـ variants القديمة
+        oldVariantImagesToDelete.forEach(deleteFile);
+
 
         let updatedData = {
             name: { en: name_en, ar: name_ar },
             price: Number(price),
             description: { en: description_en, ar: description_ar },
-            category
+            category: category,
+            subCategory: subCategory,
+            attributes: attributes,
+            variations: finalVariations, // حفظ الـ variations المحدثة/الجديدة
         };
-        if (req.file) {
-            if (productToUpdate.image && productToUpdate.image !== "") {
-                const oldImagePath = path.join(__dirname, productToUpdate.image);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlink(oldImagePath, err => {
-                        if (err) console.error("Error deleting old product image during update:", err);
-                    });
-                }
-            }
-            updatedData.image = path.join('/uploads/products', req.file.filename); 
+
+        // التعامل مع الصورة الرئيسية (نفس المنطق السابق)
+        if (req.files.mainImage && req.files.mainImage.length > 0) {
+            deleteFile(productToUpdate.mainImage); 
+            updatedData.mainImage = `/uploads/products/${req.files.mainImage[0].filename}`;
+        } else if (clearMainImage === 'true') {
+            deleteFile(productToUpdate.mainImage);
+            updatedData.mainImage = '';
         } else {
-            updatedData.image = productToUpdate.image;
+            updatedData.mainImage = productToUpdate.mainImage;
         }
+
+        // التعامل مع الصور الإضافية (نفس المنطق السابق)
+        let currentExistingImages = Array.isArray(existingImages) ? existingImages : (existingImages ? [existingImages] : []);
+        productToUpdate.additionalImages.forEach(imgUrl => {
+            if (!currentExistingImages.includes(imgUrl)) {
+                deleteFile(imgUrl); 
+            }
+        });
+        const newAdditionalImages = req.files.additionalImages ? req.files.additionalImages.map(file => `/uploads/products/${file.filename}`) : [];
+        updatedData.additionalImages = [...currentExistingImages, ...newAdditionalImages];
+
+        // التعامل مع الفيديوهات (نفس المنطق السابق)
+        let currentExistingVideos = Array.isArray(existingVideos) ? existingVideos : (existingVideos ? [existingVideos] : []);
+        productToUpdate.videos.forEach(videoUrl => {
+            if (!currentExistingVideos.includes(videoUrl)) {
+                deleteFile(videoUrl); 
+            }
+        });
+        const newVideos = req.files.videos ? req.files.videos.map(file => `/uploads/products/${file.filename}`) : [];
+        updatedData.videos = [...currentExistingVideos, ...newVideos];
+
+
         const updatedProduct = await Product.findByIdAndUpdate(productId, updatedData, { new: true, runValidators: true });
+        
         if (!updatedProduct) {
-            if (req.file) {
-                const filePath = req.file.path;
-                if (fs.existsSync(filePath)) {
-                    fs.unlink(filePath, (err) => {
-                        if (err) console.error("Error deleting file after product update failed to find product:", err);
-                    });
-                }
+            // حذف أي ملفات تم رفعها إذا لم يتم العثور على المنتج بعد محاولة التحديث
+            if (req.files) {
+                if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+                if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+                if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
             }
             return res.status(404).json({ message: 'Product not found after update attempt' });
         }
        res.status(200).json(updatedProduct);
     } catch (error) {
         console.error('Error updating product:', error);
-        if (req.file) {
-            const filePath = req.file.path;
-            if (fs.existsSync(filePath)) {
-                fs.unlink(filePath, (err) => {
-                    if (err) console.error("Error deleting failed product update upload due to server error:", err);
-                });
-            }
+        // حذف أي ملفات تم رفعها في حالة حدوث خطأ في السيرفر
+        if (req.files) {
+            if (req.files.mainImage) deleteFile(`/uploads/products/${req.files.mainImage[0].filename}`);
+            if (req.files.additionalImages) req.files.additionalImages.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+            if (req.files.videos) req.files.videos.map(file => `/uploads/products/${file.filename}`).forEach(deleteFile);
+            if (req.files.variantImages) req.files.variantImages.forEach(file => deleteFile(`/uploads/products/${file.filename}`));
+        }
+        if (error.code === 11000) { // خطأ تكرار
+            return res.status(400).json({ message: 'Duplicate value detected. Please check unique fields like SKU.', error: error.message });
         }
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// DELETE /api/product/:id - حذف منتج
 app.delete('/api/product/:id', protect, admin, async (req, res) => {
     try {
         const productId = req.params.id;
@@ -217,14 +505,12 @@ app.delete('/api/product/:id', protect, admin, async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        if (product.image && product.image !== "") {
-            const imagePath = path.join(__dirname, product.image); 
-            if (fs.existsSync(imagePath)) { 
-                fs.unlink(imagePath, (err) => {
-                    if (err) console.error("Failed to delete product image during delete:", err);
-                });
-            }
-        }
+
+        // حذف جميع الملفات المرتبطة بالمنتج من السيرفر
+        deleteFile(product.mainImage);
+        product.additionalImages.forEach(deleteFile);
+        product.videos.forEach(deleteFile);
+        product.variations.forEach(v => deleteFile(v.image)); // حذف صور الـ variants
 
         await Product.findByIdAndDelete(productId);
 
@@ -234,6 +520,9 @@ app.delete('/api/product/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+// --------------------------------------------------------------------------------------
+
+// مسارات الفئات (كما هي - لن يتم تغييرها)
 app.get('/api/categories', async (req, res) => {
     try {
         const categories = await Category.find().sort({ 'name.en': 1 });
@@ -420,6 +709,8 @@ app.delete('/api/categories/:id', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// مسارات الداشبورد (كما هي - لن يتم تغييرها)
 app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
     try {
         const totalSalesResult = await Order.aggregate([
@@ -621,6 +912,8 @@ app.get('/api/dashboard/recent-orders', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// مسارات Hero Section (كما هي - لن يتم تغييرها)
 app.get('/api/hero-slides', async (req, res) => {
     try {
         const slides = await Advertisement.find({ type: 'slide', isActive: true }).sort({ order: 1 });
@@ -668,6 +961,8 @@ app.get('/api/hero-side-offers', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
+
+// Middlewares for error handling (كما هي - لن يتم تغييرها)
 app.use((err, req, res, next) => {
     console.error("Unhandled error:", err.stack);
     res.status(500).send('Something broke!');

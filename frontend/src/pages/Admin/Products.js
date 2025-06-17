@@ -1,22 +1,16 @@
-import React, { useState } from 'react';
-import AddProductPage from '../../components/Admin/ProductPage/AddProductPage';
+import React from 'react';
 import ProductList from '../../components/Admin/ProductPage/ProductList';
-import { useLanguage } from "../../components/LanguageContext";
+import { useLanguage } from "../../components/LanguageContext"; // تأكد من المسار الصحيح للـ LanguageContext
 
 function App() {
     const { t } = useLanguage();
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const handleProductAdded = () => {
-        setRefreshKey(prevKey => prevKey + 1);
-    };
 
     return (
         <div className="App container mx-auto p-4">
             <main>
                 <hr className="my-8 border-gray-300" />
                 <section>
-                    <ProductList key={refreshKey} />
+                    <ProductList /> 
                 </section>
             </main>
             <footer className="text-center mt-12 py-4 text-gray-600">

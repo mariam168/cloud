@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react'; // Removed useEffect if not used directly
 import { useLanguage } from "../components/LanguageContext"; 
+import { User, Mail, Phone, MessageSquare, Send, Tag, Loader2, CheckCircle, XCircle } from 'lucide-react'; // Added icons
 
 const ContactUs = () => {
     const { t, language } = useLanguage(); 
@@ -12,32 +13,34 @@ const ContactUs = () => {
     });
     const [submissionMessage, setSubmissionMessage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const handleChange = (e) => {
+
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
             [name]: value,
         }));
-    };
+    }, []);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setSubmissionMessage(null); 
         setIsLoading(true); 
         const apiUrl = process.env.REACT_APP_API_URL;
-        console.log('API URL from .env (ContactUs.jsx):', apiUrl);
+        // console.log('API URL from .env (ContactUs.jsx):', apiUrl); // Keep for debugging, remove in production
 
         if (!apiUrl) {
             setSubmissionMessage({
                 type: 'error',
-                text: 'API URL is not defined. Please ensure REACT_APP_API_URL is set in your frontend .env file and restart the development server.'
+                text: t('contactUsPage.apiError') || 'API URL is not defined. Please ensure REACT_APP_API_URL is set in your frontend .env file and restart the development server.'
             });
             setIsLoading(false);
             return; 
         }
 
         const endpoint = `${apiUrl}/api/contact`;
-        console.log('Full API Endpoint (ContactUs.jsx):', endpoint);
+        // console.log('Full API Endpoint (ContactUs.jsx):', endpoint); // Keep for debugging, remove in production
+
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -48,7 +51,7 @@ const ContactUs = () => {
             });
 
             if (response.ok) {
-                setSubmissionMessage({ type: 'success', text: t('contactUsPage.successMessage') || 'Message submitted successfully!' });
+                setSubmissionMessage({ type: 'success', text: t('contactUsPage.successMessage') });
                 setFormData({
                     name: '',
                     subject: '',
@@ -58,7 +61,7 @@ const ContactUs = () => {
                 });
             } else {
                 const contentType = response.headers.get("content-type");
-                let errorText = 'Failed to submit message.';
+                let errorText = t('contactUsPage.errorMessage');
                 if (contentType && contentType.indexOf("application/json") !== -1) {
                     const errorData = await response.json();
                     errorText = errorData.message || errorText;
@@ -66,117 +69,121 @@ const ContactUs = () => {
                     errorText = await response.text(); 
                 }
 
-                setSubmissionMessage({ type: 'error', text: errorText || t('contactUsPage.errorMessage') || 'Failed to submit message.' });
+                setSubmissionMessage({ type: 'error', text: errorText });
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            setSubmissionMessage({ type: 'error', text: t('contactUsPage.errorMessage') || 'An error occurred during submission. Please check your network connection or server logs.' });
+            setSubmissionMessage({ type: 'error', text: t('contactUsPage.networkError') });
         } finally {
             setIsLoading(false); 
         }
-    };
+    }, [formData, t]);
 
     return (
-        <section className="w-full bg-white dark:bg-gray-900 py-12 px-4 md:px-8 lg:px-12 transition-colors duration-300">
-            <div className="max-w-screen-md mx-auto">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-                        {t('contactUsPage.title') || 'Contact Us'}
+        <section className="w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 py-16 px-4 md:px-8 lg:px-12 transition-colors duration-300">
+            <div className="max-w-screen-lg mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12 border border-gray-200 dark:border-gray-700">
+                <div className="text-center mb-10">
+                    <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-4">
+                        {t('contactUsPage.title')}
                     </h2>
-                    <p className="mt-3 text-base sm:text-lg text-gray-700 dark:text-gray-300">
-                        {t('contactUsPage.description') || 'Have any questions or need assistance? Feel free to reach out to us. Our team is available to help you with any inquiries regarding our services and support.'}
+                    <p className="max-w-prose mx-auto text-lg text-gray-600 dark:text-gray-300">
+                        {t('contactUsPage.description')}
                     </p>
                 </div>
 
-                <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-xl">
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                        <div>
-                            <label htmlFor="name" className="sr-only">{t('contactUsPage.yourName') || 'Your Name'}</label>
+                <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-xl shadow-inner border border-gray-100 dark:border-gray-600">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                        {/* Input Fields */}
+                        <div className="relative">
                             <input
                                 type="text"
                                 id="name"
                                 name="name"
-                                placeholder={t('contactUsPage.yourName') || 'Your Name'}
+                                placeholder={t('contactUsPage.yourName')}
                                 value={formData.name}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg transition-all duration-200 shadow-sm"
                             />
+                            <User size={24} className="absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '12px' }} />
                         </div>
-                        <div>
-                            <label htmlFor="subject" className="sr-only">{t('contactUsPage.yourSubject') || 'Your Subject'}</label>
+                        <div className="relative">
                             <input
                                 type="text"
                                 id="subject"
                                 name="subject"
-                                placeholder={t('contactUsPage.yourSubject') || 'Your Subject'}
+                                placeholder={t('contactUsPage.yourSubject')}
                                 value={formData.subject}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg transition-all duration-200 shadow-sm"
                             />
+                            <Tag size={24} className="absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '12px' }} />
                         </div>
-                        <div>
-                            <label htmlFor="email" className="sr-only">{t('contactUsPage.yourEmail') || 'Your Email'}</label>
+                        <div className="relative">
                             <input
                                 type="email"
                                 id="email"
                                 name="email"
-                                placeholder={t('contactUsPage.yourEmail') || 'Your Email'}
+                                placeholder={t('contactUsPage.yourEmail')}
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg transition-all duration-200 shadow-sm"
                             />
+                            <Mail size={24} className="absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '12px' }} />
                         </div>
-                        <div>
-                            <label htmlFor="phone" className="sr-only">{t('contactUsPage.yourPhone') || 'Your Phone'}</label>
+                        <div className="relative">
                             <input
                                 type="tel"
                                 id="phone"
                                 name="phone"
-                                placeholder={t('contactUsPage.yourPhone') || 'Your Phone'}
+                                placeholder={t('contactUsPage.yourPhone')}
                                 value={formData.phone}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg transition-all duration-200 shadow-sm"
                             />
+                            <Phone size={24} className="absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '12px' }} />
                         </div>
-                        <div className="md:col-span-2">
-                            <label htmlFor="message" className="sr-only">{t('contactUsPage.yourMessage') || 'Your Message'}</label>
+                        <div className="md:col-span-2 relative">
                             <textarea
                                 id="message"
                                 name="message"
-                                rows="6"
-                                placeholder={t('contactUsPage.yourMessage') || 'Your Message'}
+                                rows="7"
+                                placeholder={t('contactUsPage.yourMessage')}
                                 value={formData.message}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-lg transition-all duration-200 shadow-sm"
                             ></textarea>
+                            <MessageSquare size={24} className="absolute top-4 text-gray-400 dark:text-gray-300 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '12px' }} />
                         </div>
+
+                        {/* Submission Message */}
                         {submissionMessage && (
-                            <div className={`md:col-span-2 p-3 rounded-md text-center ${
-                                submissionMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            <div className={`md:col-span-2 p-4 rounded-lg text-center font-medium flex items-center justify-center gap-3 transition-all duration-300 ease-in-out ${
+                                submissionMessage.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
                             }`}>
+                                {submissionMessage.type === 'success' ? <CheckCircle size={24} /> : <XCircle size={24} />}
                                 {submissionMessage.text}
                             </div>
                         )}
-                        <div className="md:col-span-2 flex justify-center md:justify-start">
+
+                        {/* Submit Button */}
+                        <div className="md:col-span-2 flex justify-center">
                             <button
                                 type="submit"
                                 disabled={isLoading} 
-                                className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
-                                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                className={`flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 ease-in-out shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 ${
+                                    isLoading ? 'opacity-70 cursor-not-allowed' : ''
                                 }`}
                             >
                                 {isLoading ? (
-                                    <svg className="animate-spin h-5 w-5 text-white inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
+                                    <Loader2 className="animate-spin h-6 w-6 text-white inline-block mr-3" />
                                 ) : (
-                                    t('contactUsPage.submitMessage') || 'Submit Message'
+                                    <Send size={24} className={`${language === 'ar' ? 'ml-3' : 'mr-3'}`} />
                                 )}
+                                {t('contactUsPage.submitMessage')}
                             </button>
                         </div>
                     </form>

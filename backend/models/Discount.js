@@ -41,6 +41,7 @@ const discountSchema = mongoose.Schema({
 }, {
     timestamps: true
 });
+
 discountSchema.pre('save', function (next) {
     if ((this.percentage && this.fixedAmount) || (!this.percentage && !this.fixedAmount)) {
         return next(new Error('Either percentage or fixedAmount must be provided, but not both.'));

@@ -9,13 +9,14 @@ import About from './pages/About';
 import ContactUs from './pages/ContactUs';
 import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/Auth/LoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
 import DashboardLayout from './components/layouts/DashboardLayout';
 import DashboardPage from './pages/Admin/Dashboard';
 import ProductsPage from './pages/Admin/Products';
 import CateoryPage from './pages/Admin/Categories';
 import WishlistPage from './pages/WishlistPage';
+import AdminOrderDetailPage from './pages/AdminOrderDetailPage';
 import { WishlistProvider } from './context/WishlistContext'; 
 import { CartProvider } from './context/CartContext';
 import CartPage from './pages/CartPage';
@@ -25,10 +26,11 @@ import AdvertisementList from './components/Admin/AdvertisementPage/Advertisemen
 import DiscountList from './components/Admin/DiscountPage/DiscountList';
 import AdminOrderDetailsPage from './pages/Admin/AdminOrderDetailsPage';
 import AdvertisementDetailsPage from './pages/AdvertisementDetailsPage';
-import ActivationPage from './pages/ActivationPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
+import ActivationPage from './pages/Auth/ActivationPage';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/Auth/ResetPasswordPage';
 import AllOffersPage from './pages/AllOffersPage';
+import { ToastProvider } from './components/ToastNotification';
 function MainSiteLayout({ dark }) {
   const location = useLocation();
   const hideHeader = ['/login', '/register', '/activate', '/forgotpassword', '/resetpassword'].some(path => location.pathname.startsWith(path));
@@ -51,8 +53,11 @@ function App() {
     <Router>
       <LanguageProvider>
         <AuthProvider>
+          <ToastProvider>
           <WishlistProvider>
+                
             <CartProvider>
+          
               <Routes>
                 <Route element={<MainSiteLayout dark={dark} />}>
                   <Route path="/" element={<Home />} />
@@ -82,8 +87,11 @@ function App() {
                 </Route>
 
               </Routes>
+              
             </CartProvider>
+            
           </WishlistProvider>
+          </ToastProvider>
         </AuthProvider>
       </LanguageProvider>
     </Router>
