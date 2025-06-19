@@ -6,9 +6,7 @@ const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const router = express.Router();
 const crypto = require('crypto');
-const axios = require('axios'); // تأكد من استيراد axios
-
-// Middleware for reCAPTCHA verification (unchanged from previous)
+const axios = require('axios');
 const verifyRecaptcha = async (req, res, next) => {
     const { recaptchaToken } = req.body;
     if (!recaptchaToken) {
@@ -33,10 +31,6 @@ const verifyRecaptcha = async (req, res, next) => {
         return res.status(500).json({ message: 'Server error during reCAPTCHA verification.' });
     }
 };
-
-// @route   POST /api/auth/register
-// @desc    Register user & send activation email
-// @access  Public
 router.post(
     '/register',
     [
@@ -57,8 +51,6 @@ router.post(
                 return res.status(400).json({ errors: [{ msg: 'User already exists with this email' }] });
             }
             user = new User({ name, email, password, role: role || 'user', isActivated: false });
-
-            // تم توليد التوكن والحفظ في `getActivationToken`
             const activationToken = user.getActivationToken(); 
             await user.save(); 
 
@@ -85,10 +77,9 @@ router.post(
                 });
             } catch (emailError) {
                 console.error('Error sending activation email:', emailError);
-                // إذا فشل إرسال الإيميل، قم بمسح التوكن من المستخدم ليمكن إعادة المحاولة
                 user.activationToken = undefined; 
                 user.activationTokenExpire = undefined;
-                await user.save({ validateBeforeSave: false }); // لا تتحقق من الصحة لتجنب أخطاء بسبب مسح التوكنات
+                await user.save({ validateBeforeSave: false }); 
                 return res.status(500).json({ message: 'Error sending activation email. Please try again later.' });
             }
 
@@ -98,10 +89,6 @@ router.post(
         }
     }
 );
-
-// @route   GET /api/auth/activate/:token
-// @desc    Activate user account
-// @access  Public
 router.get('/activate/:token', async (req, res) => {
     const activationToken = crypto
         .createHash('sha256')
@@ -133,10 +120,6 @@ router.get('/activate/:token', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-// @route   POST /api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
 router.post(
     '/login',
     [
@@ -185,10 +168,6 @@ router.post(
         }
     }
 );
-
-// @route   POST /api/auth/forgotpassword
-// @desc    Request password reset link
-// @access  Public
 router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
     const { email } = req.body;
 
@@ -196,14 +175,13 @@ router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            // **مهم:** دائماً ارسل رسالة نجاح عامة لتجنب تعداد الإيميلات (email enumeration)
             return res.status(200).json({ success: true, message: 'If a user with that email exists, a password reset email has been sent.' });
         }
 
-        const resetToken = user.getResetPasswordToken(); // هذا يُنشئ التوكن الخام ويُشفره ويحفظه في DB
-        await user.save({ validateBeforeSave: false }); // حفظ المستخدم مع التوكن المشفر وتاريخ الانتهاء
+        const resetToken = user.getResetPasswordToken();
+        await user.save({ validateBeforeSave: false }); 
 
-        const resetUrl = `${process.env.CLIENT_URL}/resetpassword/${resetToken}`; // استخدام التوكن الخام في الـ URL
+        const resetUrl = `${process.env.CLIENT_URL}/resetpassword/${resetToken}`;
         const message = `
             <h1>Password Reset Request</h1>
             <p>You are receiving this because you (or someone else) has requested the reset of a password for your account for ${process.env.FROM_NAME}.</p>
@@ -224,10 +202,9 @@ router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
             res.status(200).json({ success: true, message: 'Password reset email sent successfully.' });
         } catch (emailError) {
             console.error('Error sending reset password email:', emailError);
-            // إذا فشل إرسال الإيميل، قم بمسح التوكن من المستخدم ليمكن إعادة المحاولة
             user.resetPasswordToken = undefined; 
             user.resetPasswordExpire = undefined;
-            await user.save({ validateBeforeSave: false }); // لا تتحقق من الصحة لتجنب أخطاء
+            await user.save({ validateBeforeSave: false });
             return res.status(500).json({ message: 'Error sending password reset email. Please try again later.' });
         }
     } catch (err) {
@@ -235,26 +212,19 @@ router.post('/forgotpassword', verifyRecaptcha, async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-// @route   GET /api/auth/validate-reset-token/:token
-// @desc    Validate reset password token (Frontend uses this on page load)
-// @access  Public
 router.get('/validate-reset-token/:token', async (req, res) => {
-    // تشفير التوكن المستلم من الـ URL لمقارنته مع التوكن المشفر في قاعدة البيانات
     const resetPasswordToken = crypto
         .createHash('sha256')
         .update(req.params.token)
         .digest('hex');
 
     try {
-        // البحث عن المستخدم بالتوكن المشفر والتأكد أنه لم ينتهِ بعد
         const user = await User.findOne({
             resetPasswordToken,
             resetPasswordExpire: { $gt: Date.now() },
         });
 
         if (!user) {
-            // <--- هذه هي النقطة التي يرجع فيها الخطأ "Invalid or expired reset token."
             return res.status(400).json({ message: 'Invalid or expired reset token.' });
         }
 
@@ -264,12 +234,7 @@ router.get('/validate-reset-token/:token', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-// @route   PUT /api/auth/resetpassword/:token
-// @desc    Reset password with valid token
-// @access  Public
 router.put('/resetpassword/:token', async (req, res) => {
-    // تشفير التوكن المستلم من الـ URL لمقارنته مع التوكن المشفر في قاعدة البيانات
     const resetPasswordToken = crypto
         .createHash('sha256')
         .update(req.params.token)
@@ -279,24 +244,15 @@ router.put('/resetpassword/:token', async (req, res) => {
         const user = await User.findOne({
             resetPasswordToken,
             resetPasswordExpire: { $gt: Date.now() },
-        }).select('+password'); // استيراد كلمة المرور المشفرة للمقارنة/التحديث
-
+        }).select('+password');
         if (!user) {
-            // <--- هذه أيضاً نقطة يمكن أن يرجع فيها الخطأ
             return res.status(400).json({ message: 'Invalid or expired reset token.' });
         }
 
-        // **الإصلاح هنا:** إزالة التحقق من password2، لأن الـ backend يستقبل password فقط
-        // هذا التحقق يجب أن يكون في الواجهة الأمامية فقط.
-        // if (req.body.password !== req.body.password2) {
-        //     return res.status(400).json({ message: 'Passwords do not match.' });
-        // }
-
-        user.password = req.body.password; // Mongoose middleware for hashing will run on save
-        user.resetPasswordToken = undefined; // مسح التوكن بعد الاستخدام
-        user.resetPasswordExpire = undefined; // مسح تاريخ انتهاء الصلاحية
-        await user.save(); // حفظ المستخدم (هذا سيقوم بتشفير كلمة المرور الجديدة)
-
+        user.password = req.body.password; 
+        user.resetPasswordToken = undefined; 
+        user.resetPasswordExpire = undefined; 
+        await user.save(); 
         res.status(200).json({ success: true, message: 'Password reset successfully.' });
     } catch (err) {
         console.error('Server error during password reset:', err.message);

@@ -1,7 +1,6 @@
-import React, { useState, useCallback } from 'react'; // Removed useEffect if not used directly
+import React, { useState, useCallback } from 'react'; 
 import { useLanguage } from "../components/LanguageContext"; 
-import { User, Mail, Phone, MessageSquare, Send, Tag, Loader2, CheckCircle, XCircle } from 'lucide-react'; // Added icons
-
+import { User, Mail, Phone, MessageSquare, Send, Tag, Loader2, CheckCircle, XCircle } from 'lucide-react'; 
 const ContactUs = () => {
     const { t, language } = useLanguage(); 
     const [formData, setFormData] = useState({
@@ -27,8 +26,6 @@ const ContactUs = () => {
         setSubmissionMessage(null); 
         setIsLoading(true); 
         const apiUrl = process.env.REACT_APP_API_URL;
-        // console.log('API URL from .env (ContactUs.jsx):', apiUrl); // Keep for debugging, remove in production
-
         if (!apiUrl) {
             setSubmissionMessage({
                 type: 'error',
@@ -39,7 +36,6 @@ const ContactUs = () => {
         }
 
         const endpoint = `${apiUrl}/api/contact`;
-        // console.log('Full API Endpoint (ContactUs.jsx):', endpoint); // Keep for debugging, remove in production
 
         try {
             const response = await fetch(endpoint, {
@@ -93,7 +89,6 @@ const ContactUs = () => {
 
                 <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-xl shadow-inner border border-gray-100 dark:border-gray-600">
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-                        {/* Input Fields */}
                         <div className="relative">
                             <input
                                 type="text"
@@ -158,8 +153,6 @@ const ContactUs = () => {
                             ></textarea>
                             <MessageSquare size={24} className="absolute top-4 text-gray-400 dark:text-gray-300 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '12px' }} />
                         </div>
-
-                        {/* Submission Message */}
                         {submissionMessage && (
                             <div className={`md:col-span-2 p-4 rounded-lg text-center font-medium flex items-center justify-center gap-3 transition-all duration-300 ease-in-out ${
                                 submissionMessage.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
@@ -168,8 +161,6 @@ const ContactUs = () => {
                                 {submissionMessage.text}
                             </div>
                         )}
-
-                        {/* Submit Button */}
                         <div className="md:col-span-2 flex justify-center">
                             <button
                                 type="submit"

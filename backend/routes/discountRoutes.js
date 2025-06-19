@@ -84,7 +84,7 @@ router.put('/:id', protect, admin, async (req, res) => {
             maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
             startDate: new Date(startDate),
             endDate: new Date(endDate),
-            isActive: Boolean(isActive) // تم التعديل هنا
+            isActive: Boolean(isActive)
         };
 
         const updatedDiscount = await Discount.findByIdAndUpdate(discountId, updatedData, { new: true, runValidators: true });

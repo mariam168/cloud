@@ -8,12 +8,11 @@ import {
     LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { useLanguage } from '../../components/LanguageContext';
-import { Loader2, DollarSign, ShoppingCart, Package, Users, Info, CalendarDays, ClipboardList } from 'lucide-react'; // Added DollarSign, Users, Info, ClipboardList
+import { Loader2, DollarSign, ShoppingCart, Package, Users, Info, CalendarDays, ClipboardList } from 'lucide-react';
 
-const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL from useAuth
+const AdminDashboardPage = () => {
     const { t, language } = useLanguage();
-    const { API_BASE_URL } = useAuth(); // Assuming API_BASE_URL is available from useAuth
-
+    const { API_BASE_URL } = useAuth();
     const [summaryStats, setSummaryStats] = useState(null);
     const [salesData, setSalesData] = useState([]);
     const [productSalesData, setProductSalesData] = useState([]);
@@ -28,17 +27,13 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
         try {
             setLoading(true);
             setError(null);
-
-            // Fetch data from API_BASE_URL
             const statsRes = await axios.get(`${API_BASE_URL}/api/dashboard/summary-stats`);
             setSummaryStats(statsRes.data);
-
             const salesRes = await axios.get(`${API_BASE_URL}/api/dashboard/sales-over-time`);
             setSalesData(salesRes.data.map(item => ({
                 ...item,
                 date: language === 'ar' ? new Date(item.date).toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' }) : new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            }))); // Format date for display
-
+            }))); 
             const productSalesRes = await axios.get(`${API_BASE_URL}/api/dashboard/product-sales`);
             setProductSalesData(productSalesRes.data);
 
@@ -52,8 +47,7 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
              setUserRegistrationData(userRegRes.data.map(item => ({
                 ...item,
                 date: language === 'ar' ? new Date(item.date).toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' }) : new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            }))); // Format date for display
-
+            }))); 
             const recentOrdersRes = await axios.get(`${API_BASE_URL}/api/dashboard/recent-orders`);
             setRecentOrders(recentOrdersRes.data);
 
@@ -63,16 +57,12 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
         } finally {
             setLoading(false);
         }
-    }, [API_BASE_URL, t, language]); // Added language to dependencies for date formatting
+    }, [API_BASE_URL, t, language]); 
 
     useEffect(() => {
         fetchDashboardData();
     }, [fetchDashboardData]);
-
-    // Colors for Pie Charts (can be customized for a calmer palette)
     const PIE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#00C49F', '#FFBB28', '#A52A2A', '#800080', '#0088FE', '#FF8042'];
-
-    // Helper to get status class names
     const getStatusClass = (status) => {
         switch (status) {
             case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
@@ -122,8 +112,6 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
             <h2 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 dark:text-white mb-10 border-b-2 border-blue-500/50 dark:border-blue-400/50 pb-4 inline-block mx-auto leading-tight">
                 {t('adminDashboardPage.dashboardTitle')}
             </h2>
-
-            {/* Summary Stats Cards */}
             {summaryStats && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-100 dark:border-gray-600 transition-all duration-200 hover:shadow-md hover:scale-102">
@@ -156,8 +144,6 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
                     </div>
                 </div>
             )}
-
-            {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
 
                 <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
@@ -200,10 +186,10 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
                                     stroke="#555"
                                     tickFormatter={(value) => value?.[language] || value?.en || value?.ar || value}
                                     tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }}
-                                    interval={0} // Show all labels
-                                    angle={-45} // Rotate labels to prevent overlap
-                                    textAnchor="end" // Align text to the end of the tick
-                                    height={50} // Give more space for rotated labels
+                                    interval={0}
+                                    angle={-45}
+                                    textAnchor="end" 
+                                    height={50} 
                                 />
                                 <YAxis stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
                                 <Tooltip contentStyle={{ backgroundColor: language === 'ar' ? '#f0f0f0' : '#fff', borderColor: '#ccc', borderRadius: '8px', boxShadow: '0px 0px 5px rgba(0,0,0,0.1)' }}
@@ -244,7 +230,7 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
                                     dataKey="value"
                                     nameKey="name"
                                     label={({ name, percent }) => `${name?.[language] || name?.en || name?.ar || name} (${(percent * 100).toFixed(0)}%)`} // Translate category names
-                                    labelLine={false} // Disable label lines for cleaner look
+                                    labelLine={false}
                                 >
                                     {categoryDistributionData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -308,8 +294,6 @@ const AdminDashboardPage = () => { // Removed serverUrl prop, using API_BASE_URL
                          <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noUserRegistrationData')}</p>
                     )}
                 </div>
-
-                {/* Recent Orders Table */}
                 <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 lg:col-span-2">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                         <ClipboardList size={24} className="text-gray-600 dark:text-gray-300" />

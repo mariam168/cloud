@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../components/LanguageContext';
-import { CalendarDays, Tag, PercentCircle, ShoppingCart, Heart, Loader2, Info, ImageOff } from 'lucide-react'; // <<<<<<< تم إضافة ImageOff هنا!
+import { CalendarDays, Tag, PercentCircle, ShoppingCart, Heart, Loader2, Info, ImageOff } from 'lucide-react'; 
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -10,29 +10,28 @@ import { useAuth } from '../context/AuthContext';
 
 const AllOffersPage = () => {
     const { t, language } = useLanguage();
-    const { API_BASE_URL, isAuthenticated, navigate } = useAuth(); // Assuming navigate is also from useAuth or passed down
+    const { API_BASE_URL, isAuthenticated, navigate } = useAuth(); 
 
     const [offers, setOffers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const { addToCart, isInCart, loading: loadingCart } = useCart(); // Renamed loadingCart for consistency
-    const { toggleFavorite, isFavorite, loading: loadingWishlist } = useWishlist(); // Renamed loadingWishlist for consistency
-
+    const { addToCart, isInCart, loading: loadingCart } = useCart();
+    const { toggleFavorite, isFavorite, loading: loadingWishlist } = useWishlist(); 
     const formatCurrency = useCallback((amount) => {
         if (amount === null || amount === undefined || amount === "") return t('general.notApplicable');
         const options = {
             style: 'currency',
-            currency: t('general.currencyCode'), // Use global currency code
+            currency: t('general.currencyCode'), 
             minimumFractionDigits: 0,
             maximumFractionDigits: 2,
         };
-        const locale = language === 'ar' ? 'ar-SA' : 'en-US'; // Saudi Arabia locale for SAR, US for USD
+        const locale = language === 'ar' ? 'ar-SA' : 'en-US'; 
         try {
             return new Intl.NumberFormat(locale, options).format(amount);
         } catch (e) {
             console.warn("Invalid currency code or amount in formatCurrency (AllOffersPage):", t('general.currencyCode'), amount, e);
-            return `${t('general.currencySymbol')}${Number(amount).toFixed(2)}`; // Fallback
+            return `${t('general.currencySymbol')}${Number(amount).toFixed(2)}`;
         }
     }, [language, t]);
 
@@ -48,7 +47,6 @@ const AllOffersPage = () => {
             setLoading(true);
             setError(null);
             const response = await axios.get(`${API_BASE_URL}/api/advertisements?isActive=true`);
-            // Sort by order, then by creation date as a fallback
             setOffers(response.data.sort((a, b) => (a.order || 0) - (b.order || 0) || new Date(b.createdAt) - new Date(a.createdAt)));
         } catch (err) {
             console.error("Error fetching all offers:", err.response?.data?.message || err.message);
@@ -63,8 +61,8 @@ const AllOffersPage = () => {
     }, [fetchAllOffers]);
 
     const handleAddToCartClick = useCallback((e, offer) => {
-        e.preventDefault(); // Prevent navigating to offer details page
-        e.stopPropagation(); // Stop event propagation to parent Link
+        e.preventDefault(); 
+        e.stopPropagation(); 
         
         if (!isAuthenticated) {
             alert(t('cart.loginRequired'));
@@ -79,8 +77,8 @@ const AllOffersPage = () => {
     }, [isAuthenticated, addToCart, navigate, t]);
 
     const handleToggleFavoriteClick = useCallback((e, offer) => {
-        e.preventDefault(); // Prevent navigating to offer details page
-        e.stopPropagation(); // Stop event propagation to parent Link
+        e.preventDefault();
+        e.stopPropagation();
 
         if (!isAuthenticated) {
             alert(t('wishlist.loginRequired'));
@@ -96,7 +94,7 @@ const AllOffersPage = () => {
 
     const handleImageError = useCallback((e) => {
         e.target.onerror = null;
-        e.target.src = '/images/placeholder-product-image.png'; // Using a generic placeholder image
+        e.target.src = '/images/placeholder-product-image.png';
         e.target.alt = t('general.imageFailedToLoad');
     }, [t]);
 
@@ -138,10 +136,10 @@ const AllOffersPage = () => {
                         <p className="text-lg text-gray-600 dark:text-gray-400">{t('allOffersPage.noOffers')}</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"> {/* Adjusted gap */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"> 
                         {offers.map(offer => (
                             <Link to={`/advertisements/${offer._id}`} key={offer._id} className="block group">
-                                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col h-full transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 border border-gray-100 dark:border-gray-700"> {/* Subtle hover effect */}
+                                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col h-full transition-all duration-300 ease-in-out hover:shadow-lg hover:-translate-y-1 border border-gray-100 dark:border-gray-700"> 
                                     <div className="flex justify-center items-center mb-4 h-40">
                                         {offer.image ? (
                                             <img
@@ -152,7 +150,7 @@ const AllOffersPage = () => {
                                             />
                                         ) : (
                                             <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 text-base">
-                                                <ImageOff size={48} className="mb-2" /> {/*<<<<< استخدام ImageOff هنا */}
+                                                <ImageOff size={48} className="mb-2" /> 
                                                 {t('general.noImage')}
                                             </div>
                                         )}
@@ -166,17 +164,16 @@ const AllOffersPage = () => {
                                         </p>
                                     )}
 
-                                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700"> {/* Clearer border */}
-                                        {/* Price Display */}
+                                    <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
                                         {(offer.originalPrice !== null || offer.discountedPrice !== null) && (
                                             <div className="flex items-baseline justify-center gap-2 mb-2">
                                                 {offer.discountedPrice !== null && offer.discountedPrice !== undefined ? (
                                                     <>
-                                                        <span className="text-green-600 dark:text-green-400 font-bold text-xl"> {/* Larger discounted price */}
+                                                        <span className="text-green-600 dark:text-green-400 font-bold text-xl"> 
                                                             {formatCurrency(offer.discountedPrice)}
                                                         </span>
                                                         {offer.originalPrice !== null && offer.originalPrice !== undefined && offer.originalPrice > offer.discountedPrice && (
-                                                            <span className="text-gray-500 dark:text-gray-400 text-base line-through"> {/* Original price size */}
+                                                            <span className="text-gray-500 dark:text-gray-400 text-base line-through"> 
                                                                 {formatCurrency(offer.originalPrice)}
                                                             </span>
                                                         )}
@@ -190,26 +187,22 @@ const AllOffersPage = () => {
                                                 )}
                                             </div>
                                         )}
-
-                                        {/* Dates Display */}
                                         {(offer.startDate || offer.endDate) && (
                                             <p className="text-xs text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-1">
-                                                <CalendarDays size={14} className="text-indigo-500/80" /> {/* Muted icon color */}
+                                                <CalendarDays size={14} className="text-indigo-500/80" /> 
                                                 {offer.startDate && ` ${formatDate(offer.startDate)}`}
                                                 {offer.startDate && offer.endDate && ' - '}
                                                 {offer.endDate && `${formatDate(offer.endDate)}`}
                                             </p>
                                         )}
-
-                                        {/* Action Buttons */}
-                                        <div className="flex items-center justify-between gap-3 mt-4"> {/* Increased gap */}
+                                        <div className="flex items-center justify-between gap-3 mt-4"> 
                                             {offer.productRef && offer.productRef._id && offer.type !== 'weeklyOffer' && offer.discountedPrice !== null && offer.discountedPrice !== undefined && (
                                                 <button
                                                     onClick={(e) => handleAddToCartClick(e, offer)}
                                                     className={`flex-1 flex items-center justify-center gap-1 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out shadow-sm
                                                         ${isInCart(offer.productRef._id) 
                                                             ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 cursor-default'
-                                                            : 'bg-green-500 text-white hover:bg-green-600' // Subtle green
+                                                            : 'bg-green-500 text-white hover:bg-green-600' 
                                                         }
                                                         ${loadingCart ? 'opacity-70 cursor-not-allowed' : ''}
                                                     `}
@@ -235,7 +228,7 @@ const AllOffersPage = () => {
                                                     onClick={(e) => handleToggleFavoriteClick(e, offer)}
                                                     className={`p-2 rounded-full transition-all duration-200 ease-in-out shadow-sm hover:shadow-md
                                                         ${isFavorite(offer.productRef._id)
-                                                            ? 'bg-red-500 text-white hover:bg-red-600' // Subtle red
+                                                            ? 'bg-red-500 text-white hover:bg-red-600' 
                                                             : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
                                                         }
                                                         ${loadingWishlist ? 'opacity-70 cursor-not-allowed' : ''}

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import EditProductModal from './EditProductModal';
-import AddProductPage from './AddProductPage';
+import AddProductModal from './AddProductModal';
 import { useLanguage } from '../../LanguageContext';
-// ** التغيير هنا: تمت إضافة CheckCircle و Copy إلى قائمة الاستيراد **
-import { Loader2, Info, Edit, Trash2, PlusCircle, XCircle, X, Copy, CheckCircle } from 'lucide-react';
+// --- FIX: Add XCircle to the import list ---
+import { Loader2, Info, Edit, Trash2, PlusCircle, X, Copy, CheckCircle, Image as ImageIcon, XCircle } from 'lucide-react';
 
 const ProductList = () => {
-    const { t, language } = useLanguage();
+    const { t } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -24,7 +24,6 @@ const ProductList = () => {
             setProducts(response.data);
             setError(null);
         } catch (err) {
-            console.error('Error fetching products:', err);
             setError((t('general.errorFetchingData') || 'Error fetching products: ') + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
@@ -35,16 +34,14 @@ const ProductList = () => {
         fetchProducts();
     }, [fetchProducts]);
 
-    const handleDelete = async (productId, productNames) => {
-        const productName = productNames?.[language] || productNames?.en || productNames?.ar || t('general.unnamedProduct');
-        const confirmDelete = window.confirm(t('productAdmin.confirmDelete', { productName: productName }));
+    const handleDelete = async (productId, productName) => {
+        const confirmDelete = window.confirm(t('productAdmin.confirmDelete', { productName: productName || t('general.unnamedProduct') }));
         if (confirmDelete) {
             try {
-                await axios.delete(`${SERVER_URL}/api/product/${productId}`);
+                await axios.delete(`${SERVER_URL}/api/products/${productId}`);
                 setProducts(prev => prev.filter(p => p._id !== productId));
-                alert(t('productAdmin.deleteSuccess') || 'Product deleted successfully!');
+                alert(t('productAdmin.deleteSuccess'));
             } catch (err) {
-                console.error('Error deleting product:', err);
                 alert((t('productAdmin.deleteError') || 'An error occurred while deleting the product.') + (err.response?.data?.message || err.message));
             }
         }
@@ -55,19 +52,11 @@ const ProductList = () => {
         setShowEditModal(true);
     };
 
-    const handleCloseEditModal = () => {
+    const handleActionSuccess = () => {
+        fetchProducts();
         setShowEditModal(false);
-        setEditingProduct(null);
-    };
-
-    const handleProductUpdated = () => {
-        fetchProducts();
-        handleCloseEditModal();
-    };
-
-    const handleProductAdded = () => {
-        fetchProducts();
         setShowAddModal(false);
+        setEditingProduct(null);
     };
 
     const copyToClipboard = (id) => {
@@ -76,106 +65,53 @@ const ProductList = () => {
         setTimeout(() => setCopiedId(null), 1500);
     };
 
-    if (loading) return (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] text-xl font-semibold text-gray-700 dark:text-gray-300 py-8">
-            <Loader2 size={48} className="text-blue-500 dark:text-blue-400 animate-spin mb-4" />
-            <span className="text-lg">{t('general.loading')}</span>
-        </div>
-    );
-    
-    if (error) return (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] text-center p-6 bg-red-50 dark:bg-red-900/20 rounded-lg shadow-sm border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 py-8">
-            <XCircle size={48} className="mb-4" />
-            <p className="text-lg font-medium">{t('general.error')}: {error}</p>
-        </div>
-    );
+    if (loading) return <div className="flex justify-center p-10"><Loader2 size={48} className="animate-spin text-blue-500" /></div>;
+    if (error) return <div className="p-6 bg-red-100 text-red-700 rounded-lg"><XCircle className="inline mr-2" />{error}</div>;
 
     return (
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                    {t('adminProductsPage.productList')}
-                </h2>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
+        <div className="p-4 bg-white rounded-xl shadow-lg border">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b">
+                <h2 className="text-2xl font-bold text-gray-800">{t('adminProductsPage.productList')}</h2>
+                <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-md">
                     <PlusCircle size={20} /> {t('productAdmin.addProductButton')}
                 </button>
             </div>
 
             {products.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center p-10 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600">
-                    <Info size={48} className="mb-4 text-gray-400 dark:text-gray-500" />
-                    <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">{t('productAdmin.noProducts')}</p>
-                </div>
+                <div className="text-center p-10 text-gray-500"><Info size={48} className="mx-auto mb-4" /><p>{t('productAdmin.noProducts')}</p></div>
             ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                    <table className="min-w-full text-sm text-gray-700 dark:text-gray-300 divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-100 dark:bg-gray-700">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                        <thead className="bg-gray-100">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('productAdmin.imageTable')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('productAdmin.nameTable')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('productAdmin.categoryTable')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('productAdmin.priceTable')}</th>
-                                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('productAdmin.actionsTable')}</th>
+                                <th className="p-3 text-left font-semibold text-gray-600">ID</th>
+                                <th className="p-3 text-left font-semibold text-gray-600">{t('productAdmin.imageTable')}</th>
+                                <th className="p-3 text-left font-semibold text-gray-600">{t('productAdmin.nameTable')}</th>
+                                <th className="p-3 text-left font-semibold text-gray-600">{t('productAdmin.categoryTable')}</th>
+                                <th className="p-3 text-left font-semibold text-gray-600">{t('productAdmin.priceTable')}</th>
+                                <th className="p-3 text-center font-semibold text-gray-600">{t('productAdmin.actionsTable')}</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody className="divide-y">
                             {products.map(product => (
-                                <tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                <tr key={product._id} className="hover:bg-gray-50">
+                                    <td className="p-3">
                                         <div className="flex items-center gap-2">
-                                            <span 
-                                                className="font-mono text-xs text-gray-500 dark:text-gray-400 cursor-pointer"
-                                                title={product._id}
-                                            >
-                                                ...{product._id.slice(-6)}
-                                            </span>
-                                            <button 
-                                                onClick={() => copyToClipboard(product._id)}
-                                                className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                                                title={t('general.copyId') || 'Copy ID'}
-                                            >
+                                            <span className="font-mono text-xs text-gray-500" title={product._id}>...{product._id.slice(-6)}</span>
+                                            <button onClick={() => copyToClipboard(product._id)} className="text-gray-400 hover:text-gray-600">
                                                 {copiedId === product._id ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
                                             </button>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <img
-                                            src={product.mainImage ? `${SERVER_URL}${product.mainImage}` : '/images/placeholder-product-image.png'}
-                                            alt={product.name?.[language] || product.name?.en || t('general.unnamedProduct')}
-                                            className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm"
-                                            onError={(e) => { e.target.onerror = null; e.target.src = '/images/placeholder-product-image.png'; }}
-                                        />
+                                    <td className="p-3">
+                                        {product.mainImage ? <img src={`${SERVER_URL}${product.mainImage}`} alt={product.name} className="w-16 h-16 object-cover rounded-lg border"/> : <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center"><ImageIcon className="text-gray-400"/></div>}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900 dark:text-white">
-                                        {product.name?.[language] || product.name?.en || t('general.unnamedProduct')}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                                            {product.category || t('productAdmin.uncategorized')}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap font-bold text-green-600 dark:text-green-400">
-                                        {t('general.currencySymbol')}{product.price?.toFixed(2) || '0.00'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        <button
-                                            onClick={() => handleOpenEditModal(product)}
-                                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mx-1 p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                            title={t('adminCategoryPage.editCategory') || 'Edit'}
-                                        >
-                                            <Edit size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(product._id, product.name)}
-                                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 mx-1 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                            title={t('adminCategoryPage.deleteCategory') || 'Delete'}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                    <td className="p-3 font-medium text-gray-800">{product.name}</td>
+                                    <td className="p-3 text-gray-600">{product.category?.name || t('productAdmin.uncategorized')}</td>
+                                    <td className="p-3 font-bold text-green-600">{t('general.currencySymbol')}{product.price?.toFixed(2)}</td>
+                                    <td className="p-3 text-center">
+                                        <button onClick={() => handleOpenEditModal(product)} className="text-blue-600 p-2 rounded-full hover:bg-blue-50"><Edit size={18} /></button>
+                                        <button onClick={() => handleDelete(product._id, product.name)} className="text-red-600 p-2 rounded-full hover:bg-red-50 ml-2"><Trash2 size={18} /></button>
                                     </td>
                                 </tr>
                             ))}
@@ -185,30 +121,11 @@ const ProductList = () => {
             )}
             
             {showEditModal && editingProduct && (
-                <EditProductModal
-                    product={editingProduct}
-                    onClose={handleCloseEditModal}
-                    onProductUpdated={handleProductUpdated}
-                    serverUrl={SERVER_URL}
-                />
+                <EditProductModal product={editingProduct} onClose={() => setShowEditModal(false)} onProductUpdated={handleActionSuccess} serverUrl={SERVER_URL} />
             )}
             
             {showAddModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl relative w-full max-w-xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
-                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('productAdmin.addNewProduct')}</h2>
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                aria-label={t('general.close')}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <AddProductPage onProductAdded={handleProductAdded} serverUrl={SERVER_URL} />
-                    </div>
-                </div>
+                <AddProductModal onClose={() => setShowAddModal(false)} onProductAdded={handleActionSuccess} serverUrl={SERVER_URL} />
             )}
         </div>
     );

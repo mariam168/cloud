@@ -3,10 +3,8 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../components/LanguageContext';
-import { useToast } from '../components/ToastNotification'; // استيراد useToast
-
+import { useToast } from '../components/ToastNotification'; 
 const WishlistContext = createContext();
-
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
   if (context === undefined) {
@@ -17,7 +15,7 @@ export const useWishlist = () => {
 
 export const WishlistProvider = ({ children }) => {
   const { t } = useLanguage();
-  const { showToast } = useToast(); // استخلاص showToast من useToast
+  const { showToast } = useToast(); 
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
   const { isAuthenticated, currentUser, API_BASE_URL, token } = useAuth(); 
@@ -34,7 +32,6 @@ export const WishlistProvider = ({ children }) => {
         console.log("WishlistContext: Fetched wishlist successfully.", response.data);
       } catch (error) {
         console.error('WishlistContext: Failed to fetch wishlist:', error.response?.data?.message || error.message);
-        // لا داعي لعرض toast عند فشل جلب القائمة، لأنها قد تكون مجرد مشكلة مؤقتة أو عدم وجود عناصر
         setWishlistItems([]); 
       } finally {
         setLoadingWishlist(false);
@@ -76,7 +73,7 @@ export const WishlistProvider = ({ children }) => {
 
     if (isFavorite(productId)) { 
         console.log("WishlistContext: Product already in wishlist (local check):", productId);
-        showToast(t('wishlist.alreadyInWishlist') || "Product is already in your wishlist.", 'info'); // يمكن أن يكون info بدلاً من warning
+        showToast(t('wishlist.alreadyInWishlist') || "Product is already in your wishlist.", 'info'); 
         return;
     }
 
@@ -86,7 +83,6 @@ export const WishlistProvider = ({ children }) => {
       });
       setWishlistItems(response.data.wishlist || []);
       console.log("WishlistContext: Added to wishlist (server response). Product ID:", productId, "Updated wishlist:", response.data.wishlist);
-      // لا تعرض toast عند النجاح هنا (حسب طلبك)
     } catch (error) {
       console.error('WishlistContext: Failed to add to wishlist:', error.response?.data?.message || error.message);
       showToast(`${t('wishlist.addFailed') || 'Could not add product to wishlist. '}${error.response?.data?.message || error.message}`, 'error');
@@ -95,7 +91,6 @@ export const WishlistProvider = ({ children }) => {
 
   const removeFromWishlist = async (productId) => {
     if (!isAuthenticated || !API_BASE_URL) {
-      // لا داعي لعرض toast هنا، لأنه يجب التعامل مع عدم المصادقة قبل محاولة الإزالة
       return;
     }
     if (!productId) {
@@ -103,15 +98,12 @@ export const WishlistProvider = ({ children }) => {
         showToast(t('wishlist.productDataIncompleteRemove') || "Cannot remove product from wishlist: Product ID is missing.", 'error');
         return;
     }
-    // لا نتحقق من isFavorite هنا لأننا نريد السماح للسيرفر بإزالة العنصر حتى لو كانت الحالة المحلية غير متزامنة
-    // if (!isFavorite(productId)) { ... } 
     try {
       const response = await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, {
           headers: { Authorization: `Bearer ${token}` }
       });
       setWishlistItems(response.data.wishlist || []); 
       console.log("WishlistContext: Removed from wishlist (server response). Product ID:", productId, "Updated wishlist:", response.data.wishlist);
-      // لا تعرض toast عند النجاح هنا (حسب طلبك)
     } catch (error) {
       console.error('WishlistContext: Failed to remove from wishlist:', error.response?.data?.message || error.message);
       showToast(`${t('wishlist.removeFailed') || 'Could not remove product from wishlist. '}${error.response?.data?.message || error.message}`, 'error');

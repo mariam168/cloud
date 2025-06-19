@@ -1,9 +1,6 @@
-// components/ToastNotification.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { XCircle, CheckCircle, Info, TriangleAlert } from 'lucide-react'; // لإضافة أيقونات
-
+import { XCircle, CheckCircle, Info, TriangleAlert } from 'lucide-react'; 
 const ToastContext = createContext();
-
 export const useToast = () => {
     const context = useContext(ToastContext);
     if (context === undefined) {
@@ -11,7 +8,6 @@ export const useToast = () => {
     }
     return context;
 };
-
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
 
@@ -38,15 +34,12 @@ export const ToastProvider = ({ children }) => {
 
 const ToastItem = ({ toast, onRemove }) => {
     const { id, message, type, duration } = toast;
-    const [isVisible, setIsVisible] = useState(false); // لإدارة ظهور/اختفاء الـ fade
-
+    const [isVisible, setIsVisible] = useState(false); 
     useEffect(() => {
-        // لجعل الـ toast يظهر بشكل تدريجي (fade in)
         setIsVisible(true); 
-
         const timer = setTimeout(() => {
-            setIsVisible(false); // لجعل الـ toast يختفي بشكل تدريجي (fade out)
-            setTimeout(() => onRemove(id), 300); // إزالته من الـ DOM بعد انتهاء الـ fade out
+            setIsVisible(false); 
+            setTimeout(() => onRemove(id), 300);
         }, duration);
 
         return () => clearTimeout(timer);
@@ -60,7 +53,7 @@ const ToastItem = ({ toast, onRemove }) => {
                 return { bg: 'bg-red-500', text: 'text-white', icon: XCircle };
             case 'warning':
                 return { bg: 'bg-yellow-500', text: 'text-white', icon: TriangleAlert };
-            default: // info
+            default: 
                 return { bg: 'bg-blue-500', text: 'text-white', icon: Info };
         }
     };

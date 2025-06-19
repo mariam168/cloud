@@ -5,13 +5,12 @@ import { useLanguage } from '../components/LanguageContext';
 import { CalendarDays, Tag, PercentCircle, ShoppingCart, Heart, Loader2, Info, ImageOff, ExternalLink } from 'lucide-react'; // Added Info, ImageOff, ExternalLink
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useAuth } from '../context/AuthContext'; // Corrected import path if needed
+import { useAuth } from '../context/AuthContext'; 
 
 const AdvertisementDetailsPage = () => {
     const { t, language } = useLanguage();
     const { id } = useParams();
-    const { API_BASE_URL, isAuthenticated, navigate } = useAuth(); // Assuming navigate is consistently provided by useAuth
-
+    const { API_BASE_URL, isAuthenticated, navigate } = useAuth(); 
     const [advertisement, setAdvertisement] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,16 +22,16 @@ const AdvertisementDetailsPage = () => {
         if (amount === null || amount === undefined || amount === "") return t('general.notApplicable');
         const options = {
             style: 'currency',
-            currency: t('general.currencyCode'), // Use global currency code
+            currency: t('general.currencyCode'), 
             minimumFractionDigits: 0,
             maximumFractionDigits: 2,
         };
-        const locale = language === 'ar' ? 'ar-SA' : 'en-US'; // Saudi Arabia locale for SAR, US for USD
+        const locale = language === 'ar' ? 'ar-SA' : 'en-US';
         try {
             return new Intl.NumberFormat(locale, options).format(Number(amount));
         } catch (e) {
             console.warn("Invalid currency code or amount in formatCurrency (AdvertisementDetailsPage):", t('general.currencyCode'), amount, e);
-            return `${t('general.currencySymbol')}${Number(amount).toFixed(2)}`; // Fallback
+            return `${t('general.currencySymbol')}${Number(amount).toFixed(2)}`; 
         }
     }, [language, t]);
 
@@ -68,8 +67,8 @@ const AdvertisementDetailsPage = () => {
     }, [id, fetchAdvertisementDetails]);
 
     const handleAddToCartClick = useCallback((e) => {
-        e.preventDefault(); // Prevent navigating to offer details page
-        e.stopPropagation(); // Stop event propagation to parent Link
+        e.preventDefault(); 
+        e.stopPropagation(); 
         
         if (!isAuthenticated) {
             alert(t('cart.loginRequired'));
@@ -77,15 +76,15 @@ const AdvertisementDetailsPage = () => {
             return;
         }
         if (!advertisement.productRef || !advertisement.productRef._id) { 
-            alert(t('allOffersPage.productNotLinked')); // Reusing key from AllOffersPage
+            alert(t('allOffersPage.productNotLinked')); 
             return;
         }
         addToCart(advertisement.productRef);
-    }, [isAuthenticated, addToCart, navigate, t, advertisement]); // Added advertisement to dependency array
+    }, [isAuthenticated, addToCart, navigate, t, advertisement]);
 
     const handleToggleFavoriteClick = useCallback((e) => {
-        e.preventDefault(); // Prevent navigating to offer details page
-        e.stopPropagation(); // Stop event propagation to parent Link
+        e.preventDefault();
+        e.stopPropagation(); 
 
         if (!isAuthenticated) {
             alert(t('wishlist.loginRequired'));
@@ -93,15 +92,15 @@ const AdvertisementDetailsPage = () => {
             return;
         }
         if (!advertisement.productRef || !advertisement.productRef._id) { 
-            alert(t('allOffersPage.productNotLinked')); // Reusing key from AllOffersPage
+            alert(t('allOffersPage.productNotLinked'));
             return;
         }
         toggleFavorite(advertisement.productRef);
-    }, [isAuthenticated, toggleFavorite, navigate, t, advertisement]); // Added advertisement to dependency array
+    }, [isAuthenticated, toggleFavorite, navigate, t, advertisement]); 
 
     const handleImageError = useCallback((e) => {
         e.target.onerror = null;
-        e.target.src = '/images/placeholder-product-image.png'; // Using a generic placeholder image
+        e.target.src = '/images/placeholder-product-image.png'; 
         e.target.alt = t('general.imageFailedToLoad');
     }, [t]);
 
@@ -157,7 +156,6 @@ const AdvertisementDetailsPage = () => {
                 </p>
 
                 <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
-                    {/* Image Column */}
                     <div className="w-full lg:w-1/2 flex justify-center items-center flex-shrink-0 p-6 bg-gray-100 dark:bg-gray-700 rounded-xl shadow-inner border border-gray-200 dark:border-gray-600">
                         {advertisement.image ? (
                             <img
@@ -173,18 +171,13 @@ const AdvertisementDetailsPage = () => {
                             </div>
                         )}
                     </div>
-
-                    {/* Details and Actions Column */}
                     <div className="w-full lg:w-1/2 flex flex-col justify-between">
-                        {/* Description */}
                         <div className="mb-8">
-                            <h3 className="sr-only">{t('general.description') || 'Description'}</h3> {/* Hidden label for accessibility */}
+                            <h3 className="sr-only">{t('general.description') || 'Description'}</h3> 
                             <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                                 {offerDescription}
                             </p>
                         </div>
-
-                        {/* Price Details Card */}
                         {(advertisement.originalPrice !== null || advertisement.discountedPrice !== null) && (
                             <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-600 mb-8">
                                 <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">{t('advertisementDetails.priceDetails') || 'Price Details'}</h3>
@@ -211,8 +204,6 @@ const AdvertisementDetailsPage = () => {
                                 )}
                             </div>
                         )}
-
-                        {/* Validity Dates Card */}
                         {(advertisement.startDate || advertisement.endDate) && (
                             <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-600 mb-8">
                                 <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
@@ -233,8 +224,6 @@ const AdvertisementDetailsPage = () => {
                                 )}
                             </div>
                         )}
-
-                        {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-auto pt-6 border-t border-gray-200 dark:border-gray-700">
                             {advertisement.productRef && advertisement.productRef._id && advertisement.type !== 'weeklyOffer' && advertisement.discountedPrice !== null && advertisement.discountedPrice !== undefined && (
                                 <button
@@ -242,7 +231,7 @@ const AdvertisementDetailsPage = () => {
                                     className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-lg font-semibold transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5
                                         ${isInCart(advertisement.productRef._id)
                                             ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 cursor-default'
-                                            : 'bg-blue-500 text-white hover:bg-blue-600' // Clean blue
+                                            : 'bg-blue-500 text-white hover:bg-blue-600' 
                                         }
                                         ${loadingCart ? 'opacity-70 cursor-not-allowed' : ''}
                                     `}
@@ -268,7 +257,7 @@ const AdvertisementDetailsPage = () => {
                                     onClick={handleToggleFavoriteClick}
                                     className={`p-3 rounded-lg transition-all duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:-translate-y-0.5
                                         ${isFavorite(advertisement.productRef._id)
-                                            ? 'bg-red-500 text-white hover:bg-red-600' // Clean red
+                                            ? 'bg-red-500 text-white hover:bg-red-600' 
                                             : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
                                         }
                                         ${loadingWishlist ? 'opacity-70 cursor-not-allowed' : ''}

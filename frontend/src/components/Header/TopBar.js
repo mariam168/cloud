@@ -3,19 +3,16 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from '../LanguageContext';
 import { useAuth } from '../../context/AuthContext'; 
 import { Globe, Sun, Moon, User } from 'lucide-react'; 
-
 const TopBar = () => {
     const { t, toggleLanguage, language } = useLanguage();
     const { currentUser, isAuthenticated, logout, isAdmin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-
     const [dark, setDark] = useState(() => {
         const savedDarkMode = localStorage.getItem('darkMode');
         const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         return savedDarkMode ? JSON.parse(savedDarkMode) : prefersDark;
     });
-
     useEffect(() => {
         if (dark) {
             document.documentElement.classList.add('dark');
@@ -96,7 +93,7 @@ const TopBar = () => {
                     </Link>
                     {isAuthenticated && (isAdmin || currentUser?.role === 'admin') && (
                          <Link
-                             to="/dashboard"
+                             to="/admin/dashboard"
                              className={`text-white px-3 py-1.5 rounded-full font-bold bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 dark:from-purple-500 dark:to-indigo-600 dark:hover:from-purple-600 dark:hover:to-indigo-700 shadow-sm transition-all duration-300 text-nowrap`}
                          >
                              {t('topBar.dashboard') || "Dashboard"}

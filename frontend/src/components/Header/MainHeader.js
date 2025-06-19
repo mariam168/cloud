@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import { useLanguage } from '../../components/LanguageContext';
+import { useState } from 'react';
+import { useLanguage } from '../LanguageContext';
 import { ShoppingCart, Heart, Search, Phone, Store, UserCircle } from 'lucide-react'; 
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext'; 
 import { useCart } from '../../context/CartContext'; 
-
 const MainHeader = () => {
     const { t, language } = useLanguage(); 
     const [searchTerm, setSearchTerm] = useState('');
-    const { cartItems, loadingCart, cartInitialized } = useCart();
+    const { getCartCount, loadingCart } = useCart();
     const navigate = useNavigate();
     const { isAuthenticated, currentUser } = useAuth();
-    const { wishlistItems, loadingWishlist } = useWishlist();
+    const { wishlistItems, loading: loadingWishlist } = useWishlist();
 
     const handleSearch = () => {
         if (!searchTerm.trim()) {
@@ -28,10 +27,9 @@ const MainHeader = () => {
         }
     };
 
-    const cartItemCount = cartInitialized && !loadingCart && Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + (item.quantity || 0), 0) : 0;
+    const cartItemCount = getCartCount;
     const favItemCount = !loadingWishlist && Array.isArray(wishlistItems) ? wishlistItems.length : 0;
 
-    // استخدام هذه الفئات الديناميكية للـ border-radius
     const searchInputRoundedClass = language === 'ar' ? 'rounded-r-full' : 'rounded-l-full';
     const searchButtonRoundedClass = language === 'ar' ? 'rounded-l-full' : 'rounded-r-full';
 
@@ -41,7 +39,6 @@ const MainHeader = () => {
             dir={language === 'ar' ? 'rtl' : 'ltr'} 
         >
             <div className="container mx-auto px-4 sm:px-6 py-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[auto_1fr_auto] items-center gap-y-4 gap-x-4">
-                {/* Logo - Order 1 (Top Left) */}
                 <Link 
                     to="/" 
                     className="flex items-center gap-2 text-2xl md:text-3xl font-extrabold text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 ease-in-out flex-shrink-0 tracking-wide col-span-2 md:col-span-1 order-1"
@@ -50,7 +47,6 @@ const MainHeader = () => {
                     <span>{t('mainHeader.siteName') || "TechXpress"}</span>
                 </Link>
 
-                {/* Search Bar - Order 3 on small, Order 2 on medium+ (center) */}
                 <div className="flex flex-grow items-center order-3 col-span-2 md:col-span-1 md:order-2 w-full mx-auto md:mx-0 
                                   border border-gray-300 dark:border-gray-600 rounded-full focus-within:ring-3 focus-within:ring-blue-500 
                                   focus-within:border-blue-500 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg dark:hover:shadow-xl">
@@ -73,9 +69,7 @@ const MainHeader = () => {
                     </button>
                 </div>
 
-                {/* Action Buttons (Hotline, User, Wishlist, Cart) - Order 2 on small, Order 3 on medium+ (right) */}
                 <div className="flex items-center gap-3 sm:gap-4 justify-end order-2 md:order-3 col-span-2 md:col-span-1">
-                    {/* Hotline - Hidden on small screens */}
                     <div className="hidden lg:flex items-center gap-2 text-gray-600 dark:text-gray-300 flex-shrink-0">
                         <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                         <div>
@@ -84,35 +78,30 @@ const MainHeader = () => {
                         </div>
                     </div>
 
-                    {/* User Profile / Login */}
                     {isAuthenticated ? (
                         <Link 
                             to="/profile" 
                             className="flex items-center gap-1 text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ease-in-out px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                             title={t('mainHeader.myProfile') || "My Profile"}
-                            aria-label={t('mainHeader.myProfile') || "My Profile"}
                         >
                             <UserCircle className="h-6 w-6" />
-                            <span className="hidden sm:inline-block text-sm font-medium whitespace-nowrap">{currentUser?.name || t('mainHeader.myAccount') || "My Account"}</span>
+                            <span className="hidden sm:inline-block text-sm font-medium whitespace-nowrap">{currentUser?.name || t('mainHeader.myAccount')}</span>
                         </Link>
                     ) : (
                         <Link 
                             to="/login" 
                             className="flex items-center gap-1 text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 ease-in-out px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                             title={t('mainHeader.loginRegister') || "Login/Register"}
-                            aria-label={t('mainHeader.loginRegister') || "Login/Register"}
                         >
                             <UserCircle className="h-6 w-6" />
-                            <span className="hidden sm:inline-block text-sm font-medium whitespace-nowrap">{t('mainHeader.login') || "Login"}</span>
+                            <span className="hidden sm:inline-block text-sm font-medium whitespace-nowrap">{t('mainHeader.login')}</span>
                         </Link>
                     )}
 
-                    {/* Wishlist */}
                     <Link 
                         to="/wishlist" 
                         className="relative p-2 rounded-full text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 ease-in-out"
                         title={t('mainHeader.myWishlist') || "My Wishlist"}
-                        aria-label={t('mainHeader.myWishlist') || "My Wishlist"}
                     >
                         <Heart className="h-6 w-6" />
                         {favItemCount > 0 && (
@@ -122,12 +111,10 @@ const MainHeader = () => {
                         )}
                     </Link>
 
-                    {/* Shopping Cart */}
                     <Link 
                         to="/cart" 
                         className="relative p-2 rounded-full text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 ease-in-out"
                         title={t('mainHeader.myCart') || "My Cart"}
-                        aria-label={t('mainHeader.myCart') || "My Cart"}
                     >
                         <ShoppingCart className="h-6 w-6" />
                         {cartItemCount > 0 && (
