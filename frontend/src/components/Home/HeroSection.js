@@ -1,18 +1,19 @@
+
 import React, { useState, useEffect, useCallback } from "react";
-import { Tag, Calendar, Percent, Copy, Search, Sparkles, Loader, ShoppingCart } from "lucide-react"; 
+import { Tag, Calendar, Percent, Copy, Search, Sparkles, Loader, ShoppingCart } from "lucide-react";
 import { useLanguage } from "../../components/LanguageContext";
 import axios from 'axios';
-import { Link } from 'react-router-dom'; 
+import { Link } from 'react-router-dom';
 
 const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
     const { t, language } = useLanguage();
     const [slidesData, setSlidesData] = useState([]);
     const [sideOffersData, setSideOffersData] = useState({});
     const [discountsData, setDiscountsData] = useState([]);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [current, setCurrent] = useState(0);
-    const [hovered, setHovered] = useState(false); 
+    const [hovered, setHovered] = useState(false);
     const [copiedCode, setCopiedCode] = useState(null);
     const slidesLength = slidesData.length;
 
@@ -23,19 +24,19 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
             try {
                 const slidesRes = await axios.get(`${serverUrl}/api/advertisements?type=slide&isActive=true`);
                 const sortedSlides = slidesRes.data.sort((a, b) => (a.order || 0) - (b.order || 0));
-                setSlidesData(sortedSlides); 
-                
+                setSlidesData(sortedSlides);
+
                 const sideOffersRes = await axios.get(`${serverUrl}/api/hero-side-offers`);
                 const activeSideOffers = {};
+                const now = new Date();
                 for (const key in sideOffersRes.data) {
                     const offer = sideOffersRes.data[key];
-                    if (offer.isActive === undefined || offer.isActive === true) { 
-                        const now = new Date();
-                        const start = offer.startDate ? new Date(offer.startDate) : new Date(0); 
-                        const end = offer.endDate ? new Date(offer.endDate) : new Date('9999-12-31T23:59:59'); 
-                        if (now >= start && now <= end) {
-                            activeSideOffers[key] = offer;
-                        }
+                    const isActive = offer.isActive === undefined || offer.isActive === true;
+                    const startDate = offer.startDate ? new Date(offer.startDate) : new Date(0);
+                    const endDate = offer.endDate ? new Date(offer.endDate) : new Date('9999-12-31T23:59:59');
+
+                    if (isActive && now >= startDate && now <= endDate) {
+                        activeSideOffers[key] = offer;
                     }
                 }
                 setSideOffersData(activeSideOffers);
@@ -69,14 +70,14 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
         const options = {
             style: 'currency',
             currency: currencyCode,
-            minimumFractionDigits: 0, 
-            maximumFractionDigits: 2, 
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
         };
         try {
             return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', options).format(Number(amount));
         } catch (e) {
             console.warn("Invalid currency code or amount:", currencyCode, amount, e);
-            return `${currencyCode} ${Number(amount).toFixed(2)}`; 
+            return `${currencyCode} ${Number(amount).toFixed(2)}`;
         }
     }, [language, t]);
 
@@ -85,10 +86,10 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', options);
     }, [language, t]);
-    
+
     const currentSlideContent = slidesLength > 0 ? slidesData[current] : null;
     const hasContent = currentSlideContent || Object.keys(sideOffersData).length > 0 || discountsData.length > 0;
-    
+
     const handleCopyCode = (code) => {
         const el = document.createElement('textarea');
         el.value = code;
@@ -97,10 +98,9 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
         document.execCommand('copy');
         document.body.removeChild(el);
         setCopiedCode(code);
-        setTimeout(() => setCopiedCode(null), 2000); // Hide "Copied!" message after 2 seconds
+        setTimeout(() => setCopiedCode(null), 2000);
     };
 
-    // --- Loading, Error, No Content States (unchanged, as they are already good) ---
     if (loading) {
         return (
             <section className="w-full min-h-[400px] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200 dark:from-slate-900 dark:to-gray-950 animate-pulse transition-all duration-700 rounded-xl shadow-inner">
@@ -134,31 +134,25 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
         );
     }
 
-    // --- Main Hero Section Render ---
     return (
         <section className="w-full py-12 px-4 bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-black transition-colors duration-500 ease-in-out sm:py-16 md:py-20 lg:py-24 overflow-hidden font-sans">
             <div className="mx-auto grid max-w-7xl h-full grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
-                {/* Main Carousel Slide */}
                 {currentSlideContent && (
                     <div
-                        className="relative col-span-1 md:col-span-2 flex flex-col items-center justify-center gap-6 rounded-3xl bg-white p-10 shadow-2xl dark:bg-gray-800 md:flex-row overflow-hidden border border-gray-100 dark:border-gray-700 transform transition-all duration-500 ease-in-out hover:scale-[1.005] group/main" // **CHANGE:** Slightly less aggressive scale on main hero for a smoother feel
+                        className="relative col-span-1 md:col-span-2 flex flex-col items-center justify-center gap-6 rounded-3xl bg-white p-10 shadow-2xl dark:bg-gray-800 md:flex-row overflow-hidden border border-gray-100 dark:border-gray-700 transform transition-all duration-500 ease-in-out hover:scale-[1.005] group/main"
                         onMouseEnter={() => setHovered(true)}
                         onMouseLeave={() => setHovered(false)}
                     >
-                        {/* Content Container for Image and Text */}
                         <div className="relative z-20 flex flex-col md:flex-row items-center justify-center flex-1 text-center md:text-left">
-                            {/* Product Image */}
                             <div className="h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 lg:h-72 lg:w-72 flex items-center justify-center flex-shrink-0 order-1 md:order-2">
                                 <img
-                                    src={currentSlideContent.image ? `${serverUrl}${currentSlideContent.image}` : ''} 
+                                    src={currentSlideContent.image ? `${serverUrl}${currentSlideContent.image}` : ''}
                                     alt={currentSlideContent.title?.[language] || currentSlideContent.title?.en || t('general.unnamedItem')}
                                     className="h-full w-full object-contain mx-auto group-hover/main:scale-105 transition-transform duration-500 ease-in-out"
                                     role="img"
-                                    onError={(e) => { e.target.onerror = null; e.target.src = '/images/placeholder-product-image.png'; }} 
+                                    onError={(e) => { e.target.onerror = null; e.target.src = '/images/placeholder-product-image.png'; }}
                                 />
                             </div>
-                            {/* Text Content */}
-                            {/* **CHANGE:** Added specific padding to the text content div to better define its area and spacing */}
                             <div className="flex-1 ml-0 md:ml-8 mt-4 md:mt-0 p-4 md:p-6 lg:p-8 order-2 md:order-1">
                                 <p className="mb-2 text-base font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
                                     {t('heroSection.bigSale') || "Limited Time Offer"}
@@ -202,7 +196,7 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                     </p>
                                 )}
 
-                                <Link to={`/advertisements/${currentSlideContent._id}`} className="inline-block mt-6"> 
+                                <Link to={`/advertisements/${currentSlideContent._id}`} className="inline-block mt-6">
                                     <button
                                         className="rounded-full bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-700 focus:ring-offset-2 active:scale-95"
                                     >
@@ -211,7 +205,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                 </Link>
                             </div>
                         </div>
-                        {/* Carousel Navigation Dots */}
                         {slidesLength > 1 && (
                             <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 transform flex justify-center gap-2">
                                 {slidesData.map((_, index) => (
@@ -219,8 +212,8 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                         key={index}
                                         onClick={() => setCurrent(index)}
                                         aria-label={`Go to slide ${index + 1}`}
-                                        className={`h-3 w-3 rounded-full transition-all duration-300 ease-out 
-                                            ${current === index ? "bg-indigo-600 w-8 shadow-sm" : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"} 
+                                        className={`h-3 w-3 rounded-full transition-all duration-300 ease-out
+                                            ${current === index ? "bg-indigo-600 w-8 shadow-sm" : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"}
                                         `}
                                     ></button>
                                 ))}
@@ -228,8 +221,6 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                         )}
                     </div>
                 )}
-
-                {/* Side Offers & All Offers / Discount Codes */}
                 <div className="col-span-1 flex flex-col gap-6">
                     {Object.keys(sideOffersData).length > 0 && (
                         <>
@@ -261,10 +252,10 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                             </p>
                                         </div>
                                         <img
-                                            src={sideOffersData.iphoneOffer.image ? `${serverUrl}${sideOffersData.iphoneOffer.image}` : ''} 
+                                            src={sideOffersData.iphoneOffer.image ? `${serverUrl}${sideOffersData.iphoneOffer.image}` : ''}
                                             alt={sideOffersData.iphoneOffer.title?.[language] || sideOffersData.iphoneOffer.title?.en || t('general.unnamedItem')}
                                             className="w-24 h-24 object-contain flex-shrink-0 drop-shadow-md group-hover/iphone:scale-110 group-hover/iphone:-rotate-3 transition-transform duration-300"
-                                            onError={(e) => { e.target.onerror = null; e.target.src = '/images/placeholder-product-image.png'; }} 
+                                            onError={(e) => { e.target.onerror = null; e.target.src = '/images/placeholder-product-image.png'; }}
                                         />
                                     </div>
                                 </a>
@@ -289,43 +280,39 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                             )}
                         </>
                     )}
-
-                    {/* All Offers Card (slightly more prominent, but still consistent) */}
                     <Link to="/all-offers" className="block mt-4">
-                        <div className="flex items-center gap-4 rounded-3xl bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 dark:from-blue-700 dark:to-indigo-800 border border-blue-400 dark:border-indigo-600 cursor-pointer text-center"> {/* **CHANGE:** Added gradient, adjusted text colors for contrast */}
+                        <div className="flex items-center gap-4 rounded-3xl bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 dark:from-blue-700 dark:to-indigo-800 border border-blue-400 dark:border-indigo-600 cursor-pointer text-center">
                             <div className="flex-1">
-                                <h3 className="text-xl font-bold"> {/* Removed specific color classes, inherits white */}
+                                <h3 className="text-xl font-bold">
                                     {t('heroSection.allOffersTitle') || 'Discover All Offers!'}
                                 </h3>
-                                <p className="text-sm text-blue-100 dark:text-indigo-200 mt-1"> {/* Adjusted text color for contrast */}
+                                <p className="text-sm text-blue-100 dark:text-indigo-200 mt-1">
                                     {t('heroSection.allOffersDesc') || 'Explore all available promotions and discounts in one place.'}
                                 </p>
                             </div>
-                            <div className="flex-shrink-0 bg-white bg-opacity-20 rounded-full p-4 flex items-center justify-center"> {/* **CHANGE:** Background adjusted for gradient */}
-                                <Search size={32} className="text-white" /> {/* **CHANGE:** Icon color to white */}
+                            <div className="flex-shrink-0 bg-white bg-opacity-20 rounded-full p-4 flex items-center justify-center">
+                                <Search size={32} className="text-white" />
                             </div>
                         </div>
                     </Link>
-
-                    {/* Discount Codes */}
                     {discountsData.length > 0 && (
                         <div className="flex flex-col gap-4 mt-2">
-                          
+
                             {discountsData.map((discount) => (
                                 <div
                                     key={discount._id}
-                                    className="relative flex items-center gap-4 rounded-2xl bg-white p-5 shadow-lg dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl transform hover:scale-[1.015] transition-all duration-300 cursor-pointer group/discount overflow-hidden" // **CHANGE:** Removed redundant ring-1. Added overflow-hidden to ensure copied overlay respects border-radius.
+                                    className="relative flex items-center gap-4 rounded-2xl bg-white p-5 shadow-lg dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl transform hover:scale-[1.015] transition-all duration-300 cursor-pointer group/discount overflow-hidden"
                                     onClick={() => handleCopyCode(discount.code)}
                                 >
                                     {copiedCode === discount.code && (
-                                        <div className="absolute inset-0 bg-green-500/80 dark:bg-green-700/80 flex items-center justify-center text-white text-2xl font-bold animate-fade-in z-30 rounded-2xl"> {/* **CHANGE:** Added z-30 for higher stacking context and rounded corners */}
+                                        <div className="absolute inset-0 bg-green-500/80 dark:bg-green-700/80 flex items-center justify-center text-white text-2xl font-bold animate-fade-in z-30 rounded-2xl">
                                             {t('homepage.copied') || 'Copied!'}
                                         </div>
                                     )}
                                     <div className="flex-shrink-0 bg-green-100 dark:bg-teal-900/30 rounded-full p-3 group-hover/discount:bg-green-200 dark:group-hover/discount:bg-teal-800 transition-colors duration-300">
                                         <Tag size={24} className="text-green-700 dark:text-teal-400" />
                                     </div>
-                                    <div className="flex-1 z-20"> {/* Ensure text content is above the copied overlay but below the copied text itself */}
+                                    <div className="flex-1 z-20">
                                         <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">
                                             {t('homepage.discountCode') || 'Your Code'}
                                         </p>
@@ -348,7 +335,7 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                         </p>
                                     </div>
                                     <button
-                                        className="ml-auto p-2.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:scale-95 flex items-center justify-center z-20" 
+                                        className="ml-auto p-2.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:scale-95 flex items-center justify-center z-20"
                                         aria-label={t('homepage.copyCode') || 'Copy Code'}
                                         onClick={(e) => { e.stopPropagation(); handleCopyCode(discount.code); }}
                                     >

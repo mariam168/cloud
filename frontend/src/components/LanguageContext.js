@@ -5,217 +5,246 @@ const LanguageContext = createContext();
 const translations = {
     ar: {
         "general": {
-            "loading": "جاري التحميل...", "error": "خطأ", "notApplicable": "لا ينطبق", "unnamedItem": "عنصر غير مسمى",
-            "priceNotAvailable": "السعر غير متاح", "shopNow": "تسوق الآن", "currencySymbol": "ر.س", "off": "خصم",
-            "noImage": "لا توجد صورة", "errorFetchingData": "فشل جلب البيانات. يرجى المحاولة لاحقاً.",
-            "resetting": "جاري إعادة التعيين...", "unnamedProduct": "منتج غير مسمى", "imageFailedToLoad": "فشل تحميل الصورة",
-            "noImageAvailable": "لا توجد صورة متاحة", "currencyCode": "SAR", "viewImage": "عرض الصورة", "thumbnail": "صورة مصغرة",
-            "decreaseQuantity": "تقليل الكمية", "increaseQuantity": "زيادة الكمية", "productQuantity": "كمية المنتج",
-            "subtotal": "المجموع الفرعي", "total": "الإجمالي", "inCartShort": "في السلة", "addToCartShort": "أضف",
-            "removeFromWishlist": "إزالة من المفضلة", "addToWishlist": "أضف للمفضلة", "description": "الوصف",
-            "submitting": "جاري الإرسال...", "verifyHuman": "الرجاء التحقق أنك لست روبوتاً.", "sending": "جاري الإرسال...",
-            "apiError": "عنوان API غير معرف.", "view": "عرض", "pleaseWait": "يرجى الانتظار", "image": "صورة", "clear": "حذف",
-            "close": "إغلاق", "copyId": "نسخ المعرف",
+            "loading": "جاري التحميل...", "error": "خطأ", "notApplicable": "لا ينطبق", "unnamedItem": "عنصر غير مسمى", "priceNotAvailable": "السعر غير متاح",
+            "shopNow": "تسوق الآن", "currencySymbol": "ر.س", "off": "خصم", "noImage": "لا توجد صورة", "errorFetchingData": "فشل جلب البيانات. يرجى المحاولة لاحقاً.",
+            "unnamedProduct": "منتج غير مسمى", "imageFailedToLoad": "فشل تحميل الصورة", "noImageAvailable": "لا توجد صورة متاحة",
+            "currencyCode": "SAR", "description": "الوصف", "close": "إغلاق", "copyId": "نسخ المعرف",
+            "yes": "نعم", "no": "لا", "back": "رجوع", "active": "نشط", "inactive": "غير نشط", "none": "لا شيء",
+            "verifyHuman": "يرجى إثبات أنك لست روبوت.", "apiError": "خطأ في إعدادات الواجهة البرمجية (API)."
+        },
+        "topBar": {
+            "language": "English", "home": "الرئيسية", "shop": "المتجر", "aboutUs": "من نحن", "contactUs": "اتصل بنا",
+            "dashboard": "لوحة التحكم", "logout": "تسجيل الخروج", "welcome": "أهلاً بك", "helloGuest": "أهلاً بالزائر"
+        },
+        "mainHeader": {
+            "siteName": "متجري", "searchPlaceholder": "ابحث...", "myAccount": "حسابي", "login": "تسجيل الدخول",
+            "myWishlist": "المفضلة", "myCart": "سلتي", "hotline": "الخط الساخن"
+        },
+        "features": {
+            "freeShipping": "شحن مجاني", "freeShippingDesc": "شحن مجاني لجميع الطلبات فوق 100 ر.س",
+            "support247": "دعم 24/7", "support247Desc": "احصل على المساعدة في أي وقت تحتاجه",
+            "onlinePayment": "دفع آمن", "onlinePaymentDesc": "خيارات دفع آمنة عبر الإنترنت",
+            "easyReturn": "إرجاع سهل", "easyReturnDesc": "إرجاع بدون متاعب خلال 30 يومًا"
         },
         "heroSection": {
             "bigSale": "عرض لفترة محدودة", "price": "السعر", "validFrom": "صالح من", "validUntil": "صالح حتى",
-            "installment": "أقساط ميسرة", "weeklySale": "عروض فلاش أسبوعية!", "weeklyDesc": "اكتشف توفيرات لا تصدق على منتجاتك المفضلة! احصل على خصم يصل إلى",
-            "thisWeek": "لهذا الأسبوع لفترة محدودة.", "allOffersTitle": "اكتشف كل العروض!", "allOffersDesc": "استكشف جميع العروض الترويجية والخصومات المتاحة في مكان واحد.",
-            "noDataAvailable": "لا توجد عروض مثيرة متاحة حالياً."
+            "installment": "أقساط ميسرة", "weeklySale": "عروض الأسبوع", "allOffersTitle": "اكتشف كل العروض",
+            "allOffersDesc": "استكشف جميع العروض والخصومات المتاحة.", "noDataAvailable": "لا توجد عروض متاحة حالياً."
         },
         "homepage": {
-            "discountsTitle": "أكواد خصم حصرية", "discountCode": "كودك", "copied": "تم النسخ!", "shopByCategory": "تسوق حسب الفئة",
-            "loadingCategories": "جاري تحميل الفئات...", "categoryFetchError": "فشل جلب الفئات. يرجى المحاولة لاحقاً.",
-            "noCategoriesFound": "لم يتم العثور على أي فئات.", "categoryImageAlt": "صورة الفئة", "unnamedCategory": "فئة غير مسماة",
-            "trendingProductsTitle": "المنتجات الأكثر رواجًا", "trendingProductsDesc": "اكتشف منتجاتنا الأكثر شعبية هذا الأسبوع.",
-            "noTrendingProductsFound": "لم يتم العثور على منتجات رائجة.", "off": "خصم", "copyCode": "نسخ الكود",
+            "discountsTitle": "أكواد خصم حصرية", "copied": "تم النسخ!", "copyCode": "نسخ",
+            "shopByCategory": "تسوق حسب الفئة", "loadingCategories": "جاري تحميل الفئات...", "categoryFetchError": "فشل جلب الفئات.",
+            "noCategoriesFound": "لم يتم العثور على فئات.", "categoryImageAlt": "صورة الفئة", "unnamedCategory": "فئة غير مسماة",
+            "trendingProductsTitle": "المنتجات الأكثر رواجاً", "trendingProductsDesc": "اكتشف منتجاتنا الأكثر شهرة هذا الأسبوع. مختارة بعناية للجودة والشعبية!",
+            "noTrendingProductsFound": "لم يتم العثور على منتجات رائجة."
+        },
+        "wishlist": { "loginRequired": "يرجى تسجيل الدخول للإضافة إلى المفضلة." },
+        "cart": {
+            "loginRequired": "يرجى تسجيل الدخول لإضافة المنتجات إلى السلة.", "productAddedSuccess": "تمت اضافة المنتج لسلتك بنجاح.",
+            "addError": "خطأ في إضافة المنتج للسلة.", "updateSuccess": "تم تحديث سلة التسوق.", "updateError": "خطأ في تحديث السلة.",
+            "productRemovedSuccess": "تمت ازالة المنتج من سلتك.", "removeError": "خطأ في إزالة المنتج.",
+        },
+        "allOffersPage": {
+            "title": "جميع العروض المتاحة", "noOffers": "لا توجد عروض متاحة في الوقت الحالي.", "noOffersTitle": "لا توجد عروض!",
+            "productNotLinked": "هذا العرض لا يرتبط بمنتج محدد."
+        },
+        "advertisementDetails": {
+            "notFound": "الإعلان غير موجود.", "noDetails": "لم يتم العثور على تفاصيل الإعلان.", "noDetailsTitle": "لا توجد تفاصيل إعلان!",
+            "originalPrice": "السعر الأصلي", "currentPrice": "السعر الحالي", "validity": "فترة الصلاحية",
+            "goToOffer": "انتقل إلى العرض", "typeSlide": "عرض الشريحة الرئيسية", "typeSideOffer": "عرض جانبي",
+            "typeWeeklyOffer": "صفقة الأسبوع", "typeOther": "عرض خاص", "priceDetails": "تفاصيل السعر"
+        },
+        "aboutUsPage": {
+            "title": "عن متجرنا", "commitment": "نلتزم بتقديم أحدث وأفضل المنتجات. سواء كنت تبحث عن هواتف ذكية متطورة، أو أجهزة لابتوب عالية الأداء، أو إكسسوارات فاخرة، فإننا نقدم مجموعة واسعة من المنتجات عالية الجودة بأسعار لا تضاهى.",
+            "belief": "نؤمن بتقديم تجربة تسوق استثنائية من خلال ضمان التوصيل السريع، خيارات الدفع الآمنة، وخدمة عملاء ممتازة.",
+            "explore": "اكتشف مجموعتنا وابقَ على اطلاع بأحدث الصيحات. رضاكم هو أولويتنا!", "imageAlt": "صورة تعبر عن فريق العمل"
+        },
+        "contactUsPage": {
+            "title": "اتصل بنا", "description": "هل لديك أي أسئلة؟ لا تتردد في التواصل معنا. فريقنا متاح لمساعدتك.",
+            "yourName": "اسمك", "yourSubject": "الموضوع", "yourEmail": "بريدك الإلكتروني", "yourPhone": "رقم هاتفك",
+            "yourMessage": "رسالتك", "submitMessage": "إرسال الرسالة", "successMessage": "تم إرسال رسالتك بنجاح!",
+            "errorMessage": "فشل في إرسال الرسالة.", "networkError": "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى."
         },
         "productCard": {
-            "uncategorized": "غير مصنف", "viewProduct": "عرض المنتج", "addToCart": "أضف للسلة", "inCart": "في السلة",
-            "addToFavorites": "أضف للمفضلة", "removeFromFavorites": "في المفضلة", "viewProductError": "لا يمكن عرض تفاصيل المنتج: بيانات المنتج مفقودة.",
-            "addToFavoritesError": "لا يمكن إضافة المنتج للمفضلة: بيانات المنتج غير مكتملة.", "addToCartError": "لا يمكن إضافة المنتج للسلة: بيانات المنتج غير مكتملة.",
-            "specialOffer": "عرض خاص", "viewDetails": "عرض التفاصيل", "variationsAvailable": "المتغيرات المتاحة",
+            "uncategorized": "غير مصنف", "removeFromFavorites": "إزالة من المفضلة", "addToFavorites": "إضافة إلى المفضلة",
+            "viewDetails": "عرض التفاصيل"
+        },
+        "productDetails": {
+            "quantity": "الكمية", "availability": "التوفر", "inStock": "متوفر", "outOfStock": "غير متوفر", "addToCart": "إضافة إلى السلة",
+            "specifications": "المواصفات", "reviews": "المراجعات", "relatedProducts": "منتجات ذات صلة"
+        },
+        "shoppingCartPage": {
+            "title": "سلة التسوق", "product": "المنتج", "price": "السعر", "quantity": "الكمية", "total": "الإجمالي", "subtotal": "المجموع الفرعي",
+            "emptyCart": "سلة التسوق فارغة.", "continueShopping": "متابعة التسوق", "proceedToCheckout": "الذهاب للدفع"
+        },
+        "checkoutPage": {
+            "title": "إتمام الطلب", "billingDetails": "تفاصيل الفاتورة", "shippingAddress": "عنوان الشحن",
+            "placeOrder": "تأكيد الطلب", "paymentMethod": "طريقة الدفع", "orderSummary": "ملخص الطلب"
+        },
+        "auth": {
+            "email": "البريد الإلكتروني", "password": "كلمة المرور", "rememberMe": "تذكرني", "forgotPassword": "هل نسيت كلمة المرور؟",
+            "loginTitle": "تسجيل الدخول", "registerTitle": "إنشاء حساب جديد", "noAccount": "ليس لديك حساب؟", "signUp": "إنشاء حساب",
+            "haveAccount": "لديك حساب بالفعل؟", "loginButton": "تسجيل الدخول", "registerButton": "إنشاء حساب",
+            "nameLabel": "الاسم", "emailLabel": "البريد الإلكتروني", "passwordLabel": "كلمة المرور",
+            "confirmPasswordLabel": "تأكيد كلمة المرور", "loginPrompt": "لديك حساب بالفعل؟", "loginLink": "تسجيل الدخول",
+            "registerPrompt": "ليس لديك حساب؟", "registerLink": "إنشاء حساب", "loginNow": "العودة لتسجيل الدخول",
+            "recaptchaExpired": "انتهت صلاحية reCAPTCHA. يرجى التحقق مرة أخرى.", "recaptchaRequired": "يرجى إكمال التحقق من reCAPTCHA.",
+            "passwordMismatch": "كلمات المرور غير متطابقة.", "registerSuccessEmailSent": "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.",
+            "registerError": "فشل التسجيل. يرجى المحاولة مرة أخرى.", "registrationCompleteTitle": "اكتمل التسجيل!", "goToLogin": "الذهاب لتسجيل الدخول",
+            "loginWelcome": "أهلاً بك، {name}!", "loginError": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+            "loginSuccessTitle": "تم تسجيل الدخول بنجاح!", "forgotPasswordTitle": "نسيت كلمة المرور",
+            "forgotPasswordInstructions": "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة مرورك.",
+            "sendResetLink": "إرسال رابط إعادة التعيين", "resetEmailSent": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
+            "resetEmailError": "فشل إرسال رابط إعادة التعيين.", "resetPasswordTitle": "إعادة تعيين كلمة المرور",
+            "newPasswordLabel": "كلمة المرور الجديدة", "confirmNewPasswordLabel": "تأكيد كلمة المرور الجديدة",
+            "resetPasswordButton": "إعادة تعيين كلمة المرور", "passwordMinLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل.",
+            "passwordResetSuccess": "تمت إعادة تعيين كلمة المرور بنجاح.", "passwordResetError": "فشل في إعادة تعيين كلمة المرور.",
+            "resetLinkMissing": "رابط إعادة التعيين مفقود أو غير صالح.", "tokenExpiredOrInvalid": "هذا الرابط غير صالح أو انتهت صلاحيته.",
+            "verifyingLink": "جاري التحقق من رابط إعادة التعيين...", "requestNewLink": "طلب رابط جديد",
+            "accountActivation": "تفعيل الحساب", "tokenMissing": "رمز التفعيل مفقود.", "activationSuccess": "تم تفعيل حسابك بنجاح!",
+            "activationError": "فشل التفعيل. قد يكون الرابط غير صالح أو انتهت صلاحيته."
+        },
+        "userDashboard": {
+            "myProfile": "ملفي الشخصي", "orderHistory": "سجل الطلبات", "editProfile": "تعديل الملف الشخصي",
+            "changePassword": "تغيير كلمة المرور", "addressBook": "دفتر العناوين"
         },
         "shopPage": {
-            "filter": "تصفية", "showFilters": "إظهار المرشحات", "filterByCategory": "تصفية حسب الفئة",
-            "filterBySubCategory": "تصفية حسب الفئة الفرعية", "priceRange": "نطاق السعر", "filterByBrand": "تصفية حسب العلامة التجارية",
-            "sortBy": "فرز حسب:", "popularity": "الشعبية", "priceLowToHigh": "السعر: من الأقل للأعلى",
-            "priceHighToLow": "السعر: من الأعلى للأقل", "nameAZ": "الاسم (أ-ي)", "showingItems": "عرض", "items": "عنصر",
-            "noProductsFound": "لم يتم العثور على منتجات مطابقة لمعاييرك.", "errorFetchingProducts": "فشل تحميل المنتجات. يرجى التحقق من اتصالك أو المحاولة مرة أخرى.",
-            "resetFilters": "إعادة تعيين الفلاتر", "allSubcategories": "جميع الفئات الفرعية", "addToCart": "اضافة للسلة",
-            "currencyCode": "ريال سعودي", "addToFavorites": "اضافة للمفضلة", "filterByOption": "تصفية حسب الخيار",
-            "allOptions": "جميع الخيارات", "removeFromFavorites": "حذف من المفضلة",
+            "allCategories": "كل الفئات", "allSubcategories": "كل الفئات الفرعية", "allBrands": "كل العلامات التجارية", "all": "الكل",
+            "errorFetchingProducts": "فشل في جلب المنتجات.",
+            "filterByCategory": "التصنيف حسب الفئة", "filterBySubCategory": "التصنيف حسب الفئة الفرعية",
+            "priceRange": "نطاق السعر", "filterByBrand": "التصنيف حسب العلامة التجارية", "resetFilters": "إعادة تعيين الفلاتر",
+            "showingItems": "عرض", "items": "عناصر", "popularity": "الشهرة",
+            "priceLowToHigh": "السعر: من الأقل للأعلى", "priceHighToLow": "السعر: من الأعلى للأقل",
+            "nameAZ": "الاسم: من أ إلى ي", "noProductsFound": "لم يتم العثور على منتجات تطابق بحثك."
         },
         "adminDashboardPage": {
-            "dashboardTitle": "لوحة التحكم", "productManagement": "إدارة المنتجات", "categoryManagement": "إدارة الفئات",
-            "orderManagement": "إدارة الطلبات", "userManagement": "إدارة المستخدمين", "advertisementManagement": "إدارة الإعلانات",
-            "discountManagement": "إدارة الخصومات", "settings": "الإعدادات", "analytics": "التحليلات",
-            "errorFetchingData": "فشل جلب بيانات لوحة التحكم.", "noDataAvailable": "لا توجد بيانات متاحة لعرض لوحة التحكم.",
-            "noDataAvailableTitle": "لا توجد بيانات!", "totalRevenue": "إجمالي الإيرادات", "totalOrders": "إجمالي الطلبات",
-            "totalProducts": "إجمالي المنتجات", "totalUsers": "إجمالي المستخدمين", "salesOverviewChartTitle": "نظرة عامة على المبيعات",
-            "revenueLabel": "الإيرادات", "orderCountLabel": "عدد الطلبات", "noSalesData": "لا توجد بيانات مبيعات متاحة.",
-            "topSellingProductsTitle": "أكثر المنتجات مبيعاً", "quantitySoldLabel": "الكمية المباعة", "itemsSoldLabel": "عناصر مباعة",
-            "noTopProductsData": "لا توجد بيانات عن المنتجات الأكثر مبيعاً.", "categoryDistributionChartTitle": "توزيع الفئات",
-            "items": "عناصر", "noCategoryData": "لا توجد بيانات للفئات متاحة.", "ordersByStatusTitle": "الطلبات حسب الحالة",
-            "noOrderStatusData": "لا توجد بيانات لحالة الطلبات متاحة.", "userRegistrationTitle": "تسجيل المستخدمين بمرور الوقت",
-            "usersRegisteredLabel": "المستخدمون المسجلون", "noUserRegistrationData": "لا توجد بيانات لتسجيل المستخدمين متاحة.",
-            "recentOrdersTitle": "الطلبات الأخيرة", "orderId": "معرف الطلب", "date": "التاريخ", "customer": "العميل",
-            "total": "الإجمالي", "status": "الحالة", "guestUser": "زائر", "noRecentOrders": "لا توجد طلبات حديثة متاحة.",
-            "orderStatuses": { "pending": "معلق", "processing": "قيد المعالجة", "shipped": "تم الشحن", "delivered": "تم التسليم", "cancelled": "ملغى", "paid_(not_delivered)": "مدفوع (لم يتم التوصيل)", "pending_payment": "بانتظار الدفع" },
-            "footerText": "لوحة تحكم تكنو إكسبرس. جميع الحقوق محفوظة."
-        },
-        "adminProductsPage": {
-            "title": "إدارة المنتجات", "addNewProduct": "إضافة منتج جديد", "productList": "قائمة المنتجات",
-            "footerText": "لوحة تحكم تكنو إكسبرس. جميع الحقوق محفوظة."
-        },
-        "productAdmin": {
-            "productNameEn": "اسم المنتج (الإنجليزية)", "productNameAr": "اسم المنتج (العربية)", "descriptionEn": "الوصف (الإنجليزية)", "descriptionAr": "الوصف (العربية)",
-            "priceLabel": "السعر الأساسي", "categoryLabel": "الفئة الرئيسية", "subCategoryLabel": "الفئة الفرعية (اختياري)",
-            "nameAndPriceRequired": "اسم المنتج (الإنجليزية والعربية) والسعر مطلوبان.", "addSuccess": "تم إضافة المنتج بنجاح!", "addError": "خطأ في إضافة المنتج",
-            "submittingButton": "جاري الإضافة...", "addButton": "إضافة منتج", "imageTable": "صورة", "nameTable": "الاسم", "categoryTable": "الفئة",
-            "priceTable": "السعر", "actionsTable": "إجراءات", "addProductButton": "إضافة منتج", "addNewProduct": "إضافة منتج جديد",
-            "editProductTitle": "تعديل المنتج", "confirmDelete": "هل أنت متأكد أنك تريد حذف المنتج \"{productName}\"؟ لا يمكن التراجع عن هذا الإجراء.",
-            "deleteSuccess": "تم حذف المنتج بنجاح!", "updateButton": "حفظ التغييرات", "updatingButton": "جاري الحفظ...", "cancelButton": "إلغاء",
-            "imageOptional": "صورة (اختياري)", "specificAttributes": "خصائص الفئة", "productVariants": "متغيرات المنتج", "variant": "متغير",
-            "variantOptions": "خيارات المتغير", "addOption": "إضافة خيار", "priceAdjustment": "تعديل السعر", "stock": "المخزون", "sku": "SKU (اختياري)",
-            "addVariant": "إضافة متغير", "mainImageLabel": "الصورة الرئيسية", "additionalImagesLabel": "صور إضافية", "videosLabel": "فيديوهات",
-            "selectOptionType": "اختر نوع الخيار", "selectCategory": "اختر فئة", "selectSubCategory": "اختر فئة فرعية",
-            "optionValuePlaceholder": "قيمة الخيار", "removeImage": "إزالة الصورة", "videoPreview": "معاينة الفيديو", "selectedFile": "الملف المحدد",
-            "noProducts": "لا توجد منتجات لعرضها.", "uncategorized": "غير مصنف", "allVariantOptionsRequired": "يجب أن يكون لجميع خيارات المتغيرات اسم وقيمة.",
-            "variantOptionsRequired": "يجب أن يحتوي كل متغير على خيار واحد على الأقل.", "variantStockRequired": "مخزون المتغير مطلوب ويجب ألا يكون سالبًا.", "updateError": "حدث خطأ أثناء تحديث المنتج.",
+            "footerText": "متجري. جميع الحقوق محفوظة.", "errorFetchingData": "خطأ في جلب بيانات لوحة التحكم: ",
+            "noDataAvailableTitle": "لا توجد بيانات متاحة", "noDataAvailable": "لا توجد بيانات لعرضها في الوقت الحالي.",
+            "dashboardTitle": "لوحة التحكم", "totalRevenue": "إجمالي الإيرادات", "totalOrders": "إجمالي الطلبات",
+            "totalProducts": "إجمالي المنتجات", "totalUsers": "إجمالي المستخدمين",
+            "salesOverviewChartTitle": "نظرة عامة على المبيعات", "revenueLabel": "الإيرادات", "orderCountLabel": "عدد الطلبات",
+            "noSalesData": "لا توجد بيانات مبيعات لعرضها.", "topSellingProductsTitle": "المنتجات الأكثر مبيعًا",
+            "quantitySoldLabel": "الكمية المباعة", "itemsSoldLabel": "قطع", "noTopProductsData": "لا توجد بيانات للمنتجات الأكثر مبيعًا.",
+            "categoryDistributionChartTitle": "توزيع المنتجات حسب الفئة", "noCategoryData": "لا توجد بيانات للفئات.",
+            "ordersByStatusTitle": "الطلبات حسب الحالة", "noOrderStatusData": "لا توجد بيانات لحالة الطلبات.",
+            "userRegistrationTitle": "تسجيل المستخدمين الجدد", "usersRegisteredLabel": "المستخدمون المسجلون", "noUserRegistrationData": "لا توجد بيانات تسجيل مستخدمين.",
+            "recentOrdersTitle": "أحدث الطلبات", "orderId": "معرف الطلب", "date": "التاريخ", "customer": "العميل",
+            "total": "الإجمالي", "status": "الحالة", "noRecentOrders": "لا توجد طلبات حديثة.", "guestUser": "مستخدم زائر",
+            "orderStatuses": { "pending": "قيد الانتظار", "processing": "قيد المعالجة", "shipped": "تم الشحن", "delivered": "تم التوصيل", "cancelled": "ملغي" },
+            "productManagement": "إدارة المنتجات", "categoryManagement": "إدارة الفئات", "orderManagement": "إدارة الطلبات",
+            "userManagement": "إدارة المستخدمين", "advertisementManagement": "إدارة الإعلانات", "discountManagement": "إدارة الخصومات"
         },
         "adminCategoryPage": {
-            "manageCategories": "إدارة الفئات", "addCategoryButton": "إضافة فئة", "categoryName": "اسم الفئة", "subCategoriesCount": "عدد الفئات الفرعية",
-            "actions": "إجراءات", "editCategory": "تعديل الفئة", "deleteCategory": "حذف الفئة", "confirmDelete": "هل أنت متأكد أنك تريد حذف الفئة \"{categoryName}\"؟ سيؤدي هذا إلى حذف جميع الفئات الفرعية المرتبطة بها.",
-            "errorFetchingCategories": "فشل في تحميل الفئات.", "noCategoriesFound": "لم يتم العثور على فئات.", "noDescription": "لا يوجد وصف متاح.",
-            "addCategoryModalTitle": "إضافة فئة جديدة", "categoryNameLabelEn": "اسم الفئة (الإنجليزية)", "categoryNameLabelAr": "اسم الفئة (العربية)",
+            "errorFetchingCategories": "خطأ في جلب الفئات.", "confirmDelete": "هل أنت متأكد من رغبتك في حذف الفئة \"{categoryName}\"؟",
+            "manageCategories": "إدارة الفئات", "addCategoryButton": "إضافة فئة جديدة", "subCategoriesCount": "فئات فرعية",
+            "editCategory": "تعديل", "deleteCategory": "حذف", "addCategoryModalTitle": "إضافة فئة جديدة",
+            "categoryNameLabelEn": "اسم الفئة (إنجليزي)", "categoryNameLabelAr": "اسم الفئة (عربي)",
             "categoryImageLabel": "صورة الفئة", "subCategoriesTitle": "الفئات الفرعية",
+            "cancelButton": "إلغاء", "savingChangesButton": "جاري حفظ التغييرات...", "saveChangesButton": "حفظ التغييرات",
+            "noCategoriesFound": "لم يتم العثور على فئات.", "noDescription": "لا يوجد وصف", "updateSuccess": "تم تحديث الفئة بنجاح!",
+            "errorUpdatingCategory": "حدث خطأ أثناء تحديث الفئة.", "categoryNamesRequired": "أسماء الفئات باللغتين مطلوبة.",
+            "currentImage": "الصورة الحالية", "imageUploadHint": "اتركه فارغًا للحفاظ على الصورة الحالية."
+        },
+        "adminOrdersPage": {
+            "errorFetchingOrdersToast": "فشل في جلب الطلبات.", "allOrders": "كل الطلبات", "user": "المستخدم", "date": "التاريخ",
+            "total": "الإجمالي", "paid": "مدفوع", "delivered": "تم التوصيل", "details": "تفاصيل",
+            "errorFetchingOrderDetails": "فشل جلب تفاصيل الطلب.", "paidSuccess": "تم تحديد الطلب كمدفوع بنجاح!", "paidError": "فشل تحديد الطلب كمدفوع.",
+            "deliveredSuccess": "تم تحديد الطلب كموصل بنجاح!", "deliveredError": "فشل تحديد الطلب كموصل.",
+            "orderNotFound": "الطلب غير موجود.", "orderDetails": "تفاصيل الطلب", "shippingAddress": "عنوان الشحن",
+            "address": "العنوان", "status": "الحالة", "notDelivered": "لم يتم التوصيل", "deliveredAt": "تم التوصيل في",
+            "markingDelivered": "جاري التحديد كموصل...", "markAsDelivered": "تحديد كموصل",
+            "paymentMethod": "طريقة الدفع", "method": "الطريقة", "notPaid": "غير مدفوع", "paidAt": "تم الدفع في",
+            "markingPaid": "جاري التحديد كمدفوع...", "markAsPaid": "تحديد كمدفوع",
+            "orderItems": "عناصر الطلب", "customerInfo": "معلومات العميل", "name": "الاسم", "email": "البريد الإلكتروني",
+            "orderSummary": "ملخص الطلب", "itemsPrice": "سعر المنتجات", "shippingPrice": "سعر الشحن",
+            "taxPrice": "الضريبة", "totalPrice": "السعر الإجمالي", "dates": "التواريخ", "orderedAt": "تاريخ الطلب"
+        },
+        "advertisementAdmin": {
+            "titleRequired": "عناوين الإعلان باللغة الإنجليزية والعربية مطلوبة.", "imageRequired": "صورة الإعلان مطلوبة.",
+            "addSuccess": "تمت إضافة الإعلان بنجاح!", "addError": "خطأ في إضافة الإعلان: ",
+            "titleEn": "العنوان (إنجليزي)", "titleAr": "العنوان (عربي)",
+            "descriptionEn": "الوصف (إنجليزي)", "descriptionAr": "الوصف (عربي)",
+            "linkLabel": "رابط URL", "typeLabel": "النوع",
+            "typeSlide": "شريحة عرض", "typeSideOffer": "عرض جانبي", "typeWeeklyOffer": "عرض أسبوعي",
+            "orderLabel": "الترتيب (للعرض)", "startDate": "تاريخ البدء", "endDate": "تاريخ الانتهاء",
+            "originalPrice": "السعر الأصلي", "discountedPrice": "السعر المخفض", "currency": "العملة",
+            "isActive": "نشط", "imageLabel": "صورة الإعلان", "submittingButton": "جاري الإضافة...",
+            "addButton": "إضافة إعلان", "confirmDelete": "هل أنت متأكد من حذف الإعلان \"{advertisementTitle}\"؟",
+            "deleteSuccess": "تم حذف الإعلان بنجاح!", "errorDeletingAdvertisement": "حدث خطأ أثناء حذف الإعلان.",
+            "advertisementListTitle": "قائمة الإعلانات", "addAdvertisementButton": "إضافة إعلان",
+            "noAdvertisements": "لا توجد إعلانات لعرضها حاليًا.", "imageTable": "صورة", "titleTable": "العنوان",
+            "descriptionTable": "الوصف", "typeTable": "النوع", "activeTable": "نشط",
+            "orderTable": "الترتيب", "actionsTable": "إجراءات", "noDescription": "لا يوجد وصف",
+            "unknownType": "نوع غير معروف", "updateSuccess": "تم تحديث الإعلان بنجاح!",
+            "updateError": "حدث خطأ أثناء تحديث الإعلان.", "editAdvertisementTitle": "تعديل الإعلان",
+            "updatingButton": "جاري الحفظ...", "updateButton": "حفظ التغييرات",
+            "imageOptional": "صورة (اختياري لتغيير الحالية)"
+        },
+        "discountAdmin": {
+            "codeRequired": "كود الخصم مطلوب.", "amountRequired": "مطلوب إما نسبة مئوية أو مبلغ ثابت.",
+            "amountExclusive": "لا يمكن تقديم نسبة مئوية ومبلغ ثابت معًا.", "datesRequired": "تاريخ البدء والانتهاء مطلوبان.",
+            "addSuccess": "تمت إضافة الخصم بنجاح!", "addError": "خطأ في إضافة الخصم: ",
+            "codeLabel": "كود الخصم", "percentageLabel": "النسبة المئوية (%)", "fixedAmountLabel": "المبلغ الثابت",
+            "minOrderAmountLabel": "أقل مبلغ للطلب", "maxDiscountAmountLabel": "أقصى مبلغ للخصم (اختياري)",
+            "startDateLabel": "تاريخ البدء", "endDateLabel": "تاريخ الانتهاء", "isActive": "نشط",
+            "submittingButton": "جاري الإضافة...", "addButton": "إضافة خصم", "confirmDelete": "هل أنت متأكد من حذف كود الخصم \"{discountCode}\"؟",
+            "deleteSuccess": "تم حذف الخصم بنجاح!", "errorDeletingDiscount": "حدث خطأ أثناء حذف الخصم.",
+            "discountListTitle": "قائمة الخصومات", "addDiscountButton": "إضافة خصم", "noDiscounts": "لا توجد خصومات لعرضها حاليًا.",
+            "codeTable": "الكود", "typeTable": "النوع", "valueTable": "القيمة", "minOrderTable": "أقل طلب",
+            "maxDiscountTable": "أقصى خصم", "startDateTable": "تاريخ البدء", "endDateTable": "تاريخ الانتهاء",
+            "activeTable": "نشط", "actionsTable": "إجراءات", "percentageType": "نسبة مئوية",
+            "fixedAmountType": "مبلغ ثابت", "updateSuccess": "تم تحديث الخصم بنجاح!",
+            "updateError": "حدث خطأ أثناء تحديث الخصم.", "editDiscountTitle": "تعديل الخصم",
+            "updatingButton": "جاري الحفظ...", "updateButton": "حفظ التغييرات"
+        },
+        "productAdmin": {
+            "addNewProduct": "إضافة منتج جديد", "confirmDelete": "هل أنت متأكد من حذف المنتج \"{productName}\"؟",
+            "deleteSuccess": "تم حذف المنتج بنجاح!", "deleteError": "حدث خطأ أثناء حذف المنتج.",
+            "addProductButton": "إضافة منتج", "noProducts": "لا توجد منتجات لعرضها.",
+            "imageTable": "صورة", "nameTable": "الاسم", "categoryTable": "الفئة", "priceTable": "السعر",
+            "actionsTable": "إجراءات", "uncategorized": "غير مصنف", "editProductTitle": "تعديل المنتج"
         }
     },
     en: {
         "general": {
             "loading": "Loading...", "error": "Error", "notApplicable": "N/A", "unnamedItem": "Unnamed Item", "priceNotAvailable": "Price N/A",
-            "shopNow": "Shop Now", "currencySymbol": "$", "off": "OFF", "noImage": "No Image", "errorFetchingData": "Failed to fetch data. Please try again later.",
-            "resetting": "Resetting...", "unnamedProduct": "Unnamed Product", "imageFailedToLoad": "Image failed to load", "noImageAvailable": "No Image Available",
-            "currencyCode": "USD", "viewImage": "View Image", "thumbnail": "Thumbnail", "decreaseQuantity": "Decrease Quantity", "increaseQuantity": "Increase Quantity",
-            "productQuantity": "Product Quantity", "subtotal": "Subtotal", "total": "Total", "inCartShort": "In Cart", "addToCartShort": "Add",
-            "removeFromWishlist": "Remove from Wishlist", "addToWishlist": "Add to Wishlist", "description": "Description", "submitting": "Submitting...",
-            "verifyHuman": "Please verify you are human.", "sending": "Sending...", "apiError": "API URL is not defined.", "view": "View", "pleaseWait": "Please wait...",
-            "image": "image", "clear": "clear", "close": "Close", "copyId": "Copy ID",
+            "shopNow": "Shop Now", "currencySymbol": "$", "off": "OFF", "noImage": "No Image", "errorFetchingData": "Failed to fetch data.",
+            "unnamedProduct": "Unnamed Product", "imageFailedToLoad": "Image failed to load", "noImageAvailable": "No Image Available",
+            "currencyCode": "USD", "description": "Description", "close": "Close", "copyId": "Copy ID",
+            "yes": "Yes", "no": "No", "back": "Back", "active": "Active", "inactive": "Inactive", "none": "None",
+            "verifyHuman": "Please verify that you are human.", "apiError": "API configuration error."
+        },
+        "topBar": {
+            "language": "العربية", "home": "Home", "shop": "Shop", "aboutUs": "About Us", "contactUs": "Contact Us",
+            "dashboard": "Dashboard", "logout": "Logout", "welcome": "Welcome", "helloGuest": "Hello, Guest"
+        },
+        "mainHeader": {
+            "siteName": "My Store", "searchPlaceholder": "Search...", "myAccount": "My Account", "login": "Login",
+            "myWishlist": "My Wishlist", "myCart": "My Cart", "hotline": "Hotline"
+        },
+        "features": {
+            "freeShipping": "Free Shipping", "freeShippingDesc": "Free shipping on all orders over $100",
+            "support247": "Support 24/7", "support247Desc": "Get help anytime you need it",
+            "onlinePayment": "Online Payment", "onlinePaymentDesc": "Secure online payment options",
+            "easyReturn": "Easy Return", "easyReturnDesc": "Hassle-free returns within 30 days"
         },
         "heroSection": {
             "bigSale": "Limited Time Offer", "price": "Price", "validFrom": "Valid From", "validUntil": "Valid Until",
-            "installment": "Easy Installments", "weeklySale": "Weekly Flash Deals!", "weeklyDesc": "Unlock incredible savings on your favorite products! Get up to",
-            "thisWeek": "for a limited time.", "allOffersTitle": "Discover All Offers!", "allOffersDesc": "Explore all available promotions and discounts in one place.",
-            "noDataAvailable": "No exciting offers available right now."
+            "installment": "Easy Installments", "weeklySale": "Weekly Deals", "allOffersTitle": "Discover All Offers",
+            "allOffersDesc": "Explore all available promotions and discounts.", "noDataAvailable": "No exciting offers available right now."
         },
         "homepage": {
-            "discountsTitle": "Exclusive Discount Codes", "discountCode": "Your Code", "copied": "Copied!", "shopByCategory": "Shop by Category",
-            "loadingCategories": "Loading categories...", "categoryFetchError": "Failed to fetch categories. Please try again later.", "noCategoriesFound": "No categories found.",
-            "categoryImageAlt": "Category Image", "unnamedCategory": "Unnamed Category", "trendingProductsTitle": "Trending Products",
-            "trendingProductsDesc": "Discover our most popular products this week.", "noTrendingProductsFound": "No trending products found.",
-            "off": "OFF", "copyCode": "Copy Code",
+            "discountsTitle": "Exclusive Discount Codes", "copied": "Copied!", "copyCode": "Copy",
+            "shopByCategory": "Shop by Category", "loadingCategories": "Loading categories...", "categoryFetchError": "Failed to fetch categories.",
+            "noCategoriesFound": "No categories found.", "categoryImageAlt": "Category Image", "unnamedCategory": "Unnamed Category",
+            "trendingProductsTitle": "Trending Products", "trendingProductsDesc": "Discover our most popular products this week. Handpicked for quality and trending popularity!",
+            "noTrendingProductsFound": "No trending products found."
         },
-        "productCard": {
-            "uncategorized": "Uncategorized", "viewProduct": "View Product", "addToCart": "Add to Cart", "inCart": "In Cart",
-            "addToFavorites": "Add to Favorites", "removeFromFavorites": "In Favorites", "viewProductError": "Cannot view product details: Product data is missing.",
-            "addToFavoritesError": "Cannot add product to favorites: Product data is incomplete.", "addToCartError": "Cannot add product to cart: Product data is incomplete.",
-            "specialOffer": "Special Offer", "viewDetails": "View Details", "variationsAvailable": "Variations Available", "variantUnavailable": "Variant Unavailable",
-        },
-        "features": {
-            "freeShipping": "Free Shipping", "freeShippingDesc": "Free shipping on all orders over $100", "support247": "Support 24/7",
-            "support247Desc": "Get help anytime you need it", "onlinePayment": "Online Payment", "onlinePaymentDesc": "Secure online payment options",
-            "easyReturn": "Easy Return", "easyReturnDesc": "Hassle-free returns within 30 days"
-        },
-        "mainHeader": {
-            "siteName": "TechXpress", "searchPlaceholder": "Search for products...", "hotline": "Hotline", "myWishlist": "My Wishlist",
-            "myCart": "My Cart", "myProfile": "My Profile", "myAccount": "My Account", "loginRegister": "Login / Register", "login": "Login"
-        },
-        "topBar": {
-            "languageArabic": "Arabic", "languageEnglish": "English", "home": "Home", "shop": "Shop", "aboutUs": "About Us",
-            "contactUs": "Contact Us", "dashboard": "Dashboard", "helloUser": "Hello", "helloGuest": "Hello Guest",
-            "logout": "Logout", "signIn": "Sign In", "register": "Register", "lightMode": "Light Mode", "darkMode": "Dark Mode"
-        },
-        "shopPage": {
-            "filter": "Filter", "showFilters": "Show Filters", "filterByCategory": "Filter by Category", "filterBySubCategory": "Filter by Sub-Category",
-            "priceRange": "Price Range", "filterByBrand": "Filter by Brand", "sortBy": "Sort by:", "popularity": "Popularity",
-            "priceLowToHigh": "Price: Low to High", "priceHighToLow": "Price: High to Low", "nameAZ": "Name (A-Z)", "showingItems": "Showing",
-            "items": "items", "noProductsFound": "No products found matching your criteria.", "errorFetchingProducts": "Failed to load products. Please check your connection or try again.",
-            "currencySymbol": "$", "addToCart": "Add to Cart", "currencyCode": "SAR", "resetFilters": "Reset Filters", "allSubcategories": "All Subcategories",
-            "addToFavorites": "Add to Favorites", "filterByOption": "Filter by Option", "allOptions": "All Options", "removeFromFavorites": "Remove from Favorites",
-        },
-        "brands": {
-            "All Brands": "All Brands", "Nike": "Nike", "Urban Threads": "Urban Threads", "Dash Athletics": "Dash Athletics", "TechGen": "TechGen",
-        },
-        "wishlistPage": {
-            "loadingWishlist": "Loading wishlist...", "pleaseLogin": "Please log in to view your wishlist.",
-            "emptyWishlist": "Your wishlist is currently empty. Start adding your favorite items!", "wishlistTitle": "My Wishlist",
-            "loginRequiredTitle": "Access Denied", "emptyWishlistTitle": "Your Wishlist is Empty!"
-        },
-        "auth": {
-            "resetPasswordTitle": "Reset Password", "tokenExpired": "Reset link is missing or invalid.", "tokenExpiredOrInvalid": "This link is invalid or has expired.",
-            "passwordMismatch": "Passwords do not match.", "passwordResetSuccess": "Password has been reset successfully. You will be redirected to the login page.",
-            "passwordResetError": "Failed to reset password.", "newPasswordLabel": "New Password", "confirmNewPasswordLabel": "Confirm New Password",
-            "requestNewLink": "Request New Link", "resetPasswordButton": "Reset Password", "verifyingLink": "Verifying reset link...",
-            "passwordMinLength": "Password must be at least 6 characters long.", "registerTitle": "Create Your Account", "nameLabel": "Full Name",
-            "emailLabel": "Email Address", "passwordLabel": "Password", "confirmPasswordLabel": "Confirm Password", "recaptchaError": "reCAPTCHA error.",
-            "recaptchaExpired": "reCAPTCHA expired. Please re-verify.", "recaptchaRequired": "Please complete the reCAPTCHA.",
-            "registerSuccess": "Registration successful! Please check your email for activation link.", "registerError": "Registration failed. Please try again.",
-            "registerButton": "Register", "loginPrompt": "Already have an account?", "loginLink": "Login here",
-            "loginTitle": "Login to Your Account", "loginSuccess": "Login successful!", "loginError": "Login failed. Please check your credentials.",
-            "forgotPassword": "Forgot Password?", "registerPrompt": "Don’t have an account?", "registerLink": "Sign up here",
-            "forgotPasswordTitle": "Forgot Password", "forgotPasswordInstructions": "Enter your email address and we'll send you a link to reset your password.",
-            "resetEmailSent": "Password reset link sent to your email.", "resetEmailError": "Failed to send password reset email.",
-            "sendResetLink": "Send Reset Link", "loginNow": "Back to Login", "accountActivation": "Account Activation",
-            "activationSuccess": "Your account has been activated successfully!", "activationError": "Account activation failed. The link is invalid or has expired.",
-            "tokenMissing": "Activation token is missing or invalid.", "registerSuccessEmailSent": "Registration successful! Please check your email for activation link.",
-            "registrationCompleteTitle": "Registration Complete", "goToLogin": "Go to Login", "loginButton": "Login", "loginWelcome": "Welcome Back",
-            "loginSuccessTitle": "Login Successful",
-        },
-        "productDetailsPage": {
-            "productDataNotFound": "Product data not found.", "notFound": "Product not found.", "failedToLoad": "Failed to load product. Please check your connection or try again.",
-            "productDataMissing": "Product data is missing.", "quantity": "Quantity", "securePayment": "Secure Payment", "fastShipping": "Fast Shipping",
-            "qualityGuarantee": "Quality Guarantee", "productDescription": "Product Description", "productImages": "Product Images",
-            "continueShopping": "Continue Shopping", "specifications": "Specifications", "availableOptions": "Available Options", "selectOption": "Select Option",
-            "productMedia": "Product Media", "selectMoreOptions": "Select more options", "sizes": "sizes", "color": "color",
-            "clearSelection": "clear selection", "outOfStock": "Out of stock", "variantNotFound": "variant not found",
-        },
+        "wishlist": { "loginRequired": "Please log in to manage your wishlist." },
         "cart": {
-            "loginRequired": "Please log in to add products to your cart.", "productAdded": "Product added to cart.", "productAddedSuccess": "Product added to cart successfully.",
-            "updateSuccess": "Cart updated successfully.", "productRemovedSuccess": "Product removed from cart successfully.",
-        },
-        "wishlist": {
-            "loginRequired": "Please log in to add to favorites."
-        },
-        "cartPage": {
-            "shoppingCart": "Shopping Cart", "cartEmpty": "Your cart is empty!", "cartEmptyDesc": "Looks like you haven't added anything to your cart yet.",
-            "continueShopping": "Continue Shopping", "removeItem": "Remove Item", "cartTotal": "Cart Total", "proceedToCheckout": "Proceed to Checkout",
-            "cartEmptyCheckout": "Your cart is empty. Add items before checking out.", "stockStatus": "Stock Status", "inStock": "In Stock",
-        },
-        "checkoutPage": {
-            "checkoutTitle": "Checkout", "orderSummary": "Order Summary", "discountCode": "Discount Code", "enterDiscountCodePlaceholder": "Enter discount code",
-            "apply": "Apply", "remove": "Remove", "invalidOrExpiredDiscount": "Invalid or expired discount code.", "minOrderNotMet": "Discount requires a minimum order of {amount}.",
-            "discountAppliedSuccessfully": "Discount applied successfully!", "discountRemoved": "Discount removed.", "shippingAndPayment": "Shipping & Payment",
-            "shippingAddress": "Shipping Address", "enterAddressPlaceholder": "Enter Address", "enterCityPlaceholder": "Enter City", "enterPostalCodePlaceholder": "Enter Postal Code",
-            "enterCountryPlaceholder": "Enter Country", "paymentMethod": "Payment Method", "cashOnDelivery": "Cash on Delivery", "placeOrder": "Place Order",
-            "placingOrder": "Placing Order...", "orderPlacedSuccessTitle": "Order Placed Successfully!", "orderPlacedSuccessMessage": "Thank you for your purchase. You will be redirected to the home page shortly.",
-            "redirecting": "Redirecting...", "pleaseLoginToCheckout": "Please log in to checkout.", "shippingPaymentRequired": "Please provide shipping address and payment method.",
-            "discountInvalidOrder": "The applied discount is no longer valid due to cart changes. Please review your order.",
-            "discountInvalidated": "Applied discount became invalid.", "orderPlacementFailed": "Order placement failed.", "orderPlacementError": "Error placing order"
-        },
-        "contactUsPage": {
-            "title": "Contact Us", "description": "Have any questions or need assistance? Feel free to reach out to us. Our team is available to help you with any inquiries regarding our services and support.",
-            "yourName": "Your Name", "yourSubject": "Your Subject", "yourEmail": "Your Email", "yourPhone": "Your Phone", "yourMessage": "Your Message",
-            "submitMessage": "Submit Message", "successMessage": "Message submitted successfully! Thank you.", "errorMessage": "Failed to submit message. Please try again.",
-            "apiError": "API URL is not defined. Please ensure REACT_APP_API_URL is set in your frontend .env file and restart the development server.",
-            "networkError": "An error occurred during submission. Please check your network connection or server logs."
-        },
-        "aboutUsPage": {
-            "title": "TechXpress - Your Go-To Electronics Store",
-            "commitment": "At TechXpress, we are committed to bringing you the latest and greatest in electronics. Whether you’re looking for cutting-edge smartphones, high-performance laptops, or premium accessories, we offer a wide selection of top-quality products at unbeatable prices.",
-            "belief": "We believe in providing an exceptional shopping experience by ensuring fast delivery, secure payment options and outstanding customer service. Our goal is to make tech shopping simple, reliable, and enjoyable for everyone.",
-            "explore": "Explore our collection and stay ahead with the latest technology trends. Your satisfaction is our priority!",
-            "imageAlt": "Handshake representing partnership and trust"
+            "loginRequired": "Please log in to add items to your cart.", "productAddedSuccess": "Product added to cart successfully.",
+            "addError": "Error adding product to cart.", "updateSuccess": "Cart updated successfully.", "updateError": "Error updating cart.",
+            "productRemovedSuccess": "Product removed from cart.", "removeError": "Error removing item.",
         },
         "allOffersPage": {
             "title": "All Available Offers", "noOffers": "No offers are available at the moment.", "noOffersTitle": "No Offers Available!",
@@ -223,144 +252,204 @@ const translations = {
         },
         "advertisementDetails": {
             "notFound": "Advertisement not found.", "noDetails": "No advertisement details found.", "noDetailsTitle": "No Advertisement Details!",
-            "originalPrice": "Original Price", "currentPrice": "Current Price", "validity": "Validity Period", "goToOffer": "Go To Offer",
-            "typeSlide": "Main Carousel Offer", "typeSideOffer": "Side Offer", "typeWeeklyOffer": "Weekly Deal", "typeOther": "Special Offer",
-            "priceDetails": "Price Details"
+            "originalPrice": "Original Price", "currentPrice": "Current Price", "validity": "Validity Period",
+            "goToOffer": "Go To Offer", "typeSlide": "Main Carousel Offer", "typeSideOffer": "Side Offer",
+            "typeWeeklyOffer": "Weekly Deal", "typeOther": "Special Offer", "priceDetails": "Price Details"
+        },
+        "aboutUsPage": {
+            "title": "About Our Store",
+            "commitment": "We are committed to bringing you the latest and greatest. Whether you’re looking for cutting-edge products, high-performance gear, or premium accessories, we offer a wide selection.",
+            "belief": "We believe in providing an exceptional shopping experience by ensuring fast delivery, secure payment options and outstanding customer service.",
+            "explore": "Explore our collection and stay ahead with the latest trends. Your satisfaction is our priority!", "imageAlt": "A picture representing our team and values"
+        },
+        "contactUsPage": {
+            "title": "Contact Us", "description": "Have any questions or need assistance? Feel free to reach out. Our team is available to help.",
+            "yourName": "Your Name", "yourSubject": "Subject", "yourEmail": "Your Email", "yourPhone": "Your Phone",
+            "yourMessage": "Your Message", "submitMessage": "Submit Message", "successMessage": "Message submitted successfully! Thank you.",
+            "errorMessage": "Failed to submit message.", "networkError": "A network error occurred. Please try again."
+        },
+        "productCard": {
+            "uncategorized": "Uncategorized", "removeFromFavorites": "Remove from Favorites", "addToFavorites": "Add to Favorites",
+            "viewDetails": "View Details"
+        },
+        "productDetails": {
+            "quantity": "Quantity", "availability": "Availability", "inStock": "In Stock", "outOfStock": "Out of Stock", "addToCart": "Add to Cart",
+            "specifications": "Specifications", "reviews": "Reviews", "relatedProducts": "Related Products"
+        },
+        "shoppingCartPage": {
+            "title": "Shopping Cart", "product": "Product", "price": "Price", "quantity": "Quantity", "total": "Total", "subtotal": "Subtotal",
+            "emptyCart": "Your cart is empty.", "continueShopping": "Continue Shopping", "proceedToCheckout": "Proceed to Checkout"
+        },
+        "checkoutPage": {
+            "title": "Checkout", "billingDetails": "Billing Details", "shippingAddress": "Shipping Address",
+            "placeOrder": "Place Order", "paymentMethod": "Payment Method", "orderSummary": "Order Summary"
+        },
+        "auth": {
+            "email": "Email Address", "password": "Password", "rememberMe": "Remember Me", "forgotPassword": "Forgot Password?",
+            "loginTitle": "Login", "registerTitle": "Register", "noAccount": "Don't have an account?", "signUp": "Sign Up",
+            "haveAccount": "Already have an account?", "loginButton": "Login", "registerButton": "Register",
+            "nameLabel": "Name", "emailLabel": "Email Address", "passwordLabel": "Password", "confirmPasswordLabel": "Confirm Password",
+            "loginPrompt": "Already have an account?", "loginLink": "Login", "registerPrompt": "Don't have an account?",
+            "registerLink": "Sign Up", "loginNow": "Back to Login", "recaptchaExpired": "reCAPTCHA expired. Please re-verify.",
+            "recaptchaRequired": "Please complete the reCAPTCHA verification.", "passwordMismatch": "Passwords do not match.",
+            "registerSuccessEmailSent": "Registration successful! Please check your email to activate your account.",
+            "registerError": "Registration failed. Please try again.", "registrationCompleteTitle": "Registration Complete!",
+            "goToLogin": "Go to Login", "loginWelcome": "Welcome, {name}!", "loginError": "Login failed. Please try again.",
+            "loginSuccessTitle": "Login Successful!", "forgotPasswordTitle": "Forgot Password",
+            "forgotPasswordInstructions": "Enter your email and we'll send you a link to reset your password.",
+            "sendResetLink": "Send Reset Link", "resetEmailSent": "Password reset link sent to your email. Please check your inbox.",
+            "resetEmailError": "Failed to send reset link. Please try again.", "resetPasswordTitle": "Reset Your Password",
+            "newPasswordLabel": "New Password", "confirmNewPasswordLabel": "Confirm New Password",
+            "resetPasswordButton": "Reset Password", "passwordMinLength": "Password must be at least 6 characters long.",
+            "passwordResetSuccess": "Password has been reset successfully.", "passwordResetError": "Failed to reset password.",
+            "resetLinkMissing": "Reset link is missing or invalid.", "tokenExpiredOrInvalid": "This link is invalid or has expired.",
+            "verifyingLink": "Verifying reset link...", "requestNewLink": "Request New Link",
+            "accountActivation": "Account Activation", "tokenMissing": "Activation token is missing.",
+            "activationSuccess": "Your account has been activated successfully!",
+            "activationError": "Activation failed. The link may be invalid or expired."
+        },
+        "userDashboard": {
+            "myProfile": "My Profile", "orderHistory": "Order History", "editProfile": "Edit Profile",
+            "changePassword": "Change Password", "addressBook": "Address Book"
+        },
+        "shopPage": {
+            "allCategories": "All Categories", "allSubcategories": "All Subcategories", "allBrands": "All Brands", "all": "All",
+            "errorFetchingProducts": "Failed to fetch products.",
+            "filterByCategory": "Filter by Category", "filterBySubCategory": "Filter by Sub-Category",
+            "priceRange": "Price Range", "filterByBrand": "Filter by Brand", "resetFilters": "Reset Filters",
+            "showingItems": "Showing", "items": "items", "popularity": "Popularity",
+            "priceLowToHigh": "Price: Low to High", "priceHighToLow": "Price: High to Low",
+            "nameAZ": "Name: A to Z", "noProductsFound": "No products found matching your criteria."
         },
         "adminDashboardPage": {
-            "dashboardTitle": "Dashboard", "productManagement": "Products", "categoryManagement": "Categories", "orderManagement": "Orders",
-            "userManagement": "Users", "advertisementManagement": "Advertisements", "discountManagement": "Discounts", "settings": "Settings",
-            "analytics": "Analytics", "errorFetchingData": "Failed to fetch dashboard data.", "noDataAvailable": "No data available to display dashboard.",
-            "noDataAvailableTitle": "No Data Available!", "totalRevenue": "Total Revenue", "totalOrders": "Total Orders",
-            "totalProducts": "Total Products", "totalUsers": "Total Users", "salesOverviewChartTitle": "Sales Overview",
-            "revenueLabel": "Revenue", "orderCountLabel": "Order Count", "noSalesData": "No sales data available.",
-            "topSellingProductsTitle": "Top Selling Products", "quantitySoldLabel": "Quantity Sold", "itemsSoldLabel": "items sold",
-            "noTopProductsData": "No top selling products data available.", "categoryDistributionChartTitle": "Category Distribution",
-            "items": "items", "noCategoryData": "No category data available.", "ordersByStatusTitle": "Orders by Status",
-            "noOrderStatusData": "No order status data available.", "userRegistrationTitle": "User Registration Over Time",
-            "usersRegisteredLabel": "Users Registered", "noUserRegistrationData": "No user registration data available.",
+            "footerText": "My Store. All rights reserved.", "errorFetchingData": "Error fetching dashboard data: ",
+            "noDataAvailableTitle": "No Data Available", "noDataAvailable": "There is no data to display at the moment.",
+            "dashboardTitle": "Dashboard", "totalRevenue": "Total Revenue", "totalOrders": "Total Orders",
+            "totalProducts": "Total Products", "totalUsers": "Total Users",
+            "salesOverviewChartTitle": "Sales Overview", "revenueLabel": "Revenue", "orderCountLabel": "Orders",
+            "noSalesData": "No sales data to display.", "topSellingProductsTitle": "Top Selling Products",
+            "quantitySoldLabel": "Quantity Sold", "itemsSoldLabel": "items", "noTopProductsData": "No top selling products data.",
+            "categoryDistributionChartTitle": "Category Distribution", "noCategoryData": "No category data.",
+            "ordersByStatusTitle": "Orders by Status", "noOrderStatusData": "No order status data.",
+            "userRegistrationTitle": "User Registrations", "usersRegisteredLabel": "Users Registered", "noUserRegistrationData": "No user registration data.",
             "recentOrdersTitle": "Recent Orders", "orderId": "Order ID", "date": "Date", "customer": "Customer",
-            "total": "Total", "status": "Status", "guestUser": "Guest User", "noRecentOrders": "No recent orders available.",
-            "orderStatuses": { "pending": "Pending", "processing": "Processing", "shipped": "Shipped", "delivered": "Delivered", "cancelled": "Cancelled", "paid_(not_delivered)": "Paid (Not Delivered)", "pending_payment": "Pending Payment" },
-            "footerText": "TechXpress Admin. All rights reserved."
-        },
-        "adminProductsPage": {
-            "title": "Product Management", "addNewProduct": "Add New Product", "productList": "Product List",
-            "footerText": "TechXpress Admin. All rights reserved."
-        },
-        "productAdmin": {
-            "productNameEn": "Product Name (English)", "productNameAr": "Product Name (Arabic)", "descriptionEn": "Description (English)", "descriptionAr": "Description (Arabic)",
-            "priceLabel": "Base Price", "categoryLabel": "Main Category", "subCategoryLabel": "Sub-Category (Optional)",
-            "nameAndPriceRequired": "Product English/Arabic names and a valid price are required.", "addSuccess": "Product added successfully!", "addError": "Error adding product",
-            "submittingButton": "Adding...", "addButton": "Add Product", "imageTable": "Image", "nameTable": "Name", "categoryTable": "Category",
-            "priceTable": "Price", "actionsTable": "Actions", "addProductButton": "Add Product", "addNewProduct": "Add New Product",
-            "editProductTitle": "Edit Product", "confirmDelete": "Are you sure you want to delete \"{productName}\"? This action cannot be undone.",
-            "deleteSuccess": "Product deleted successfully!", "updateButton": "Save Changes", "updatingButton": "Saving...", "cancelButton": "Cancel",
-            "imageOptional": "Image (Optional)", "specificAttributes": "Category Attributes", "productVariants": "Product Variants", "variant": "Variant",
-            "variantOptions": "Variant Options", "addOption": "Add Option", "priceAdjustment": "Price Adjustment", "stock": "Stock", "sku": "SKU (Optional)",
-            "addVariant": "Add Variant", "mainImageLabel": "Main Image", "additionalImagesLabel": "Additional Images", "videosLabel": "Videos",
-            "selectOptionType": "Select Option Type", "selectCategory": "Select a Category", "selectSubCategory": "Select a Sub-Category",
-            "optionValuePlaceholder": "Option Value", "removeImage": "Remove Image", "videoPreview": "Video Preview", "selectedFile": "Selected file",
-            "noProducts": "No products to display.", "uncategorized": "Uncategorized", "allVariantOptionsRequired": "All variant options must have a name and value.",
-            "variantOptionsRequired": "Each variant must have at least one option.", "variantStockRequired": "Variant stock is required and must be non-negative.", "updateError": "An error occurred while updating the product.",
+            "total": "Total", "status": "Status", "noRecentOrders": "No recent orders.", "guestUser": "Guest User",
+            "orderStatuses": { "pending": "Pending", "processing": "Processing", "shipped": "Shipped", "delivered": "Delivered", "cancelled": "Cancelled" },
+            "productManagement": "Product Management", "categoryManagement": "Category Management", "orderManagement": "Order Management",
+            "userManagement": "User Management", "advertisementManagement": "Advertisement Mgmt", "discountManagement": "Discount Management"
         },
         "adminCategoryPage": {
-            "manageCategories": "Manage Categories", "addCategoryButton": "Add Category", "categoryName": "Category Name", "subCategoriesCount": "Sub-Categories",
-            "actions": "Actions", "editCategory": "Edit Category", "deleteCategory": "Delete Category", "confirmDelete": "Are you sure you want to delete \"{categoryName}\"? This will also delete all its sub-categories.",
-            "errorFetchingCategories": "Failed to load categories.", "noCategoriesFound": "No categories found.", "noDescription": "No description available.",
-            "addCategoryModalTitle": "Add New Category", "categoryNameLabelEn": "Category Name (English)", "categoryNameLabelAr": "Category Name (Arabic)",
+            "errorFetchingCategories": "Error fetching categories.", "confirmDelete": "Are you sure you want to delete the category \"{categoryName}\"?",
+            "manageCategories": "Manage Categories", "addCategoryButton": "Add New Category", "subCategoriesCount": "Sub-categories",
+            "editCategory": "Edit", "deleteCategory": "Delete", "addCategoryModalTitle": "Add New Category",
+            "categoryNameLabelEn": "Category Name (English)", "categoryNameLabelAr": "Category Name (Arabic)",
             "categoryImageLabel": "Category Image", "subCategoriesTitle": "Sub-Categories",
+            "cancelButton": "Cancel", "savingChangesButton": "Saving Changes...", "saveChangesButton": "Save Changes",
+            "noCategoriesFound": "No categories found.", "noDescription": "No description provided.", "updateSuccess": "Category updated successfully!",
+            "errorUpdatingCategory": "An error occurred while updating the category.", "categoryNamesRequired": "Category names in both languages are required.",
+            "currentImage": "Current Image", "imageUploadHint": "Leave blank to keep current image."
         },
         "adminOrdersPage": {
-            "allOrders": "All Orders", "orderID": "Order ID", "user": "User", "date": "Date", "total": "Total", "paid": "Paid",
-            "delivered": "Delivered", "yes": "Yes", "no": "No", "details": "Details", "orderDetails": "Order Details",
-            "shippingAddress": "Shipping Address", "paymentMethod": "Payment Method", "address": "Address", "status": "Status",
-            "method": "Method", "orderItems": "Order Items", "customerInfo": "Customer Info", "name": "Name", "email": "Email",
-            "orderSummary": "Order Summary", "itemsPrice": "Items Price", "shippingPrice": "Shipping Price", "taxPrice": "Tax Price",
-            "totalPrice": "Total Price", "dates": "Dates", "orderedAt": "Ordered At", "deliveredAt": "Delivered At",
-            "noOrderData": "No order data available.", "paidAt": "Paid At",
+            "errorFetchingOrdersToast": "Failed to fetch orders.", "allOrders": "All Orders", "user": "User", "date": "Date",
+            "total": "Total", "paid": "Paid", "delivered": "Delivered", "details": "Details",
+            "errorFetchingOrderDetails": "Failed to fetch order details.", "paidSuccess": "Order marked as paid successfully!", "paidError": "Failed to mark order as paid.",
+            "deliveredSuccess": "Order marked as delivered successfully!", "deliveredError": "Failed to mark order as delivered.",
+            "orderNotFound": "Order not found.", "orderDetails": "Order Details", "shippingAddress": "Shipping Address",
+            "address": "Address", "status": "Status", "notDelivered": "Not Delivered", "deliveredAt": "Delivered At",
+            "markingDelivered": "Marking Delivered...", "markAsDelivered": "Mark As Delivered",
+            "paymentMethod": "Payment Method", "method": "Method", "notPaid": "Not Paid", "paidAt": "Paid At",
+            "markingPaid": "Marking Paid...", "markAsPaid": "Mark As Paid",
+            "orderItems": "Order Items", "customerInfo": "Customer Information", "name": "Name", "email": "Email",
+            "orderSummary": "Order Summary", "itemsPrice": "Items Price", "shippingPrice": "Shipping Price",
+            "taxPrice": "Tax Price", "totalPrice": "Total Price", "dates": "Dates", "orderedAt": "Ordered At"
         },
         "advertisementAdmin": {
-            "advertisementListTitle": "All Advertisements", "addAdvertisementButton": "Add Advertisement", "imageTable": "Image", "titleTable": "Title",
-            "descriptionTable": "Description", "typeTable": "Type", "startDate": "Start Date", "endDate": "End Date", "originalPrice": "Original Price",
-            "discountedPrice": "Discount Price", "currency": "Currency", "activeTable": "Active", "orderTable": "Order", "actionsTable": "Actions",
-            "titleEn": "Title (English)", "titleAr": "Title (Arabic)", "descriptionEn": "Description (English)", "descriptionAr": "Description (Arabic)",
-            "linkLabel": "Link", "typeLabel": "Type", "orderLabel": "Order", "isActive": "Active", "imageLabel": "Image", "addButton": "Add",
-            "editAdvertisementTitle": "Edit Advertisement", "imageOptional": "Image (Optional)", "updateButton": "Update Advertisement",
-            "confirmDelete": "Are you sure you want to delete this advertisement? This action cannot be undone.",
+            "titleRequired": "Advertisement English and Arabic titles are required.", "imageRequired": "Advertisement image is required.",
+            "addSuccess": "Advertisement added successfully!", "addError": "Error adding advertisement: ",
+            "titleEn": "Title (English)", "titleAr": "Title (Arabic)",
+            "descriptionEn": "Description (English)", "descriptionAr": "Description (Arabic)",
+            "linkLabel": "Link URL", "typeLabel": "Type",
+            "typeSlide": "Slide", "typeSideOffer": "Side Offer", "typeWeeklyOffer": "Weekly Offer",
+            "orderLabel": "Order (for display)", "startDate": "Start Date", "endDate": "End Date",
+            "originalPrice": "Original Price", "discountedPrice": "Discounted Price", "currency": "Currency",
+            "isActive": "Is Active", "imageLabel": "Advertisement Image", "submittingButton": "Adding...",
+            "addButton": "Add Advertisement", "confirmDelete": "Are you sure you want to delete the advertisement \"{advertisementTitle}\"?",
+            "deleteSuccess": "Advertisement deleted successfully!", "errorDeletingAdvertisement": "An error occurred while deleting the advertisement.",
+            "advertisementListTitle": "Advertisement List", "addAdvertisementButton": "Add Advertisement",
+            "noAdvertisements": "No advertisements to display currently.", "imageTable": "Image", "titleTable": "Title",
+            "descriptionTable": "Description", "typeTable": "Type", "activeTable": "Active",
+            "orderTable": "Order", "actionsTable": "Actions", "noDescription": "No Description",
+            "unknownType": "Unknown", "updateSuccess": "Advertisement updated successfully!",
+            "updateError": "An error occurred while updating the advertisement.", "editAdvertisementTitle": "Edit Advertisement",
+            "updatingButton": "Saving...", "updateButton": "Save Changes",
+            "imageOptional": "Image (Optional to change current)"
         },
         "discountAdmin": {
-            "discountListTitle": "All Discounts", "codeTable": "Code", "typeTable": "Type", "valueTable": "Value", "minOrderTable": "Min Order",
-            "maxDiscountTable": "Max Discount", "startDateTable": "Start Date", "endDateTable": "End Date", "activeTable": "Active",
-            "actionsTable": "Actions", "addDiscountButton": "Add Discount", "codeLabel": "Code",
+            "codeRequired": "Discount code is required.", "amountRequired": "Either percentage or fixed amount is required.",
+            "amountExclusive": "Cannot provide both percentage and fixed amount.", "datesRequired": "Start and End dates are required.",
+            "addSuccess": "Discount added successfully!", "addError": "Error adding discount: ",
+            "codeLabel": "Discount Code", "percentageLabel": "Percentage (%)", "fixedAmountLabel": "Fixed Amount",
+            "minOrderAmountLabel": "Minimum Order Amount", "maxDiscountAmountLabel": "Maximum Discount Amount (Optional)",
+            "startDateLabel": "Start Date", "endDateLabel": "End Date", "isActive": "Is Active",
+            "submittingButton": "Adding...", "addButton": "Add Discount", "confirmDelete": "Are you sure you want to delete the discount code \"{discountCode}\"?",
+            "deleteSuccess": "Discount deleted successfully!", "errorDeletingDiscount": "An error occurred while deleting the discount.",
+            "discountListTitle": "Discount List", "addDiscountButton": "Add Discount", "noDiscounts": "No discounts to display currently.",
+            "codeTable": "Code", "typeTable": "Type", "valueTable": "Value", "minOrderTable": "Min Order",
+            "maxDiscountTable": "Max Discount", "startDateTable": "Start Date", "endDateTable": "End Date",
+            "activeTable": "Active", "actionsTable": "Actions", "percentageType": "Percentage",
+            "fixedAmountType": "Fixed Amount", "updateSuccess": "Discount updated successfully!",
+            "updateError": "An error occurred while updating the discount.", "editDiscountTitle": "Edit Discount",
+            "updatingButton": "Saving...", "updateButton": "Save Changes"
+        },
+        "productAdmin": {
+            "addNewProduct": "Add New Product", "confirmDelete": "Are you sure you want to delete the product \"{productName}\"?",
+            "deleteSuccess": "Product deleted successfully!", "deleteError": "An error occurred while deleting the product.",
+            "addProductButton": "Add Product", "noProducts": "No products to display.",
+            "imageTable": "Image", "nameTable": "Name", "categoryTable": "Category", "priceTable": "Price",
+            "actionsTable": "Actions", "uncategorized": "Uncategorized", "editProductTitle": "Edit Product"
         }
     }
 };
 
 export const LanguageProvider = ({ children }) => {
-    const [language, setLanguage] = useState(() => {
-        const savedLanguage = localStorage.getItem('appLanguage');
-        return savedLanguage || 'en';
-    });
+    const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'en');
 
     useEffect(() => {
-        localStorage.setItem('appLanguage', language);
-        document.documentElement.setAttribute('dir', language === 'ar' ? 'rtl' : 'ltr');
+        localStorage.setItem('language', language);
+        document.documentElement.lang = language;
+        document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     }, [language]);
-
-    const toggleLanguage = () => {
-        setLanguage(prevLanguage => (prevLanguage === 'en' ? 'ar' : 'en'));
-    };
-
-    const changeLanguage = (newLanguage) => {
-        if (translations[newLanguage]) {
-            setLanguage(newLanguage);
-        } else {
-            console.warn(`Language "${newLanguage}" is not supported.`);
-        }
+    
+    const changeLanguage = () => {
+        setLanguage(prev => (prev === 'en' ? 'ar' : 'en'));
     };
 
     const t = (key, options = {}) => {
         const keys = key.split('.');
-        let currentTranslation = translations[language];
-        for (let i = 0; i < keys.length; i++) {
-            if (currentTranslation && typeof currentTranslation === 'object' && keys[i] in currentTranslation) {
-                currentTranslation = currentTranslation[keys[i]];
-            } else {
-                let englishTranslation = translations['en'];
-                for (let j = 0; j < keys.length; j++) {
-                    if (englishTranslation && typeof englishTranslation === 'object' && keys[j] in englishTranslation) {
-                        englishTranslation = englishTranslation[keys[j]];
-                    } else {
-                        return key;
-                    }
-                }
-                currentTranslation = englishTranslation;
-                break;
-            }
+        let translation = keys.reduce((acc, currentKey) => acc?.[currentKey], translations[language]);
+
+        // Fallback to English if translation is missing in the current language
+        if (typeof translation !== 'string' && typeof translation !== 'object') {
+            translation = keys.reduce((acc, currentKey) => acc?.[currentKey], translations['en']);
         }
 
-        if (typeof currentTranslation === 'string') {
-            return Object.keys(options).reduce((acc, key) => {
-                const regex = new RegExp(`{${key}}`, 'g');
-                return acc.replace(regex, options[key]);
-            }, currentTranslation);
+        // If after fallback it's still not a string, return the key itself
+        if (typeof translation !== 'string') {
+            console.warn(`Translation key '${key}' not found or is not a string. Returning the key.`);
+            return key;
         }
 
-        return currentTranslation;
+        // Replace placeholders like {name}
+        return Object.keys(options).reduce((str, optKey) => {
+            return str.replace(`{${optKey}}`, options[optKey]);
+        }, translation);
     };
 
     return (
-        <LanguageContext.Provider value={{ language, t, toggleLanguage, changeLanguage }}>
+        <LanguageContext.Provider value={{ language, t, changeLanguage }}>
             {children}
         </LanguageContext.Provider>
     );
 };
 
-export const useLanguage = () => {
-    const context = useContext(LanguageContext);
-    if (context === undefined) {
-        throw new Error('useLanguage must be used within a LanguageProvider');
-    }
-    return context;
-};
+export const useLanguage = () => useContext(LanguageContext);

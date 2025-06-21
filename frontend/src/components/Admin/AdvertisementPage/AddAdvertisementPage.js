@@ -172,8 +172,7 @@ import { useLanguage } from '../../LanguageContext'; const AddAdvertisementPage 
                     className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                     <option value="slide">{t('advertisementAdmin.typeSlide') || 'Slide'}</option>
-                    <option value="sideOffer">{t('advertisementAdmin.typeSideOffer') || 'Side Offer'}</option>
-                    <option value="weeklyOffer">{t('advertisementAdmin.typeWeeklyOffer') || 'Weekly Offer'}</option>
+              
                 </select>
             </div>
             <div>
