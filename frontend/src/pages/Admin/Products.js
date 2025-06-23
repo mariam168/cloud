@@ -1,7 +1,15 @@
+// pages/Admin/AdminProductsPage.js
 import React from 'react';
 import ProductList from '../../components/Admin/ProductPage/ProductList';
 import { useLanguage } from "../../components/LanguageContext";
 
+/**
+ * AdminProductsPage is a React component that renders the products page for the admin area.
+ * It displays a list of all products, with options to add new products, edit existing products, and delete products.
+ * It also displays a footer with the copyright information.
+ * @function
+ * @returns {ReactElement} The rendered component.
+ */
 function AdminProductsPage() {
     const { t } = useLanguage();
 

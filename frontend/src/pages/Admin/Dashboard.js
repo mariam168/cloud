@@ -1,14 +1,33 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    LineChart, Line, PieChart, Pie, Cell,
+    AreaChart, Area, PieChart, Pie, Cell,
 } from 'recharts';
 import { useLanguage } from '../../components/LanguageContext';
-import { Loader2, DollarSign, ShoppingCart, Package, Users, Info, CalendarDays, ClipboardList } from 'lucide-react';
+import { Loader2, DollarSign, ShoppingCart, Package, Users, Info, TrendingUp, BarChart2, PieChart as PieIcon, ClipboardList } from 'lucide-react';
+
+// Custom Tooltip for Charts
+const CustomTooltip = ({ active, payload, label, currencySymbol }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm p-3 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+                <p className="label text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{label}</p>
+                {payload.map((pld, index) => (
+                    <p key={index} style={{ color: pld.stroke || pld.fill }} className="intro text-xs font-medium">
+                        {`${pld.name}: `}
+                        <span className="font-semibold">
+                            {pld.dataKey === 'revenue' ? `${currencySymbol || '$'}${pld.value.toFixed(2)}` : pld.value}
+                        </span>
+                    </p>
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
 
 const AdminDashboardPage = () => {
     const { t, language } = useLanguage();
@@ -18,7 +37,6 @@ const AdminDashboardPage = () => {
     const [productSalesData, setProductSalesData] = useState([]);
     const [categoryDistributionData, setCategoryDistributionData] = useState([]);
     const [orderStatusData, setOrderStatusData] = useState([]);
-    const [userRegistrationData, setUserRegistrationData] = useState([]);
     const [recentOrders, setRecentOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -27,334 +45,176 @@ const AdminDashboardPage = () => {
         try {
             setLoading(true);
             setError(null);
-            const statsRes = await axios.get(`${API_BASE_URL}/api/dashboard/summary-stats`);
+            const axiosConfig = { headers: { 'accept-language': language } };
+            const [statsRes, salesRes, productSalesRes, categoryRes, orderStatusRes, recentOrdersRes] = await Promise.all([
+                axios.get(`${API_BASE_URL}/api/dashboard/summary-stats`, axiosConfig),
+                axios.get(`${API_BASE_URL}/api/dashboard/sales-over-time`, axiosConfig),
+                axios.get(`${API_BASE_URL}/api/dashboard/product-sales`, axiosConfig),
+                axios.get(`${API_BASE_URL}/api/dashboard/category-distribution`, axiosConfig),
+                axios.get(`${API_BASE_URL}/api/dashboard/order-status-distribution`, axiosConfig),
+                axios.get(`${API_BASE_URL}/api/dashboard/recent-orders`, axiosConfig)
+            ]);
             setSummaryStats(statsRes.data);
-            const salesRes = await axios.get(`${API_BASE_URL}/api/dashboard/sales-over-time`);
-            setSalesData(salesRes.data.map(item => ({
-                ...item,
-                date: language === 'ar' ? new Date(item.date).toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' }) : new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            }))); 
-            const productSalesRes = await axios.get(`${API_BASE_URL}/api/dashboard/product-sales`);
+            setSalesData(salesRes.data);
             setProductSalesData(productSalesRes.data);
-
-            const categoryRes = await axios.get(`${API_BASE_URL}/api/dashboard/category-distribution`);
             setCategoryDistributionData(categoryRes.data);
-
-            const orderStatusRes = await axios.get(`${API_BASE_URL}/api/dashboard/order-status-distribution`);
             setOrderStatusData(orderStatusRes.data);
-
-            const userRegRes = await axios.get(`${API_BASE_URL}/api/dashboard/user-registration-over-time`);
-             setUserRegistrationData(userRegRes.data.map(item => ({
-                ...item,
-                date: language === 'ar' ? new Date(item.date).toLocaleDateString('ar-EG', { month: 'short', year: 'numeric' }) : new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            }))); 
-            const recentOrdersRes = await axios.get(`${API_BASE_URL}/api/dashboard/recent-orders`);
             setRecentOrders(recentOrdersRes.data);
-
         } catch (err) {
-            console.error("Error fetching dashboard data:", err);
             setError(t('adminDashboardPage.errorFetchingData') + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }
-    }, [API_BASE_URL, t, language]); 
+    }, [API_BASE_URL, t, language]);
 
     useEffect(() => {
         fetchDashboardData();
     }, [fetchDashboardData]);
-    const PIE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#00C49F', '#FFBB28', '#A52A2A', '#800080', '#0088FE', '#FF8042'];
-    const getStatusClass = (status) => {
-        switch (status) {
-            case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case 'processing': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case 'shipped': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
-            case 'delivered': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-            default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700/30 dark:text-gray-300';
-        }
-    };
-    const translateOrderStatus = useCallback((statusKey) => {
-        return t(`adminDashboardPage.orderStatuses.${statusKey}`) || statusKey;
-    }, [t]);
 
+    const PIE_COLORS = ['#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#ef4444', '#6366f1'];
+
+    const getStatusClass = (status) => {
+        const statuses = {
+            pending: 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 border-amber-500/20',
+            processing: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-400 border-cyan-500/20',
+            shipped: 'bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-400 border-blue-500/20',
+            delivered: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-500/20',
+            cancelled: 'bg-rose-100 text-rose-800 dark:bg-rose-500/10 dark:text-rose-400 border-rose-500/20',
+        };
+        return statuses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border-gray-500/20';
+    };
+
+    const translateKey = useCallback((key, prefix) => t(`${prefix}.${key}`) || key, [t]);
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-xl font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-                <Loader2 size={64} className="text-blue-500 dark:text-blue-400 animate-spin mb-4" />
-                <span className="text-2xl">{t('general.loading')}</span>
-            </div>
-        );
+        return <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-slate-900"><Loader2 size={48} className="animate-spin text-blue-500" /></div>;
     }
-
     if (error) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md mx-auto border border-gray-200 dark:border-gray-700">
-                <Info size={64} className="mb-6 text-red-500 dark:text-red-400" />
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{t('general.error')}</h2>
-                <p className="text-lg text-red-600 dark:text-red-300">{error}</p>
-            </div>
-        );
-    }
-
-    if (!summaryStats && salesData.length === 0 && productSalesData.length === 0 && categoryDistributionData.length === 0 && orderStatusData.length === 0 && userRegistrationData.length === 0 && recentOrders.length === 0) {
-         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md mx-auto border border-gray-200 dark:border-gray-700">
-                <Info size={64} className="mb-6 text-gray-400 dark:text-gray-500" />
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{t('adminDashboardPage.noDataAvailableTitle')}</h2>
-                <p className="text-lg text-gray-600 dark:text-gray-400">{t('adminDashboardPage.noDataAvailable')}</p>
-            </div>
-        );
+        return <div className="m-8 p-8 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 rounded-lg text-center flex flex-col items-center gap-4"><Info className="mx-auto" size={32} /><span>{error}</span></div>;
     }
 
     return (
-        <div className="p-6 md:p-8 lg:p-10 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"> {/* Main content wrapper */}
-            <h2 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 dark:text-white mb-10 border-b-2 border-blue-500/50 dark:border-blue-400/50 pb-4 inline-block mx-auto leading-tight">
-                {t('adminDashboardPage.dashboardTitle')}
-            </h2>
+        <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-slate-900 min-h-screen font-sans">
+            <header className="mb-10">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+                    {t('adminDashboardPage.dashboardTitle')}
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-2 text-md">
+                    {t('adminDashboardPage.welcomeMessage')}
+                </p>
+            </header>
+
             {summaryStats && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-100 dark:border-gray-600 transition-all duration-200 hover:shadow-md hover:scale-102">
-                        <DollarSign size={40} className="text-green-600 dark:text-green-400 mb-3" />
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t('adminDashboardPage.totalRevenue')}</h3>
-                        <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
-                             {t('general.currencySymbol')} {summaryStats.totalRevenue?.toFixed(2) || '0.00'}
-                        </p>
-                    </div>
-                     <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-100 dark:border-gray-600 transition-all duration-200 hover:shadow-md hover:scale-102">
-                        <ShoppingCart size={40} className="text-blue-600 dark:text-blue-400 mb-3" />
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t('adminDashboardPage.totalOrders')}</h3>
-                        <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
-                             {summaryStats.totalOrders || 0}
-                        </p>
-                    </div>
-                     <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-100 dark:border-gray-600 transition-all duration-200 hover:shadow-md hover:scale-102">
-                        <Package size={40} className="text-purple-600 dark:text-purple-400 mb-3" />
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t('adminDashboardPage.totalProducts')}</h3>
-                        <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">
-                             {summaryStats.totalProducts || 0}
-                        </p>
-                    </div>
-                     <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-100 dark:border-gray-600 transition-all duration-200 hover:shadow-md hover:scale-102">
-                        <Users size={40} className="text-indigo-600 dark:text-indigo-400 mb-3" />
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t('adminDashboardPage.totalUsers')}</h3>
-                        <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">
-                             {summaryStats.totalUsers || 0}
-                        </p>
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+                    <StatCard icon={<DollarSign />} title={t('adminDashboardPage.totalRevenue')} value={`${t('general.currencySymbol')} ${summaryStats.totalRevenue?.toFixed(2)}`} color="green" />
+                    <StatCard icon={<ShoppingCart />} title={t('adminDashboardPage.totalOrders')} value={summaryStats.totalOrders} color="blue" />
+                    <StatCard icon={<Package />} title={t('adminDashboardPage.totalProducts')} value={summaryStats.totalProducts} color="purple" />
+                    <StatCard icon={<Users />} title={t('adminDashboardPage.totalUsers')} value={summaryStats.totalUsers} color="sky" />
                 </div>
             )}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
 
-                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-                        {t('adminDashboardPage.salesOverviewChartTitle')}
-                    </h3>
-                    {salesData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={salesData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.5} />
-                                <XAxis dataKey="date" stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <YAxis stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <Tooltip contentStyle={{ backgroundColor: language === 'ar' ? '#f0f0f0' : '#fff', borderColor: '#ccc', borderRadius: '8px', boxShadow: '0px 0px 5px rgba(0,0,0,0.1)' }}
-                                    labelStyle={{ color: '#333' }}
-                                    itemStyle={{ color: '#555' }}
-                                    formatter={(value, name) => {
-                                    if (name === (t('adminDashboardPage.revenueLabel'))) return [`${t('general.currencySymbol')} ${value?.toFixed(2)}`, name];
-                                    return [value, name];
-                                }} />
-                                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                                <Line type="monotone" dataKey="revenue" stroke="#8884d8" activeDot={{ r: 6 }} name={t('adminDashboardPage.revenueLabel')} strokeWidth={2} />
-                                <Line type="monotone" dataKey="orders" stroke="#82ca9d" name={t('adminDashboardPage.orderCountLabel')} strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noSalesData')}</p>
-                    )}
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <ChartContainer title={t('adminDashboardPage.salesOverviewChartTitle')} icon={<TrendingUp />} className="lg:col-span-2">
+                    <ResponsiveContainer width="100%" height={350}>
+                        <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
+                                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
+                            <XAxis dataKey="date" tick={{ fill: 'currentColor', fontSize: 12 }} strokeOpacity={0.4} />
+                            <YAxis tick={{ fill: 'currentColor', fontSize: 12 }} strokeOpacity={0.4} />
+                            <Tooltip content={<CustomTooltip currencySymbol={t('general.currencySymbol')} />} />
+                            <Legend wrapperStyle={{fontSize: "14px"}} />
+                            <Area type="monotone" dataKey="revenue" name={t('adminDashboardPage.revenueLabel')} stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+                            <Area type="monotone" dataKey="orders" name={t('adminDashboardPage.orderCountLabel')} stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorOrders)" />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
 
-                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
-                     <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-                         {t('adminDashboardPage.topSellingProductsTitle')}
-                     </h3>
-                    {productSalesData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={productSalesData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.5} />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="#555"
-                                    tickFormatter={(value) => value?.[language] || value?.en || value?.ar || value}
-                                    tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }}
-                                    interval={0}
-                                    angle={-45}
-                                    textAnchor="end" 
-                                    height={50} 
-                                />
-                                <YAxis stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <Tooltip contentStyle={{ backgroundColor: language === 'ar' ? '#f0f0f0' : '#fff', borderColor: '#ccc', borderRadius: '8px', boxShadow: '0px 0px 5px rgba(0,0,0,0.1)' }}
-                                    labelStyle={{ color: '#333' }}
-                                    itemStyle={{ color: '#555' }}
-                                     formatter={(value, name, props) => {
-                                         if (name === (t('adminDashboardPage.quantitySoldLabel'))) {
-                                             return [`${value} ${t('adminDashboardPage.itemsSoldLabel')}`, props.payload.name?.[language] || props.payload.name?.en || props.payload.name?.ar || props.payload.name];
-                                         }
-                                          if (name === (t('adminDashboardPage.revenueLabel'))) {
-                                             return [`${t('general.currencySymbol')} ${value?.toFixed(2)}`, props.payload.name?.[language] || props.payload.name?.en || props.payload.name?.ar || props.payload.name];
-                                          }
-                                         return [value, name];
-                                     }}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                                <Bar dataKey="quantitySold" fill="#82ca9d" name={t('adminDashboardPage.quantitySoldLabel')} />
-                                <Bar dataKey="revenue" fill="#8884d8" name={t('adminDashboardPage.revenueLabel')} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noTopProductsData')}</p>
-                    )}
-                </div>
+                <ChartContainer title={t('adminDashboardPage.categoryDistributionChartTitle')} icon={<PieIcon />}>
+                    <ResponsiveContainer width="100%" height={350}>
+                        <PieChart>
+                            <Pie data={categoryDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="60%" outerRadius="85%" paddingAngle={5}>
+                                {categoryDistributionData.map((entry, index) => <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="" />)}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip currencySymbol={t('general.currencySymbol')} />} />
+                            <Legend iconType="circle" />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
 
-                 <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
-                     <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-                         {t('adminDashboardPage.categoryDistributionChartTitle')}
-                     </h3>
-                    {categoryDistributionData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={categoryDistributionData}
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={100}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    label={({ name, percent }) => `${name?.[language] || name?.en || name?.ar || name} (${(percent * 100).toFixed(0)}%)`} // Translate category names
-                                    labelLine={false}
-                                >
-                                    {categoryDistributionData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: language === 'ar' ? '#f0f0f0' : '#fff', borderColor: '#ccc', borderRadius: '8px', boxShadow: '0px 0px 5px rgba(0,0,0,0.1)' }}
-                                    labelStyle={{ color: '#333' }}
-                                    itemStyle={{ color: '#555' }}
-                                     formatter={(value, name, props) => [`${value} ${t('adminDashboardPage.items')}`, props.payload.name?.[language] || props.payload.name?.en || props.payload.name?.ar || props.payload.name]}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noCategoryData')}</p>
-                    )}
-                </div>
-
-                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600">
-                     <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-                         {t('adminDashboardPage.ordersByStatusTitle')}
-                     </h3>
-                    {orderStatusData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={orderStatusData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.5} />
-                                <XAxis dataKey="status" stroke="#555" tickFormatter={translateOrderStatus} tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <YAxis stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <Tooltip contentStyle={{ backgroundColor: language === 'ar' ? '#f0f0f0' : '#fff', borderColor: '#ccc', borderRadius: '8px', boxShadow: '0px 0px 5px rgba(0,0,0,0.1)' }}
-                                    labelStyle={{ color: '#333' }}
-                                    itemStyle={{ color: '#555' }}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                                <Bar dataKey="count" fill="#ffc658" name={t('adminDashboardPage.orderCountLabel')} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noOrderStatusData')}</p>
-                    )}
-                </div>
-
-                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 lg:col-span-2">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-                        {t('adminDashboardPage.userRegistrationTitle')}
-                    </h3>
-                    {userRegistrationData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={userRegistrationData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" opacity={0.5} />
-                                <XAxis dataKey="date" stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <YAxis stroke="#555" tick={{ fill: language === 'ar' ? '#666' : '#555', fontSize: 12 }} />
-                                <Tooltip contentStyle={{ backgroundColor: language === 'ar' ? '#f0f0f0' : '#fff', borderColor: '#ccc', borderRadius: '8px', boxShadow: '0px 0px 5px rgba(0,0,0,0.1)' }}
-                                    labelStyle={{ color: '#333' }}
-                                    itemStyle={{ color: '#555' }}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                                <Line type="monotone" dataKey="users" stroke="#ff7300" activeDot={{ r: 6 }} name={t('adminDashboardPage.usersRegisteredLabel')} strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (
-                         <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noUserRegistrationData')}</p>
-                    )}
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 lg:col-span-2">
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                        <ClipboardList size={24} className="text-gray-600 dark:text-gray-300" />
-                        {t('adminDashboardPage.recentOrdersTitle')}
-                    </h3>
-                    {recentOrders.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                                <thead className="bg-gray-100 dark:bg-gray-600">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.orderId')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.date')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.customer')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.total')}
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            {t('adminDashboardPage.status')}
-                                        </th>
+                <ChartContainer title={t('adminDashboardPage.recentOrdersTitle')} icon={<ClipboardList />} className="lg:col-span-3">
+                    <div className="overflow-x-auto -mx-6">
+                        <table className="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('adminDashboardPage.orderId')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('adminDashboardPage.customer')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('adminDashboardPage.date')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('adminDashboardPage.total')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('adminDashboardPage.status')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                                {recentOrders.map(order => (
+                                    <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                                            <Link to={`/dashboard/orders/${order._id}`}>{order._id.slice(-8)}</Link>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200 font-medium">{order.user?.name || t('adminDashboardPage.guestUser')}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleDateString(language, { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{t('general.currencySymbol')}{order.totalPrice?.toFixed(2)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <span className={`px-3 py-1 rounded-full font-semibold text-xs inline-block border ${getStatusClass(order.status)}`}>
+                                                {translateKey(order.status, 'adminDashboardPage.orderStatuses')}
+                                            </span>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-                                    {recentOrders.map(order => (
-                                        <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                                <Link to={`/dashboard/orders/${order._id}`} className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                                    {order._id.substring(0, 8)}...
-                                                </Link>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {new Date(order.createdAt).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US')}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {order.user?.name || t('adminDashboardPage.guestUser')}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                                {t('shopPage.currencySymbol')} {order.totalPrice?.toFixed(2)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(order.status)}`}>
-                                                    {translateOrderStatus(order.status)}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <p className="text-center text-gray-500 dark:text-gray-400">{t('adminDashboardPage.noRecentOrders')}</p>
-                    )}
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </ChartContainer>
+            </div>
+        </div>
+    );
+};
+
+// A redesigned StatCard component for a cleaner look
+const StatCard = ({ icon, title, value, color }) => {
+    const colors = {
+        green: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/10',
+        blue: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/10',
+        purple: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-500/10',
+        sky: 'text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-500/10',
+    };
+    return (
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+            <div className="flex items-center space-x-4">
+                <div className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg ${colors[color]}`}>
+                    {React.cloneElement(icon, { size: 24, strokeWidth: 2 })}
+                </div>
+                <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{title}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
                 </div>
             </div>
         </div>
     );
 };
+
+// A redesigned ChartContainer
+const ChartContainer = ({ title, icon, children, className = '' }) => (
+    <div className={`bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 ${className}`}>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+            {React.cloneElement(icon, { className: "text-gray-400 dark:text-gray-500", size: 22, strokeWidth: 2 })}
+            <span>{title}</span>
+        </h3>
+        <div className="mt-4">
+            {children}
+        </div>
+    </div>
+);
 
 export default AdminDashboardPage;

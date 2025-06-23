@@ -1,3 +1,4 @@
+// routes/advertisementRoutes.js
 const express = require('express');
 const router = express.Router();
 const Advertisement = require('../models/Advertisement');
@@ -5,12 +6,13 @@ const Product = require('../models/Product');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { protect, admin } = require('../middleware/authMiddleware'); 
+const { protect, admin } = require('../middleware/authMiddleware');
 
 const uploadDir = path.join(__dirname, '../uploads/advertisements');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadDir);
@@ -20,11 +22,12 @@ const storage = multer.diskStorage({
         cb(null, `${file.fieldname}-${Date.now()}${ext}`);
     },
 });
+
 const upload = multer({ storage: storage });
 
 const deleteImageFile = (imagePath) => {
     if (imagePath && imagePath !== "") {
-        const fullPath = path.join(__dirname, '..', imagePath); 
+        const fullPath = path.join(__dirname, '..', imagePath);
         if (fs.existsSync(fullPath)) {
             fs.unlink(fullPath, (err) => {
                 if (err) console.error("Error deleting image file:", fullPath, err.message);
@@ -33,7 +36,14 @@ const deleteImageFile = (imagePath) => {
     }
 };
 const populateProductRef = (query) => {
-    return query.populate('productRef', 'name image price description category subCategory');
+    return query.populate({
+        path: 'productRef',
+        select: 'name mainImage basePrice rating category',
+        populate: {
+            path: 'category',
+            select: 'name'
+        }
+    });
 };
 router.get('/', async (req, res, next) => {
     try {
@@ -88,8 +98,8 @@ router.post('/', protect, admin, upload.single('image'), async (req, res, next) 
             type: type || 'slide',
             isActive: isActive === 'true' || isActive === true,
             order: parseInt(order) || 0,
-            startDate: startDate ? new Date(startDate) : null,
-            endDate: endDate ? new Date(endDate) : null,
+            startDate: startDate || null,
+            endDate: endDate || null,
             originalPrice: (originalPrice !== undefined && originalPrice !== '') ? parseFloat(originalPrice) : null,
             discountedPrice: (discountedPrice !== undefined && discountedPrice !== '') ? parseFloat(discountedPrice) : null,
             currency: currency?.trim() || 'SAR',
@@ -101,7 +111,7 @@ router.post('/', protect, admin, upload.single('image'), async (req, res, next) 
         res.status(201).json(populatedAd);
     } catch (err) {
         if (req.file) {
-            deleteImageFile(path.join(uploadDir, req.file.filename));
+            deleteImageFile(imagePath);
         }
         next(err); 
     }
@@ -109,53 +119,56 @@ router.post('/', protect, admin, upload.single('image'), async (req, res, next) 
 router.put('/:id', protect, admin, upload.single('image'), async (req, res, next) => {
     const {
         title_en, title_ar, description_en, description_ar, link, type, isActive, order,
-        startDate, endDate, originalPrice, discountedPrice, currency, productRef 
+        startDate, endDate, originalPrice, discountedPrice, currency, productRef, clearImage
     } = req.body;
-    let newImagePath = null;
 
     try {
         const advertisement = await Advertisement.findById(req.params.id);
-        if (!advertisement) return res.status(404).json({ message: 'Advertisement not found' });
+        if (!advertisement) {
+            if (req.file) deleteImageFile(`/uploads/advertisements/${req.file.filename}`);
+            return res.status(404).json({ message: 'Advertisement not found' });
+        }
+        
         if (productRef !== undefined) {
-            if (productRef) {
+            if (productRef && productRef !== "null" && productRef !== "") {
                 const productExists = await Product.findById(productRef);
                 if (!productExists) {
-                    if (req.file) deleteImageFile(req.file.path.replace(path.join(__dirname, '..'), ''));
+                    if (req.file) deleteImageFile(`/uploads/advertisements/${req.file.filename}`);
                     return res.status(400).json({ message: 'Invalid productRef: Product not found for the provided ID.' });
                 }
+                advertisement.productRef = productRef;
+            } else {
+                advertisement.productRef = null;
             }
-            advertisement.productRef = productRef || null; 
         }
+
         if (req.file) {
-            newImagePath = `/uploads/advertisements/${req.file.filename}`;
             deleteImageFile(advertisement.image); 
-            advertisement.image = newImagePath; 
-        } else if (req.body.image === '') {
+            advertisement.image = `/uploads/advertisements/${req.file.filename}`; 
+        } else if (clearImage === 'true' || req.body.image === '') {
             deleteImageFile(advertisement.image);
             advertisement.image = '';
         }
-
         advertisement.title.en = title_en?.trim() || advertisement.title.en;
         advertisement.title.ar = title_ar?.trim() || advertisement.title.ar;
-        advertisement.description.en = description_en !== undefined ? description_en.trim() : advertisement.description.en;
-        advertisement.description.ar = description_ar !== undefined ? description_ar.trim() : advertisement.description.ar;
-        advertisement.link = link !== undefined ? link.trim() : advertisement.link;
-        advertisement.type = type || advertisement.type;
-        advertisement.isActive = isActive !== undefined ? (isActive === 'true' || isActive === true) : advertisement.isActive;
-        advertisement.order = order !== undefined ? parseInt(order) : advertisement.order;
-
-        advertisement.startDate = startDate ? new Date(startDate) : null;
-        advertisement.endDate = endDate ? new Date(endDate) : null;
-        advertisement.originalPrice = (originalPrice !== undefined && originalPrice !== '') ? parseFloat(originalPrice) : null;
-        advertisement.discountedPrice = (discountedPrice !== undefined && discountedPrice !== '') ? parseFloat(discountedPrice) : null;
-        advertisement.currency = currency?.trim() || 'SAR';
+        if (description_en !== undefined) advertisement.description.en = description_en.trim();
+        if (description_ar !== undefined) advertisement.description.ar = description_ar.trim();
+        if (link !== undefined) advertisement.link = link.trim();
+        if (type) advertisement.type = type;
+        if (isActive !== undefined) advertisement.isActive = (isActive === 'true' || isActive === true);
+        if (order !== undefined) advertisement.order = parseInt(order);
+        if (startDate !== undefined) advertisement.startDate = startDate || null;
+        if (endDate !== undefined) advertisement.endDate = endDate || null;
+        if (originalPrice !== undefined) advertisement.originalPrice = (originalPrice !== '') ? parseFloat(originalPrice) : null;
+        if (discountedPrice !== undefined) advertisement.discountedPrice = (discountedPrice !== '') ? parseFloat(discountedPrice) : null;
+        if (currency !== undefined) advertisement.currency = currency.trim() || 'SAR';
 
         const updatedAdvertisement = await advertisement.save();
         const populatedAd = await populateProductRef(Advertisement.findById(updatedAdvertisement._id));
         res.json(populatedAd);
     } catch (err) {
         if (req.file) {
-            deleteImageFile(path.join(uploadDir, req.file.filename));
+            deleteImageFile(`/uploads/advertisements/${req.file.filename}`);
         }
         next(err);
     }
@@ -165,7 +178,7 @@ router.delete('/:id', protect, admin, async (req, res, next) => {
         const advertisement = await Advertisement.findByIdAndDelete(req.params.id);
         if (!advertisement) return res.status(404).json({ message: 'Advertisement not found' });
         deleteImageFile(advertisement.image);
-        res.json({ message: 'Advertisement deleted' });
+        res.json({ message: 'Advertisement deleted successfully' });
     } catch (err) {
         next(err);
     }

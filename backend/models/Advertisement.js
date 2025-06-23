@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const advertisementSchema = new mongoose.Schema({
     title: {
         en: { type: String, required: true, trim: true, maxlength: 100 },
@@ -31,6 +30,7 @@ const advertisementSchema = new mongoose.Schema({
 }, {
     timestamps: true 
 });
+
 advertisementSchema.pre('save', function (next) {
     if (this.startDate && this.endDate && this.startDate > this.endDate) {
         return next(new Error('End date must be after start date.'));

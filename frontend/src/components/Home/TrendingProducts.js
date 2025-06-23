@@ -1,82 +1,112 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ProductCard from "../ProductCard";
 import { useLanguage } from "../LanguageContext";
-import { Loader2, TrendingUp, AlertCircle, Info } from "lucide-react"; // تم إضافة أيقونة Info
+import { Loader2, TrendingUp, AlertCircle, Info } from "lucide-react";
+import axios from 'axios'; // سنستخدم axios للاتساق
 
 const TrendingProducts = () => {
   const { t } = useLanguage();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchTrendingData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("http://localhost:5000/api/products"); 
-        if (!response.ok) {
-             const errorText = await response.text();
-             throw new Error(`Failed to fetch products: ${response.status} ${errorText}`);
-        }
-        const data = await response.json();
-        setProducts(data.slice(0, 8)); // عرض أول 8 منتجات كمثال للرائجة
+        
+        // جلب المنتجات والإعلانات في نفس الوقت
+        const productsPromise = axios.get(`${API_BASE_URL}/api/products`);
+        const advertisementsPromise = axios.get(`${API_BASE_URL}/api/advertisements?isActive=true`);
+
+        const [productsRes, advertisementsRes] = await Promise.all([
+          productsPromise,
+          advertisementsPromise
+        ]);
+
+        const allProducts = productsRes.data;
+        const allAdvertisements = advertisementsRes.data;
+
+        // ربط كل منتج بالإعلان الخاص به
+        let enrichedProducts = allProducts.map(product => {
+          const associatedAd = allAdvertisements.find(ad => (ad.productRef?._id || ad.productRef) === product._id);
+          return {
+            ...product,
+            advertisement: associatedAd || null
+          };
+        });
+
+        // ترتيب المنتجات: العروض أولاً، ثم حسب تاريخ الإنشاء (الأحدث أولاً)
+        enrichedProducts.sort((a, b) => {
+            const isAAdvertised = !!a.advertisement;
+            const isBAdvertised = !!b.advertisement;
+
+            if (isAAdvertised && !isBAdvertised) return -1;
+            if (!isAAdvertised && isBAdvertised) return 1;
+            
+            // الفرز حسب تاريخ الإنشاء كعامل ثانوي
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+        setProducts(enrichedProducts.slice(0, 8)); // عرض أول 8 منتجات رائجة/عليها عروض
       } catch (err) {
         console.error("Error fetching trending products:", err);
-        setError(t('general.errorFetchingData') || "Failed to load trending products.");
+        setError(t('general.errorFetchingData'));
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
-  }, [t]); 
-
+    fetchTrendingData();
+  }, [t, API_BASE_URL]); 
 
   return (
     <section className="py-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500 ease-in-out">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16"> {/* تم زيادة الـ margin-bottom */}
-          <h2 className="text-4xl font-extrabold text-gray-800 dark:text-white sm:text-5xl flex items-center justify-center gap-4 group"> {/* تكبير العنوان وزيادة الـ gap وتأثير group */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-extrabold text-gray-800 dark:text-white sm:text-5xl flex items-center justify-center gap-4 group">
             <TrendingUp 
-              size={48} // تكبير الأيقونة
-              className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300 ease-out" // تأثير Hover للأيقونة
+              size={48}
+              className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300 ease-out"
             /> 
-            {t('homepage.trendingProductsTitle') || "Trending Products"}
+            {t('homepage.trendingProductsTitle')}
           </h2>
-          {/* خط فاصل أنيق بتدرج لوني وظل أعمق */}
           <div className="w-32 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 mx-auto mt-5 mb-8 rounded-full shadow-lg" />
-          <p className="text-lg text-gray-600 dark:text-gray-300 sm:text-xl max-w-3xl mx-auto leading-relaxed"> {/* تكبير حجم الخط وزيادة الـ max-width */}
-            {t('homepage.trendingProductsDesc') || "Discover our most popular products this week. Handpicked for quality and trending popularity!"} 
+          <p className="text-lg text-gray-600 dark:text-gray-300 sm:text-xl max-w-3xl mx-auto leading-relaxed">
+            {t('homepage.trendingProductsDesc')} 
           </p>
         </div>
 
         {loading && (
-             <div className="flex flex-col justify-center items-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 transition-all duration-300"> {/* تحسين شكل مربع التحميل */}
-                <Loader2 size={60} className="animate-spin text-blue-600 dark:text-blue-400 mb-6" /> {/* أيقونة أكبر */}
-                <p className="text-gray-700 dark:text-gray-300 text-2xl font-semibold">{t('general.loading') || 'Loading...'}</p>
+             <div className="flex flex-col justify-center items-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+                <Loader2 size={60} className="animate-spin text-blue-600 dark:text-blue-400 mb-6" />
+                <p className="text-gray-700 dark:text-gray-300 text-2xl font-semibold">{t('general.loading')}</p>
              </div>
         )}
         {error && (
-            <div className="text-center text-red-700 dark:text-red-300 text-xl p-10 bg-red-50 dark:bg-red-900/30 rounded-2xl shadow-xl border border-red-200 dark:border-red-800 flex flex-col items-center justify-center gap-5 transition-all duration-300"> {/* تحسين شكل رسالة الخطأ */}
+            <div className="text-center text-red-700 dark:text-red-300 text-xl p-10 bg-red-50 dark:bg-red-900/30 rounded-2xl shadow-xl border border-red-200 dark:border-red-800 flex flex-col items-center justify-center gap-5">
                 <AlertCircle size={60} className="text-red-600 dark:text-red-400" /> 
-                <p className="font-semibold">{t('general.error') || 'Error'}: {error}</p>
-                <p className="text-base text-red-500 dark:text-red-400">Please try again later or contact support.</p>
+                <p className="font-semibold">{t('general.error')}: {error}</p>
             </div>
         )}
 
         {!loading && !error && products.length === 0 && (
-             <div className="text-center text-gray-700 dark:text-gray-300 text-xl p-10 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-5 transition-all duration-300"> {/* تحسين شكل رسالة لا يوجد منتجات */}
-                 <Info size={60} className="text-blue-500 dark:text-blue-400" /> {/* أيقونة Info جديدة */}
-                 <p className="font-semibold">{t('homepage.noTrendingProductsFound') || 'No trending products found.'}</p>
-                 <p className="text-base text-gray-500 dark:text-gray-400">Check back soon for exciting new additions!</p>
+             <div className="text-center text-gray-700 dark:text-gray-300 text-xl p-10 bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-5">
+                 <Info size={60} className="text-blue-500 dark:text-blue-400" />
+                 <p className="font-semibold">{t('homepage.noTrendingProductsFound')}</p>
              </div>
         )}
 
         {!loading && !error && products.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product) => (
-              <ProductCard product={product} key={product._id} />
+              <ProductCard 
+                key={product._id} 
+                product={product} 
+                advertisement={product.advertisement} // تمرير بيانات الإعلان
+              />
             ))}
           </div>
         )}

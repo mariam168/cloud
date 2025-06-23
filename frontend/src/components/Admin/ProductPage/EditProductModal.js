@@ -1,3 +1,4 @@
+// components/Admin/ProductPage/EditProductModal.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../../LanguageContext';
@@ -5,39 +6,62 @@ import { X, PlusCircle, Trash2 } from 'lucide-react';
 
 const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => {
     const { t } = useLanguage();
-    const [editedProduct, setEditedProduct] = useState({ name_en: '', name_ar: '', basePrice: '', category: '', subCategoryName: '' });
+    const [editedProduct, setEditedProduct] = useState({ name_en: '', name_ar: '', description_en: '', description_ar: '', basePrice: '', category: '', subCategoryName: '' });
     const [attributes, setAttributes] = useState([]);
     const [variations, setVariations] = useState([]);
-    
     const [mainImageFile, setMainImageFile] = useState(null);
     const [currentMainImageUrl, setCurrentMainImageUrl] = useState('');
     const [clearMainImage, setClearMainImage] = useState(false);
     const [optionImageFiles, setOptionImageFiles] = useState({});
-    
     const [categories, setCategories] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        axios.get(`${serverUrl}/api/categories`).then(res => setCategories(res.data));
+        // ✅ مصحح: إضافة هيدر لضمان الحصول على بيانات اللغة كاملة
+        axios.get(`${serverUrl}/api/categories`, {
+            headers: { 'x-admin-request': 'true' }
+        }).then(res => setCategories(res.data));
     }, [serverUrl]);
     
+    // ✅✅✅ الإصلاح الرئيسي هنا: تعبئة النموذج من كائن المنتج المعقد
     useEffect(() => {
         if (product) {
+            // التعامل مع الاسم سواء كان كائن أو نص عادي (للتوافقية)
+            const nameEn = typeof product.name === 'object' && product.name !== null ? product.name.en || '' : product.name || '';
+            const nameAr = typeof product.name === 'object' && product.name !== null ? product.name.ar || '' : '';
+            
+            // التعامل مع الوصف بنفس الطريقة
+            const descEn = typeof product.description === 'object' && product.description !== null ? product.description.en || '' : product.description || '';
+            const descAr = typeof product.description === 'object' && product.description !== null ? product.description.ar || '' : '';
+
             setEditedProduct({
-                name_en: product.name?.en || '',
-                name_ar: product.name?.ar || '',
+                name_en: nameEn,
+                name_ar: nameAr,
+                description_en: descEn,
+                description_ar: descAr,
                 basePrice: product.basePrice || '',
+                // التعامل مع الفئة سواء كانت ID أو كائن populated
                 category: product.category?._id || product.category || '',
                 subCategoryName: product.subCategoryName || '',
             });
-            setAttributes(product.attributes || []);
-            setVariations(product.variations?.map(v => ({...v, tempId: v._id, options: v.options.map(o => ({...o, tempId: o._id}))})) || []);
+            
+            // تحويل nested attributes & variations إلى حالة يمكن التعامل معها
+            setAttributes(product.attributes ? JSON.parse(JSON.stringify(product.attributes)) : []);
+            setVariations(product.variations ? JSON.parse(JSON.stringify(product.variations.map(v => ({...v, tempId: v._id, options: v.options.map(o => ({...o, tempId: o._id}))})))) : []);
+            
             setCurrentMainImageUrl(product.mainImage ? `${serverUrl}${product.mainImage}` : '');
+            
+            // إعادة تعيين الملفات عند فتح النموذج
+            setMainImageFile(null);
+            setClearMainImage(false);
+            setOptionImageFiles({});
         }
     }, [product, serverUrl]);
 
     const handleProductChange = (e) => setEditedProduct(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const handleMainImageSelect = (e) => { const file = e.target.files[0]; if (file) { setMainImageFile(file); setCurrentMainImageUrl(URL.createObjectURL(file)); setClearMainImage(false); } };
+    const handleRemoveMainImage = () => { setMainImageFile(null); setCurrentMainImageUrl(''); setClearMainImage(true); };
     const addAttribute = () => setAttributes(prev => [...prev, { key_en: '', key_ar: '', value_en: '', value_ar: '' }]);
     const removeAttribute = (index) => setAttributes(prev => prev.filter((_, i) => i !== index));
     const handleAttributeChange = (index, field, value) => setAttributes(prev => prev.map((attr, i) => (i === index ? { ...attr, [field]: value } : attr)));
@@ -56,35 +80,16 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
         e.preventDefault();
         setIsSubmitting(true);
         setErrorMessage('');
-
-        const allSkus = variations.flatMap(v => v.options.flatMap(o => o.skus.map(s => s.sku?.trim())));
-        const nonEmptySkus = allSkus.filter(s => s);
-        if (nonEmptySkus.length !== new Set(nonEmptySkus).size) {
-            setErrorMessage("SKU values must be unique across all product variants.");
-            setIsSubmitting(false);
-            return;
-        }
-
         const formData = new FormData();
         Object.entries(editedProduct).forEach(([key, value]) => formData.append(key, value));
         if (mainImageFile) formData.append('mainImage', mainImageFile);
         formData.append('clearMainImage', String(clearMainImage));
-        
         formData.append('attributes', JSON.stringify(attributes));
-
         const finalVariations = variations.map((v, vIndex) => ({
-            _id: v._id,
-            name_en: v.name_en,
-            name_ar: v.name_ar,
+            _id: v._id, name_en: v.name_en, name_ar: v.name_ar,
             options: v.options.map((o, oIndex) => {
                 const imageFile = optionImageFiles[`variationImage_${vIndex}_${oIndex}`];
-                const cleanOption = { 
-                    _id: o._id,
-                    name_en: o.name_en,
-                    name_ar: o.name_ar,
-                    image: o.image,
-                    skus: o.skus.map(s => ({...s, sku: s.sku || null}))
-                };
+                const cleanOption = { _id: o._id, name_en: o.name_en, name_ar: o.name_ar, image: o.image, skus: o.skus.map(s => ({...s, sku: s.sku || null})) };
                 if (imageFile) {
                     const fieldName = `variationImage_${vIndex}_${oIndex}`;
                     formData.append(fieldName, imageFile);
@@ -93,9 +98,7 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
                 return cleanOption;
             })
         }));
-        
         formData.append('variations', JSON.stringify(finalVariations));
-        
         try {
             await axios.put(`${serverUrl}/api/products/${product._id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             onProductUpdated();
@@ -106,6 +109,8 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
         }
     };
 
+    const selectedCategory = categories.find(c => c._id === editedProduct.category);
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -114,18 +119,42 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
                     <button onClick={onClose} className="p-2"><X size={24} /></button>
                 </div>
                 {errorMessage && <div className="p-3 bg-red-100 text-red-700 rounded-md mb-4">{errorMessage}</div>}
-                
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-md">
                         <legend className="px-2 font-semibold text-gray-700">Basic Information</legend>
                         <div><label>Name (EN)</label><input name="name_en" value={editedProduct.name_en} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required /></div>
-                        <div><label>Name (AR)</label><input name="name_ar" value={editedProduct.name_ar} onChange={handleProductChange} className="w-full p-2 border rounded mt-1 text-right" required /></div>
+                        <div><label>Name (AR)</label><input name="name_ar" value={editedProduct.name_ar} onChange={handleProductChange} className="w-full p-2 border rounded mt-1 text-right" /></div>
+                        <div className="md:col-span-2"><label>Description (EN)</label><textarea name="description_en" value={editedProduct.description_en} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" rows="3"></textarea></div>
+                        <div className="md:col-span-2"><label>Description (AR)</label><textarea name="description_ar" value={editedProduct.description_ar} onChange={handleProductChange} className="w-full p-2 border rounded mt-1 text-right" rows="3"></textarea></div>
                         <div><label>Base Price</label><input type="number" name="basePrice" value={editedProduct.basePrice} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required/></div>
-                        <div><label>Main Image</label><input type="file" onChange={e => setMainImageFile(e.target.files[0])} className="w-full mt-1"/></div>
-                        <div><label>Category</label><select name="category" value={editedProduct.category} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required><option value="">Select</option>{categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}</select></div>
-                        <div><label>Sub-Category</label><select name="subCategoryName" value={editedProduct.subCategoryName} onChange={handleProductChange} className="w-full p-2 border rounded mt-1"><option value="">Select</option>{categories.find(c=>c._id === editedProduct.category)?.subCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}</select></div>
+                        <div>
+                            <label>Main Image</label>
+                            <div className="flex items-center gap-4 mt-1">
+                                {currentMainImageUrl && (
+                                    <div className="relative">
+                                        <img src={currentMainImageUrl} alt="Preview" className="w-24 h-24 object-cover rounded-lg border"/>
+                                        <button type="button" onClick={handleRemoveMainImage} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 leading-none hover:bg-red-600"><X size={14}/></button>
+                                    </div>
+                                )}
+                                <input type="file" onChange={handleMainImageSelect} className="w-full"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Category</label>
+                            <select name="category" value={editedProduct.category} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required>
+                                <option value="">Select</option>
+                                {/* ✅ مصحح: عرض الاسم باللغة الإنجليزية */}
+                                {categories.map(c => <option key={c._id} value={c._id}>{c.name?.en || c.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Sub-Category</label>
+                            <select name="subCategoryName" value={editedProduct.subCategoryName} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" disabled={!selectedCategory}>
+                                <option value="">Select</option>
+                                {selectedCategory && selectedCategory.subCategories.map(sc => <option key={sc._id} value={sc.name?.en || sc.name}>{sc.name?.en || sc.name}</option>)}
+                            </select>
+                        </div>
                     </fieldset>
-
                     <fieldset className="border p-4 rounded-md space-y-4">
                         <legend className="px-2 font-semibold text-gray-700">Fixed Attributes</legend>
                         {attributes.map((attr, index) => (
@@ -139,7 +168,6 @@ const EditProductModal = ({ product, onClose, onProductUpdated, serverUrl }) => 
                         ))}
                          <button type="button" onClick={addAttribute} className="flex items-center gap-2 text-sm text-blue-600 font-semibold"><PlusCircle size={16}/>Add Attribute</button>
                     </fieldset>
-
                     <fieldset className="border p-4 rounded-md space-y-4">
                         <legend className="px-2 font-semibold text-gray-700">Product Variations</legend>
                         {variations.map((v, vIndex) => (

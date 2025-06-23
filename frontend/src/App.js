@@ -17,7 +17,6 @@ import { WishlistProvider } from './context/WishlistContext';
 import { CartProvider } from './context/CartContext';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
-import AdvertisementDetailsPage from './pages/AdvertisementDetailsPage';
 import ActivationPage from './pages/Auth/ActivationPage';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/Auth/ResetPasswordPage';
@@ -65,16 +64,13 @@ function App() {
                     <Route path="/wishlist" element={<WishlistPage />} /> 
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/advertisements/:id" element={<AdvertisementDetailsPage />} />
                     <Route path="/all-offers" element={<AllOffersPage />} />
                   </Route>
-
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/activate/:token" element={<ActivationPage />} />
                   <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
                   <Route path="/resetpassword/:token" element={<ResetPasswordPage />} />
-                  
                   <Route path="/admin" element={<DashboardLayout />}> 
                     <Route index element={<Navigate to="dashboard" replace />} />
                     <Route path="dashboard" element={<AdminDashboardPage />} />

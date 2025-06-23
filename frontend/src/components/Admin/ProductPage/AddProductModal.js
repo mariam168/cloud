@@ -1,3 +1,4 @@
+// components/Admin/ProductPage/AddProductModal.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../../LanguageContext';
@@ -5,7 +6,8 @@ import { X, PlusCircle, Trash2 } from 'lucide-react';
 
 const AddProductModal = ({ onClose, onProductAdded, serverUrl }) => {
     const { t } = useLanguage();
-    const [product, setProduct] = useState({ name_en: '', name_ar: '', basePrice: '', category: '', subCategoryName: '' });
+    // ✅ مصحح: إضافة حقول الوصف للحالة
+    const [product, setProduct] = useState({ name_en: '', name_ar: '', description_en: '', description_ar: '', basePrice: '', category: '', subCategoryName: '' });
     const [attributes, setAttributes] = useState([]);
     const [variations, setVariations] = useState([]);
     
@@ -17,7 +19,10 @@ const AddProductModal = ({ onClose, onProductAdded, serverUrl }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        axios.get(`${serverUrl}/api/categories`).then(res => setCategories(res.data));
+        // ✅ مصحح: إضافة هيدر لضمان الحصول على بيانات اللغة كاملة
+        axios.get(`${serverUrl}/api/categories`, {
+            headers: { 'x-admin-request': 'true' }
+        }).then(res => setCategories(res.data));
     }, [serverUrl]);
 
     const handleProductChange = (e) => {
@@ -28,80 +33,52 @@ const AddProductModal = ({ onClose, onProductAdded, serverUrl }) => {
     const addAttribute = () => setAttributes(prev => [...prev, { key_en: '', key_ar: '', value_en: '', value_ar: '' }]);
     const removeAttribute = (index) => setAttributes(prev => prev.filter((_, i) => i !== index));
     const handleAttributeChange = (index, field, value) => setAttributes(prev => prev.map((attr, i) => (i === index ? { ...attr, [field]: value } : attr)));
-
     const addVariation = () => setVariations(prev => [...prev, { tempId: `var_${Date.now()}`, name_en: '', name_ar: '', options: [] }]);
     const removeVariation = (vIndex) => setVariations(prev => prev.filter((_, i) => i !== vIndex));
     const handleVariationNameChange = (vIndex, lang, value) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, [`name_${lang}`]: value } : v)));
-
-    const addOptionToVariation = (vIndex) => {
-        setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: [...v.options, { tempId: `opt_${Date.now()}`, name_en: '', name_ar: '', skus: [] }] } : v)));
-    };
+    const addOptionToVariation = (vIndex) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: [...v.options, { tempId: `opt_${Date.now()}`, name_en: '', name_ar: '', skus: [] }] } : v)));
     const removeOption = (vIndex, oIndex) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.filter((_, j) => j !== oIndex) } : v)));
-    const handleOptionNameChange = (vIndex, oIndex, lang, value) => {
-        setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, [`name_${lang}`]: value } : o)) } : v)));
-    };
+    const handleOptionNameChange = (vIndex, oIndex, lang, value) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, [`name_${lang}`]: value } : o)) } : v)));
     const handleOptionImageChange = (vIndex, oIndex, file) => setOptionImageFiles(prev => ({ ...prev, [`variationImage_${vIndex}_${oIndex}`]: file }));
-
-    const addSkuToOption = (vIndex, oIndex) => {
-        setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, skus: [...o.skus, { name_en: '', name_ar: '', price: product.basePrice, stock: 0, sku: '' }] } : o)) } : v)));
-    };
+    const addSkuToOption = (vIndex, oIndex) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, skus: [...o.skus, { name_en: '', name_ar: '', price: product.basePrice, stock: 0, sku: '' }] } : o)) } : v)));
     const removeSku = (vIndex, oIndex, sIndex) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, skus: o.skus.filter((_, k) => k !== sIndex) } : o)) } : v)));
-    const handleSkuChange = (vIndex, oIndex, sIndex, field, value) => {
-        setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, skus: o.skus.map((s, k) => (k === sIndex ? { ...s, [field]: value } : s)) } : o)) } : v)));
-    };
-
+    const handleSkuChange = (vIndex, oIndex, sIndex, field, value) => setVariations(prev => prev.map((v, i) => (i === vIndex ? { ...v, options: v.options.map((o, j) => (j === oIndex ? { ...o, skus: o.skus.map((s, k) => (k === sIndex ? { ...s, [field]: value } : s)) } : o)) } : v)));
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         setErrorMessage('');
-
-        const allSkus = variations.flatMap(v => v.options.flatMap(o => o.skus.map(s => s.sku?.trim())));
-        const nonEmptySkus = allSkus.filter(s => s && s.length > 0);
-        if (nonEmptySkus.length !== new Set(nonEmptySkus).size) {
-            setErrorMessage("SKU values must be unique across all product variants.");
-            setIsSubmitting(false);
-            return;
-        }
-
         const formData = new FormData();
         Object.entries(product).forEach(([key, value]) => formData.append(key, value));
         if (mainImageFile) formData.append('mainImage', mainImageFile);
-        
-        const nonEmptyAttributes = attributes.filter(attr => attr.key_en && attr.value_en);
-        formData.append('attributes', JSON.stringify(nonEmptyAttributes));
-
+        formData.append('attributes', JSON.stringify(attributes.filter(attr => attr.key_en && attr.value_en)));
         const finalVariations = variations.map((v, vIndex) => ({
-            name_en: v.name_en,
-            name_ar: v.name_ar,
+            name_en: v.name_en, name_ar: v.name_ar,
             options: v.options.map((o, oIndex) => {
                 const imageFile = optionImageFiles[`variationImage_${vIndex}_${oIndex}`];
-                const cleanOption = { 
-                    name_en: o.name_en,
-                    name_ar: o.name_ar,
-                    skus: o.skus.map(sku => ({ ...sku, sku: sku.sku || null }))
-                };
+                const cleanOption = { name_en: o.name_en, name_ar: o.name_ar, skus: o.skus.map(sku => ({ ...sku, sku: sku.sku || null })) };
                 if (imageFile) {
-                    cleanOption.imagePlaceholder = `variationImage_${vIndex}_${oIndex}`;
+                    const fieldName = `variationImage_${vIndex}_${oIndex}`;
+                    formData.append(fieldName, imageFile);
+                    cleanOption.imagePlaceholder = fieldName;
                 }
                 return cleanOption;
             })
         }));
-        
         formData.append('variations', JSON.stringify(finalVariations));
-        
-        Object.entries(optionImageFiles).forEach(([fieldName, file]) => {
-            formData.append(fieldName, file);
-        });
+        Object.entries(optionImageFiles).forEach(([fieldName, file]) => formData.append(fieldName, file));
 
         try {
             await axios.post(`${serverUrl}/api/products`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             onProductAdded();
         } catch (error) {
-            setErrorMessage(error.response?.data?.error || "An unknown error occurred.");
+            setErrorMessage(error.response?.data?.message || "An unknown error occurred.");
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    const selectedCategory = categories.find(c => c._id === product.category);
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
@@ -117,12 +94,27 @@ const AddProductModal = ({ onClose, onProductAdded, serverUrl }) => {
                         <legend className="px-2 font-semibold text-gray-700">Basic Information</legend>
                         <div><label>Name (EN)</label><input name="name_en" value={product.name_en} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required /></div>
                         <div><label>Name (AR)</label><input name="name_ar" value={product.name_ar} onChange={handleProductChange} className="w-full p-2 border rounded mt-1 text-right" required /></div>
+                        {/* ✅ مصحح: إضافة حقول الوصف للنموذج */}
+                        <div className="md:col-span-2"><label>Description (EN)</label><textarea name="description_en" value={product.description_en} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" rows="3"></textarea></div>
+                        <div className="md:col-span-2"><label>Description (AR)</label><textarea name="description_ar" value={product.description_ar} onChange={handleProductChange} className="w-full p-2 border rounded mt-1 text-right" rows="3"></textarea></div>
                         <div><label>Base Price</label><input type="number" name="basePrice" value={product.basePrice} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required/></div>
                         <div><label>Main Image</label><input type="file" onChange={e => setMainImageFile(e.target.files[0])} className="w-full mt-1"/></div>
-                        <div><label>Category</label><select name="category" value={product.category} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required><option value="">Select</option>{categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}</select></div>
-                        <div><label>Sub-Category</label><select name="subCategoryName" value={product.subCategoryName} onChange={handleProductChange} className="w-full p-2 border rounded mt-1"><option value="">Select</option>{product.category && categories.find(c=>c._id === product.category)?.subCategories.map(sc => <option key={sc._id} value={sc.name}>{sc.name}</option>)}</select></div>
+                        <div>
+                            <label>Category</label>
+                            <select name="category" value={product.category} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" required>
+                                <option value="">Select</option>
+                                {/* ✅ مصحح: عرض الاسم باللغة الإنجليزية */}
+                                {categories.map(c => <option key={c._id} value={c._id}>{c.name?.en || c.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Sub-Category</label>
+                            <select name="subCategoryName" value={product.subCategoryName} onChange={handleProductChange} className="w-full p-2 border rounded mt-1" disabled={!selectedCategory}>
+                                <option value="">Select</option>
+                                {selectedCategory && selectedCategory.subCategories.map(sc => <option key={sc._id} value={sc.name?.en || sc.name}>{sc.name?.en || sc.name}</option>)}
+                            </select>
+                        </div>
                     </fieldset>
-
                     <fieldset className="border p-4 rounded-md space-y-4">
                         <legend className="px-2 font-semibold text-gray-700">Fixed Attributes</legend>
                         {attributes.map((attr, index) => (
@@ -136,7 +128,6 @@ const AddProductModal = ({ onClose, onProductAdded, serverUrl }) => {
                         ))}
                          <button type="button" onClick={addAttribute} className="flex items-center gap-2 text-sm text-blue-600 font-semibold"><PlusCircle size={16}/>Add Attribute</button>
                     </fieldset>
-
                     <fieldset className="border p-4 rounded-md space-y-4">
                         <legend className="px-2 font-semibold text-gray-700">Product Variations</legend>
                         {variations.map((v, vIndex) => (

@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
-
 const discountSchema = mongoose.Schema({
     code: {
         type: String,
-        required: true,
+        required: [true, 'Discount code is required.'],
         unique: true,
         uppercase: true,
         trim: true
@@ -28,11 +27,11 @@ const discountSchema = mongoose.Schema({
     },
     startDate: {
         type: Date,
-        required: true
+        required: [true, 'Start date is required.']
     },
     endDate: {
         type: Date,
-        required: true
+        required: [true, 'End date is required.']
     },
     isActive: {
         type: Boolean,
@@ -43,14 +42,11 @@ const discountSchema = mongoose.Schema({
 });
 
 discountSchema.pre('save', function (next) {
-    if ((this.percentage && this.fixedAmount) || (!this.percentage && !this.fixedAmount)) {
+    if ((this.percentage != null && this.fixedAmount != null) || (this.percentage == null && this.fixedAmount == null)) {
         return next(new Error('Either percentage or fixedAmount must be provided, but not both.'));
     }
-    if (this.percentage !== undefined && (this.percentage < 0 || this.percentage > 100)) {
-        return next(new Error('Percentage must be between 0 and 100.'));
-    }
-    if (this.fixedAmount !== undefined && this.fixedAmount < 0) {
-        return next(new Error('Fixed amount cannot be negative.'));
+    if (this.startDate && this.endDate && this.startDate > this.endDate) {
+        return next(new Error('End date must be after start date.'));
     }
     next();
 });

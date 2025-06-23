@@ -11,7 +11,6 @@ const DashboardLayout = () => {
     { to: "/admin/products", icon: Package, label: t('adminDashboardPage.productManagement') },
     { to: "/admin/categories", icon: Folder, label: t('adminDashboardPage.categoryManagement') },
     { to: "/admin/orders", icon: ShoppingCart, label: t('adminDashboardPage.orderManagement') },
-    { to: "/admin/users", icon: User, label: t('adminDashboardPage.userManagement') },
     { to: "/admin/advertisements", icon: Megaphone, label: t('adminDashboardPage.advertisementManagement') },
     { to: "/admin/discounts", icon: Tag, label: t('adminDashboardPage.discountManagement') },
   ];

@@ -1,13 +1,13 @@
+// components/Admin/ProductPage/ProductList.js
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import EditProductModal from './EditProductModal';
 import AddProductModal from './AddProductModal';
 import { useLanguage } from '../../LanguageContext';
-// --- FIX: Add XCircle to the import list ---
-import { Loader2, Info, Edit, Trash2, PlusCircle, X, Copy, CheckCircle, Image as ImageIcon, XCircle } from 'lucide-react';
+import { Loader2, Info, Edit, Trash2, PlusCircle, Copy, CheckCircle, Image as ImageIcon, XCircle } from 'lucide-react';
 
 const ProductList = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,8 +20,27 @@ const ProductList = () => {
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${SERVER_URL}/api/products`);
-            setProducts(response.data);
+            // إرسال header مخصص لتجاوز middleware اللغة في الخلفية
+            const response = await axios.get(`${SERVER_URL}/api/products`, {
+                headers: {
+                    'x-admin-request': 'true'
+                }
+            });
+            // جلب الفئات مع بيانات اللغة الكاملة
+            const categoriesResponse = await axios.get(`${SERVER_URL}/api/categories`, {
+                headers: {
+                    'x-admin-request': 'true'
+                }
+            });
+            const categoriesMap = new Map(categoriesResponse.data.map(cat => [cat._id, cat]));
+
+            // دمج بيانات الفئة مع المنتج
+            const productsWithCategories = response.data.map(prod => ({
+                ...prod,
+                category: categoriesMap.get(prod.category) || prod.category
+            }));
+
+            setProducts(productsWithCategories);
             setError(null);
         } catch (err) {
             setError((t('general.errorFetchingData') || 'Error fetching products: ') + (err.response?.data?.message || err.message));
@@ -33,6 +52,32 @@ const ProductList = () => {
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
+
+    // ✅ دالة آمنة ومحسنة للتعامل مع الأسماء
+    const getDisplayName = (product) => {
+        if (!product || !product.name) return ''; // حماية من null أو undefined
+        
+        // إذا كان الاسم كائن
+        if (typeof product.name === 'object' && product.name !== null) {
+            return product.name[language] || product.name.en || '';
+        }
+        
+        // إذا كان الاسم نصاً عادياً (للبيانات القديمة)
+        return product.name;
+    };
+    
+    // ✅ دالة آمنة ومحسنة للتعامل مع أسماء الفئات
+    const getCategoryName = (product) => {
+        if (!product || !product.category) return t('productAdmin.uncategorized');
+        
+        // إذا كانت الفئة كائن populated
+        if (typeof product.category.name === 'object' && product.category.name !== null) {
+            return product.category.name[language] || product.category.name.en || '';
+        }
+        
+        // إذا كان اسم الفئة نصاً عادياً
+        return product.category.name || t('productAdmin.uncategorized');
+    };
 
     const handleDelete = async (productId, productName) => {
         const confirmDelete = window.confirm(t('productAdmin.confirmDelete', { productName: productName || t('general.unnamedProduct') }));
@@ -104,14 +149,15 @@ const ProductList = () => {
                                         </div>
                                     </td>
                                     <td className="p-3">
-                                        {product.mainImage ? <img src={`${SERVER_URL}${product.mainImage}`} alt={product.name} className="w-16 h-16 object-cover rounded-lg border"/> : <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center"><ImageIcon className="text-gray-400"/></div>}
+                                        {product.mainImage ? <img src={`${SERVER_URL}${product.mainImage}`} alt={getDisplayName(product)} className="w-16 h-16 object-cover rounded-lg border"/> : <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center"><ImageIcon className="text-gray-400"/></div>}
                                     </td>
-                                    <td className="p-3 font-medium text-gray-800">{product.name}</td>
-                                    <td className="p-3 text-gray-600">{product.category?.name || t('productAdmin.uncategorized')}</td>
-                                    <td className="p-3 font-bold text-green-600">{t('general.currencySymbol')}{product.price?.toFixed(2)}</td>
+                                    {/* ✅ الإصلاح الرئيسي هنا */}
+                                    <td className="p-3 font-medium text-gray-800">{getDisplayName(product)}</td>
+                                    <td className="p-3 text-gray-600">{getCategoryName(product)}</td>
+                                    <td className="p-3 font-bold text-green-600">{t('general.currencySymbol')}{product.basePrice?.toFixed(2)}</td>
                                     <td className="p-3 text-center">
                                         <button onClick={() => handleOpenEditModal(product)} className="text-blue-600 p-2 rounded-full hover:bg-blue-50"><Edit size={18} /></button>
-                                        <button onClick={() => handleDelete(product._id, product.name)} className="text-red-600 p-2 rounded-full hover:bg-red-50 ml-2"><Trash2 size={18} /></button>
+                                        <button onClick={() => handleDelete(product._id, getDisplayName(product))} className="text-red-600 p-2 rounded-full hover:bg-red-50 ml-2"><Trash2 size={18} /></button>
                                     </td>
                                 </tr>
                             ))}

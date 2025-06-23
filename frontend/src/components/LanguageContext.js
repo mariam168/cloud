@@ -202,7 +202,8 @@ const translations = {
             "deleteSuccess": "تم حذف المنتج بنجاح!", "deleteError": "حدث خطأ أثناء حذف المنتج.",
             "addProductButton": "إضافة منتج", "noProducts": "لا توجد منتجات لعرضها.",
             "imageTable": "صورة", "nameTable": "الاسم", "categoryTable": "الفئة", "priceTable": "السعر",
-            "actionsTable": "إجراءات", "uncategorized": "غير مصنف", "editProductTitle": "تعديل المنتج"
+            "actionsTable": "إجراءات", "uncategorized": "غير مصنف", "editProductTitle": "تعديل المنتج",
+            "productList":"اداره المنتاجات"
         }
     },
     en: {
@@ -406,7 +407,8 @@ const translations = {
             "deleteSuccess": "Product deleted successfully!", "deleteError": "An error occurred while deleting the product.",
             "addProductButton": "Add Product", "noProducts": "No products to display.",
             "imageTable": "Image", "nameTable": "Name", "categoryTable": "Category", "priceTable": "Price",
-            "actionsTable": "Actions", "uncategorized": "Uncategorized", "editProductTitle": "Edit Product"
+            "actionsTable": "Actions", "uncategorized": "Uncategorized", "editProductTitle": "Edit Product",
+            "productList":"product list"
         }
     }
 };
