@@ -10,7 +10,15 @@ const translations = {
             "unnamedProduct": "منتج غير مسمى", "imageFailedToLoad": "فشل تحميل الصورة", "noImageAvailable": "لا توجد صورة متاحة",
             "currencyCode": "SAR", "description": "الوصف", "close": "إغلاق", "copyId": "نسخ المعرف",
             "yes": "نعم", "no": "لا", "back": "رجوع", "active": "نشط", "inactive": "غير نشط", "none": "لا شيء",
-            "verifyHuman": "يرجى إثبات أنك لست روبوت.", "apiError": "خطأ في إعدادات الواجهة البرمجية (API)."
+            "verifyHuman": "يرجى إثبات أنك لست روبوت.", "apiError": "خطأ في إعدادات الواجهة البرمجية (API).",
+            "search":"ابحث","backToOrders":"العودة للطلبات","loadingData":"جاري تحميل البيانات...","expand":"توسيع",
+            "loadingOrders":"جاري تحميل الطلبات...","clearSearch":"حذف البحث","noDataFound":"لا توجد بيانات",
+            "cancel" :"الغاء","addCategory":"اضافة فئة","saving":"جاري الحفظ...","saveChanges":"حفظ التغييرات",
+            "errorOccurred":"حدث خطاء. يرجى المحاولة لاحقاً.","retry":"اعادة المحاولة","actions":"العمليات",
+            "edit":"تحرير","delete":"حذف","noResultsFound":"لم يتم العثور على نتائج.", "add": "إضافة",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "actions": "إجراءات","noDataForChart":"لا توجد بيانات للمخطط.",
         },
         "topBar": {
             "language": "English", "home": "الرئيسية", "shop": "المتجر", "aboutUs": "من نحن", "contactUs": "اتصل بنا",
@@ -67,7 +75,7 @@ const translations = {
         },
         "productCard": {
             "uncategorized": "غير مصنف", "removeFromFavorites": "إزالة من المفضلة", "addToFavorites": "إضافة إلى المفضلة",
-            "viewDetails": "عرض التفاصيل"
+            "viewDetails": "عرض التفاصيل","viewOffer": "عرض العرض"
         },
         "productDetails": {
             "quantity": "الكمية", "availability": "التوفر", "inStock": "متوفر", "outOfStock": "غير متوفر", "addToCart": "إضافة إلى السلة",
@@ -115,7 +123,8 @@ const translations = {
             "priceRange": "نطاق السعر", "filterByBrand": "التصنيف حسب العلامة التجارية", "resetFilters": "إعادة تعيين الفلاتر",
             "showingItems": "عرض", "items": "عناصر", "popularity": "الشهرة",
             "priceLowToHigh": "السعر: من الأقل للأعلى", "priceHighToLow": "السعر: من الأعلى للأقل",
-            "nameAZ": "الاسم: من أ إلى ي", "noProductsFound": "لم يتم العثور على منتجات تطابق بحثك."
+            "nameAZ": "الاسم: من أ إلى ي", "noProductsFound": "لم يتم العثور على منتجات تطابق بحثك.",
+             "currencySymbol": "جنيه"
         },
         "adminDashboardPage": {
             "footerText": "متجري. جميع الحقوق محفوظة.", "errorFetchingData": "خطأ في جلب بيانات لوحة التحكم: ",
@@ -132,7 +141,9 @@ const translations = {
             "total": "الإجمالي", "status": "الحالة", "noRecentOrders": "لا توجد طلبات حديثة.", "guestUser": "مستخدم زائر",
             "orderStatuses": { "pending": "قيد الانتظار", "processing": "قيد المعالجة", "shipped": "تم الشحن", "delivered": "تم التوصيل", "cancelled": "ملغي" },
             "productManagement": "إدارة المنتجات", "categoryManagement": "إدارة الفئات", "orderManagement": "إدارة الطلبات",
-            "userManagement": "إدارة المستخدمين", "advertisementManagement": "إدارة الإعلانات", "discountManagement": "إدارة الخصومات"
+            "userManagement": "إدارة المستخدمين", "advertisementManagement": "إدارة الإعلانات", "discountManagement": "إدارة الخصومات",
+            "welcomeMessage":"مرحبا بك في لوحة التحكم","orderStatuses.":"حالات الطلبات"
+       
         },
         "adminCategoryPage": {
             "errorFetchingCategories": "خطأ في جلب الفئات.", "confirmDelete": "هل أنت متأكد من رغبتك في حذف الفئة \"{categoryName}\"؟",
@@ -143,7 +154,8 @@ const translations = {
             "cancelButton": "إلغاء", "savingChangesButton": "جاري حفظ التغييرات...", "saveChangesButton": "حفظ التغييرات",
             "noCategoriesFound": "لم يتم العثور على فئات.", "noDescription": "لا يوجد وصف", "updateSuccess": "تم تحديث الفئة بنجاح!",
             "errorUpdatingCategory": "حدث خطأ أثناء تحديث الفئة.", "categoryNamesRequired": "أسماء الفئات باللغتين مطلوبة.",
-            "currentImage": "الصورة الحالية", "imageUploadHint": "اتركه فارغًا للحفاظ على الصورة الحالية."
+            "currentImage": "الصورة الحالية", "imageUploadHint": "اتركه فارغًا للحفاظ على الصورة الحالية.",
+            "noCategoriesYet":"لا توجد فئات بعد","addFirstCategory":"اضافة الفئة الاولى"
         },
         "adminOrdersPage": {
             "errorFetchingOrdersToast": "فشل في جلب الطلبات.", "allOrders": "كل الطلبات", "user": "المستخدم", "date": "التاريخ",
@@ -157,7 +169,10 @@ const translations = {
             "markingPaid": "جاري التحديد كمدفوع...", "markAsPaid": "تحديد كمدفوع",
             "orderItems": "عناصر الطلب", "customerInfo": "معلومات العميل", "name": "الاسم", "email": "البريد الإلكتروني",
             "orderSummary": "ملخص الطلب", "itemsPrice": "سعر المنتجات", "shippingPrice": "سعر الشحن",
-            "taxPrice": "الضريبة", "totalPrice": "السعر الإجمالي", "dates": "التواريخ", "orderedAt": "تاريخ الطلب"
+            "taxPrice": "الضريبة", "totalPrice": "السعر الإجمالي", "dates": "التواريخ", "orderedAt": "تاريخ الطلب",
+            "actions":"actions","viewDetails":"view details",
+            "subtotal": "المجموع الفرعي",
+    "importantDates": "تواريخ هامة","noOrdersFound":"لا يوجد طلبات","checkLater":"تحقق من جديد"
         },
         "advertisementAdmin": {
             "titleRequired": "عناوين الإعلان باللغة الإنجليزية والعربية مطلوبة.", "imageRequired": "صورة الإعلان مطلوبة.",
@@ -178,7 +193,30 @@ const translations = {
             "unknownType": "نوع غير معروف", "updateSuccess": "تم تحديث الإعلان بنجاح!",
             "updateError": "حدث خطأ أثناء تحديث الإعلان.", "editAdvertisementTitle": "تعديل الإعلان",
             "updatingButton": "جاري الحفظ...", "updateButton": "حفظ التغييرات",
-            "imageOptional": "صورة (اختياري لتغيير الحالية)"
+            "imageOptional": "صورة (اختياري لتغيير الحالية)",
+              "addAdvertisementTitle": "إضافة إعلان جديد",
+    "titleEnPlaceholder": "مثال: تخفيضات الشتاء الكبرى",
+    "titleArPlaceholder": "مثال: تخفيضات الشتاء الكبرى",
+    "descriptionEnPlaceholder": "صف العرض الخاص بك...",
+    "descriptionArPlaceholder": "صف العرض الخاص بك...",
+    "linkToProduct": "ربط بمنتج",
+    "noProductLinked": "— غير مربوط —",
+    "linkPlaceholder": "مثال: /special-offers",
+    "typeOther": "آخر", "imageLabel": "صورة الإعلان",
+    "imageOptional": "صورة (اختياري لتغيير الحالية)",
+    "selectedImage": "الصورة المختارة",
+    "currentImage": "الصورة الحالية",
+    "noNewImageSelected": "لم يتم اختيار صورة جديدة",
+    "selectedImage": "الصورة المختارة",
+            "tableHeader": {
+                "image": "صورة",
+                "title": "العنوان",
+                "description": "الوصف",
+                "type": "النوع",
+                "active": "نشط",
+                "order": "الترتيب"
+            }
+     
         },
         "discountAdmin": {
             "codeRequired": "كود الخصم مطلوب.", "amountRequired": "مطلوب إما نسبة مئوية أو مبلغ ثابت.",
@@ -195,7 +233,57 @@ const translations = {
             "activeTable": "نشط", "actionsTable": "إجراءات", "percentageType": "نسبة مئوية",
             "fixedAmountType": "مبلغ ثابت", "updateSuccess": "تم تحديث الخصم بنجاح!",
             "updateError": "حدث خطأ أثناء تحديث الخصم.", "editDiscountTitle": "تعديل الخصم",
-            "updatingButton": "جاري الحفظ...", "updateButton": "حفظ التغييرات"
+            "updatingButton": "جاري الحفظ...", "updateButton": "حفظ التغييرات",
+             "discountListTitle": "أكواد الخصم",
+    "addDiscountButton": "إضافة خصم",
+    "addDiscountTitle": "إضافة كود خصم جديد",
+    "editDiscountTitle": "تعديل كود الخصم", "validity": "الصلاحية",  
+
+    "codeLabel": "كود الخصم",
+    "codePlaceholder": "مثال: SUMMER25",
+    "percentageLabel": "نسبة مئوية (%)",
+    "fixedAmountLabel": "مبلغ ثابت",
+    "fixedAmountPlaceholder": "مثال: 50",
+    "minOrderAmountLabel": "أقل قيمة للطلب",
+    "minOrderAmountPlaceholder": "مثال: 200",
+    "maxDiscountAmountLabel": "أقصى مبلغ للخصم (اختياري)",
+    "maxDiscountAmountPlaceholder": "مثال: 100",
+    "startDateLabel": "تاريخ البدء",
+    "endDateLabel": "تاريخ الانتهاء",
+    "isActive": "فعّال",
+
+    "tableHeader": {
+      "code": "الكود",
+      "type": "النوع",
+      "value": "القيمة",
+      "minOrder": "أقل طلب",
+      "usageLimit": "حد الاستخدام",
+     "minOrder": "الحد الادنى للطلب",
+      "usageLimit": "حد الاستخدام",
+      "validity": "الصلاحية"
+    },
+
+    "percentageType": "نسبة مئوية",
+    "fixedAmountType": "مبلغ ثابت",
+    "noLimit": "غير محدود",
+    "starts": "يبدأ",
+    "ends": "ينتهي",
+
+    "addSuccess": "تمت إضافة الخصم بنجاح!",
+    "updateSuccess": "تم تحديث الخصم بنجاح!",
+    "deleteSuccess": "تم حذف الخصم بنجاح!",
+    "addError": "خطأ في إضافة الخصم:",
+    "updateError": "خطأ في تحديث الخصم:",
+    "errorDeletingDiscount": "خطأ في حذف الخصم:",
+    "confirmDelete": "هل أنت متأكد من حذف الكود \"{{discountCode}}\"؟",
+    
+    "codeRequired": "كود الخصم مطلوب.",
+    "amountRequired": "يجب توفير نسبة مئوية أو مبلغ ثابت.",
+    "amountExclusive": "لا يمكن توفير نسبة مئوية ومبلغ ثابت معاً.",
+    "datesRequired": "تاريخ البدء والانتهاء مطلوبان.",
+    "endDateError": "تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء.",
+
+    "noDiscounts": "لم يتم العثور على أكواد خصم."
         },
         "productAdmin": {
             "addNewProduct": "إضافة منتج جديد", "confirmDelete": "هل أنت متأكد من حذف المنتج \"{productName}\"؟",
@@ -203,8 +291,56 @@ const translations = {
             "addProductButton": "إضافة منتج", "noProducts": "لا توجد منتجات لعرضها.",
             "imageTable": "صورة", "nameTable": "الاسم", "categoryTable": "الفئة", "priceTable": "السعر",
             "actionsTable": "إجراءات", "uncategorized": "غير مصنف", "editProductTitle": "تعديل المنتج",
-            "productList":"اداره المنتاجات"
-        }
+            "productList":"اداره المنتاجات","basicInfo":"المعلومات الاساسيه",".fixedAttributes":"الخصائص الثابته",
+            "productVariations":"متغيرات المنتج","variationGroup":"مجموعة المتغيرات","optionsFor":"خيارات ل",
+            "addOption":"اضافة خيار","addVariationGroup" :"اضافة مجموعة متغيرات","addAttribute":"اضافة خصائص",
+            "tryDifferentSearch":"حاول بحث اخر"
+        },
+      
+        "product":{
+            "nameEn":"اسم (الانجليزي)","nameAr":"اسم (العربي)","descriptionEn":"وصف (الانجليزي)",
+            "descriptionAr":"وصف (العربي)","basePrice":"السعر الاساسي","category":"الفئة","subCategory":"الفئة الفرعية",
+            "mainImage":"الصورة الرئيسية","attrNameEn":"اسم الخاصية (الانجليزي)","attrNameAr":"اسم الخاصية (العربي)",
+            "attrValueEn":"قيمة الخاصية (الانجليزي)","attrValueAr":"قيمة الخاصية (العربي)","varNameEn":"اسم المتغير (الانجليزي)",
+            "varNameAr":"اسم المتغير (العربي)","optionNameEn":"اسم الخيار (الانجليزي)","optionNameAr":"اسم الخيار (العربي)",
+      
+
+        },
+        "actions":{
+            "edit":"تعديل","delete":"حذف","view":"عرض","cancel":"الغاء","saveProduct":"حفظ المنتج",
+            "saving":"جاري الحفظ","saveChanges":"حفظ التغييرات"
+        },
+        "categoryList": {
+            "searchPlaceholder": "ابحث بالاسم...","searchCategoriesLabel": "ابحث في الفئات",
+            "tryDifferentSearch": "حاول بحث اخر","noSearchResults": "لا توجد نتايج للبحث."
+        },
+      
+        "forms":{
+            "select":"اختر","saveProduct":"حفظ المنتج","uploadImage":"تحميل صورة","dragOrClick":"اسحب او اضغط",
+            "cancel":"الغاء","changeImage":"تغيير الصورة"
+        },
+     
+       
+        "categoryForm":{
+            "addCategoryTitle":"اضافة فئة جديدة","categoryNameEnLabel":"اسم الفئة (الانجليزي)",
+            "categoryNameArLabel":"اسم الفئة (العربي)","descriptionEnLabel":"وصف الفئة (الانجليزي)",
+            "descriptionArLabel":"وصف الفئة (العربي)",
+            "categoryImageLabel":"صورة الفئة","addCategoryTitle":"اضافة فئة جديدة","categoryNameEnLabel":"اسم الفئة (الانجليزي)",
+            "categoryNameArLabel":"اسم الفئة (العربي)","descriptionEnLabel":"وصف الفئة (الانجليزي)",
+            "descriptionArLabel":"وصف الفئة (العربي)","categoryImageLabel":"صورة الفئة","subCategoriesTitle":"الفئات الفرعية",
+            "noSubcategoriesMessage":"لا توجد فئات فرعية","addSubCategoryButton":"اضافة فئة فرعية","removeImage":"حذف الصورة",
+            "subCategory":"فئة فرعية","changeImage":"تغيير الصورة","removeSubCategory":"حذف فئة فرعية",
+            "subCategoryNameEnPlaceholder":"اسم الفئة الفرعية (الانجليزي)","subCategoryNameArPlaceholder":"اسم الفئة الفرعية (العربي)",
+            "subCategoryDescriptionEnPlaceholder":"وصف الفئة الفرعية (الانجليزي)","subCategoryDescriptionArPlaceholder":"وصف الفئة الفرعية (العربي)",
+            "created":"تم الانشاء","successMessage":"تم انشاء الفئة بنجاح!","editCategoryTitle":"تعديل الفئة",
+            "updated":"تم التحديث",
+
+        },
+        "adminProductsPage": {
+            "productList" : "اداره المنتاجات",
+            "manageProductsMessage" :"  اهلا بك في صفحه اداره المنتاجات",
+            "title":"title",
+        },
     },
     en: {
         "general": {
@@ -213,7 +349,16 @@ const translations = {
             "unnamedProduct": "Unnamed Product", "imageFailedToLoad": "Image failed to load", "noImageAvailable": "No Image Available",
             "currencyCode": "USD", "description": "Description", "close": "Close", "copyId": "Copy ID",
             "yes": "Yes", "no": "No", "back": "Back", "active": "Active", "inactive": "Inactive", "none": "None",
-            "verifyHuman": "Please verify that you are human.", "apiError": "API configuration error."
+            "verifyHuman": "Please verify that you are human.", "apiError": "API configuration error.",
+            "search":"Search","backToOrders":"Back to Orders","loadingData":"Loading data...","expand":"Expand",
+            "loadingOrders":"Loading orders...","clearSearch":"Clear Search","noDataFound":"No data found",
+            "cancel" :"cancel","addCategory":"add category","saving":"saving","saveChanges":"save changes",
+            "retry":"retry","errorOccurred":"An error occurred. Please try again later.","actions":"Actions",
+            "edit":"edit","delete":"delete","noResultsFound":"No results found.","add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions","noDataForChart":"No data for chart.",
+
         },
         "topBar": {
             "language": "العربية", "home": "Home", "shop": "Shop", "aboutUs": "About Us", "contactUs": "Contact Us",
@@ -271,7 +416,7 @@ const translations = {
         },
         "productCard": {
             "uncategorized": "Uncategorized", "removeFromFavorites": "Remove from Favorites", "addToFavorites": "Add to Favorites",
-            "viewDetails": "View Details"
+            "viewDetails": "View Details","viewOffer": "View Offer"
         },
         "productDetails": {
             "quantity": "Quantity", "availability": "Availability", "inStock": "In Stock", "outOfStock": "Out of Stock", "addToCart": "Add to Cart",
@@ -320,7 +465,8 @@ const translations = {
             "priceRange": "Price Range", "filterByBrand": "Filter by Brand", "resetFilters": "Reset Filters",
             "showingItems": "Showing", "items": "items", "popularity": "Popularity",
             "priceLowToHigh": "Price: Low to High", "priceHighToLow": "Price: High to Low",
-            "nameAZ": "Name: A to Z", "noProductsFound": "No products found matching your criteria."
+            "nameAZ": "Name: A to Z", "noProductsFound": "No products found matching your criteria.",
+            "currencySymbol": "eg"
         },
         "adminDashboardPage": {
             "footerText": "My Store. All rights reserved.", "errorFetchingData": "Error fetching dashboard data: ",
@@ -337,7 +483,14 @@ const translations = {
             "total": "Total", "status": "Status", "noRecentOrders": "No recent orders.", "guestUser": "Guest User",
             "orderStatuses": { "pending": "Pending", "processing": "Processing", "shipped": "Shipped", "delivered": "Delivered", "cancelled": "Cancelled" },
             "productManagement": "Product Management", "categoryManagement": "Category Management", "orderManagement": "Order Management",
-            "userManagement": "User Management", "advertisementManagement": "Advertisement Mgmt", "discountManagement": "Discount Management"
+            "userManagement": "User Management", "advertisementManagement": "Advertisement Mgmt", "discountManagement": "Discount Management",
+            "welcomeMessage":"Welcome to the Admin Dashboard", "orderStatuses": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    }
         },
         "adminCategoryPage": {
             "errorFetchingCategories": "Error fetching categories.", "confirmDelete": "Are you sure you want to delete the category \"{categoryName}\"?",
@@ -348,7 +501,8 @@ const translations = {
             "cancelButton": "Cancel", "savingChangesButton": "Saving Changes...", "saveChangesButton": "Save Changes",
             "noCategoriesFound": "No categories found.", "noDescription": "No description provided.", "updateSuccess": "Category updated successfully!",
             "errorUpdatingCategory": "An error occurred while updating the category.", "categoryNamesRequired": "Category names in both languages are required.",
-            "currentImage": "Current Image", "imageUploadHint": "Leave blank to keep current image."
+            "currentImage": "Current Image", "imageUploadHint": "Leave blank to keep current image.",
+            "noCategoriesYet":"No categories yet.","addFirstCategory":"Add your first category."
         },
         "adminOrdersPage": {
             "errorFetchingOrdersToast": "Failed to fetch orders.", "allOrders": "All Orders", "user": "User", "date": "Date",
@@ -362,7 +516,10 @@ const translations = {
             "markingPaid": "Marking Paid...", "markAsPaid": "Mark As Paid",
             "orderItems": "Order Items", "customerInfo": "Customer Information", "name": "Name", "email": "Email",
             "orderSummary": "Order Summary", "itemsPrice": "Items Price", "shippingPrice": "Shipping Price",
-            "taxPrice": "Tax Price", "totalPrice": "Total Price", "dates": "Dates", "orderedAt": "Ordered At"
+            "taxPrice": "Tax Price", "totalPrice": "Total Price", "dates": "Dates", "orderedAt": "Ordered At",
+            "actions":"actions","viewDetails":"view details",
+               "subtotal": "Subtotal",
+    "importantDates": "Important Dates","noOrdersFound":"No orders found.","checkLater":"Check back later."
         },
         "advertisementAdmin": {
             "titleRequired": "Advertisement English and Arabic titles are required.", "imageRequired": "Advertisement image is required.",
@@ -383,7 +540,36 @@ const translations = {
             "unknownType": "Unknown", "updateSuccess": "Advertisement updated successfully!",
             "updateError": "An error occurred while updating the advertisement.", "editAdvertisementTitle": "Edit Advertisement",
             "updatingButton": "Saving...", "updateButton": "Save Changes",
-            "imageOptional": "Image (Optional to change current)"
+            "imageOptional": "Image (Optional to change current)",
+              "addAdvertisementTitle": "Add New Advertisement",
+    "titleEnPlaceholder": "e.g., Big Winter Sale",
+    "titleArPlaceholder": "e.g., تخفيضات الشتاء الكبرى",
+    "descriptionEnPlaceholder": "Describe your offer...",
+    "descriptionArPlaceholder": "صف العرض الخاص بك...",
+    "linkToProduct": "Link to a Product",
+    "noProductLinked": "— Not Linked —",
+    "linkPlaceholder": "e.g., /special-offers",
+    "typeOther": "Other",
+    "selectedImage": "Selected Image",
+     "imageLabel": "Advertisement Image",
+    "imageOptional": "Image (Optional to change current)",
+    "selectedImage": "Selected Image",
+    "currentImage": "Current Image",
+    "noNewImageSelected": "No new image selected",
+              
+    "tableHeader": {
+      "image": "Image",
+      "title": "Title",
+      "linkedProduct": "Linked Product",
+      "type": "Type",
+      "dates": "Validity Dates",
+      "price": "Price",
+      "active": "Active",
+      "minOrder": "Min. Order",
+      "usageLimit": "Usage Limit", 
+      
+      "order": "Order"
+    }
         },
         "discountAdmin": {
             "codeRequired": "Discount code is required.", "amountRequired": "Either percentage or fixed amount is required.",
@@ -400,7 +586,56 @@ const translations = {
             "activeTable": "Active", "actionsTable": "Actions", "percentageType": "Percentage",
             "fixedAmountType": "Fixed Amount", "updateSuccess": "Discount updated successfully!",
             "updateError": "An error occurred while updating the discount.", "editDiscountTitle": "Edit Discount",
-            "updatingButton": "Saving...", "updateButton": "Save Changes"
+            "updatingButton": "Saving...", "updateButton": "Save Changes",
+             "discountListTitle": "Discount Codes",
+    "addDiscountButton": "Add Discount",
+    "addDiscountTitle": "Add New Discount Code",
+    "editDiscountTitle": "Edit Discount Code","validity": "Validity",
+    
+    "codeLabel": "Discount Code",
+    "codePlaceholder": "e.g., SUMMER25",
+    "percentageLabel": "Percentage (%)",
+    "fixedAmountLabel": "Fixed Amount",
+    "fixedAmountPlaceholder": "e.g., 50",
+    "minOrderAmountLabel": "Minimum Order Amount",
+    "minOrderAmountPlaceholder": "e.g., 200",
+    "maxDiscountAmountLabel": "Maximum Discount (Optional)",
+    "maxDiscountAmountPlaceholder": "e.g., 100",
+    "startDateLabel": "Start Date",
+    "endDateLabel": "End Date",
+    "isActive": "Active",
+    
+    "tableHeader": {
+      "code": "Code",
+      "type": "Type",
+      "value": "Value",
+      "minOrder": "Min. Order",
+      "usageLimit": "Usage Limit",
+      "validity": "Validity"
+    },
+
+    "percentageType": "Percentage",
+    "fixedAmountType": "Fixed Amount",
+    "noLimit": "No Limit",
+    "starts": "Starts",
+    "ends": "Ends",
+    
+    "addSuccess": "Discount added successfully!",
+    "updateSuccess": "Discount updated successfully!",
+    "deleteSuccess": "Discount deleted successfully!",
+    "addError": "Error adding discount:",
+    "updateError": "Error updating discount:",
+    "errorDeletingDiscount": "Error deleting discount:",
+    "confirmDelete": "Are you sure you want to delete the code \"{{discountCode}}\"?",
+    
+    "codeRequired": "Discount code is required.",
+    "amountRequired": "Either percentage or fixed amount must be provided.",
+    "amountExclusive": "Cannot provide both percentage and fixed amount.",
+    "datesRequired": "Start and End dates are required.",
+    "endDateError": "End date must be after the start date.",
+    
+    "noDiscounts": "No discount codes found."
+  
         },
         "productAdmin": {
             "addNewProduct": "Add New Product", "confirmDelete": "Are you sure you want to delete the product \"{productName}\"?",
@@ -408,7 +643,51 @@ const translations = {
             "addProductButton": "Add Product", "noProducts": "No products to display.",
             "imageTable": "Image", "nameTable": "Name", "categoryTable": "Category", "priceTable": "Price",
             "actionsTable": "Actions", "uncategorized": "Uncategorized", "editProductTitle": "Edit Product",
-            "productList":"product list"
+            "productList":"product list","basicInfo":"basic info","fixedAttributes":"fixed attributes",
+            "productVariations":"product variations","variationGroup":"variation group","optionsFor":"options for",
+             "addOption":"add option","addVariationGroup" :"add variation group","addAttribute":"add attribute",
+             "tryDifferentSearch":"try different search"
+        },
+        "product":{
+            "nameEn":"Name (English)","nameAr":"Name (Arabic)","descriptionEn":"Description (English)",
+            "descriptionAr":"Description (Arabic)","basePrice":"Base Price","category":"Category","subCategory":"Sub-Category",
+            "mainImage":"main image","attrNameEn":"Attribute Name (English)","attrNameAr":"Attribute Name (Arabic)",
+            "attrValueEn":"Attribute Value (English)","attrValueAr":"Attribute Value (Arabic)","varNameEn":"Variation Name (English)",
+            "varNameAr":"Variation Name (Arabic)","optionNameEn":"Option Name (English)","optionNameAr":"Option Name (Arabic)",
+
+        },
+        "actions":{
+            "edit":"edit","delete":"delete","view":"view","cancel":"cancel","saveProduct":"save product",
+            "saving":"saving","saveChanges":"save changes"
+        },
+        "categoryList": {
+            "searchPlaceholder": "Search by name...","searchCategoriesLabel": "Search Categories",
+            "tryDifferentSearch": "Try different search","noSearchResults": "No search results found."
+        },
+        "forms":{
+             "select":"select","saveProduct":"save","uploadImage":"upload Image","dragOrClick":"drag Or Click",
+             "cancel":"cancel" ,"changeImage":"change Image"
+        },
+    
+        "categoryForm":{
+            "addCategoryTitle":"Add Category","categoryNameEnLabel":"Category Name (English)",
+            "categoryNameArLabel":"Category Name (Arabic)","descriptionEnLabel":"Description (English)",
+            "descriptionArLabel":"Description (Arabic)",
+            "categoryImageLabel":"Category Image","addCategoryTitle":"Add Category","categoryNameEnLabel":"Category Name (English)",
+            "categoryNameArLabel":"Category Name (Arabic)","descriptionEnLabel":"Description (English)",
+            "descriptionArLabel":"Description (Arabic)","categoryImageLabel":"Category Image","subCategoriesTitle":"Sub-Categories",
+            "noSubcategoriesMessage":"No sub-categories","addSubCategoryButton":"Add Sub-Category","removeImage":"remove Image",
+            "subCategory":"Sub-Category","changeImage":"change Image","removeSubCategory":"remove Sub-Category",
+            "subCategoryNameEnPlaceholder":"Sub-Category Name (English)","subCategoryNameArPlaceholder":"Sub-Category Name (Arabic)",
+            "subCategoryDescriptionEnPlaceholder":"Sub-Category Description (English)","subCategoryDescriptionArPlaceholder":"Sub-Category Description (Arabic)",
+            "created":"created","successMessage":"Category created successfully!","editCategoryTitle":"Edit Category",
+            "updated":"updated"
+        },
+       
+         "adminProductsPage": {
+            "productList" : "product list",
+            "manageProductsMessage" :"  Welcome to product management page",
+            "title":"title"
         }
     }
 };
