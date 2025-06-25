@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
-const Product = require('../models/Product'); 
+const Product = require('../models/Product');
 const { protect } = require('../middleware/authMiddleware');
+
+// ... (GET and POST routes remain the same) ...
 
 router.get('/', protect, async (req, res) => {
     try {
@@ -16,7 +18,6 @@ router.get('/', protect, async (req, res) => {
 router.post('/', protect, async (req, res) => {
     try {
         const { productId, quantity = 1, selectedVariantId = null } = req.body;
-        
         const product = await Product.findById(productId);
         if (!product) return res.status(404).json({ message: 'Product not found' });
         
@@ -101,5 +102,29 @@ router.put('/', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
+// ======================> الكود الجديد هنا <======================
+// @desc    Clear all items from user's cart
+// @route   DELETE /api/cart/clear
+// @access  Private
+router.delete('/clear', protect, async (req, res) => {
+    try {
+        const userCart = await Cart.findOne({ user: req.user.id });
+
+        if (!userCart) {
+            return res.status(200).json({ message: 'Cart is already empty.' });
+        }
+
+        userCart.items = [];
+        await userCart.save();
+
+        res.status(200).json({ message: 'Cart cleared successfully.' });
+        
+    } catch (error) {
+        console.error("Error clearing cart:", error);
+        res.status(500).json({ message: 'Internal Server Error while clearing cart.' });
+    }
+});
+// =============================================================
 
 module.exports = router;

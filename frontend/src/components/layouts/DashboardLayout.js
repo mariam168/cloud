@@ -1,9 +1,10 @@
-import { Home, Package, Folder, ShoppingCart, User, Megaphone, Tag, LogOut } from 'lucide-react';
+import React from 'react';
+import { Home, Package, Folder, ShoppingCart, Megaphone, Tag, LogOut } from 'lucide-react';
 import { useLanguage } from "../LanguageContext";
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
 const DashboardLayout = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const location = useLocation();
 
   const navItems = [
@@ -16,45 +17,59 @@ const DashboardLayout = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-200">
-      <aside className="w-16 md:w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col border-r dark:border-gray-700">
-        <div className="p-4 border-b dark:border-gray-700 text-center flex items-center justify-center h-20">
-          <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400 hidden md:block">
+    <div className="flex h-screen bg-gray-100 dark:bg-black text-gray-900 dark:text-gray-200">
+      <aside className="w-16 md:w-64 bg-white dark:bg-zinc-900 flex-shrink-0 border-r border-gray-200 dark:border-zinc-800 flex flex-col">
+        <div className="h-20 flex items-center justify-center px-4 border-b border-gray-200 dark:border-zinc-800 flex-shrink-0">
+          <Link to="/" className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 hidden md:block">
             {t('mainHeader.siteName')}
           </Link>
-          <Link to="/" className="md:hidden text-2xl font-bold text-blue-600 dark:text-blue-400">T</Link>
+          <Link to="/" className="md:hidden text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            T
+          </Link>
         </div>
-        <nav className="flex-1 mt-4">
+        
+        <nav className="flex-1 overflow-y-auto py-4">
           <ul>
             {navItems.map(item => {
-                const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
+                const isActive = location.pathname === item.to || (item.to !== '/admin/dashboard' && location.pathname.startsWith(item.to));
                 return (
-                  <li key={item.to}>
+                  <li key={item.to} className="px-2">
                     <Link 
                       to={item.to} 
-                      className={`flex items-center py-3 my-1 mx-2 rounded-lg px-4 transition-colors duration-200 group relative ${
+                      title={item.label}
+                      className={`flex items-center py-3 px-4 rounded-lg transition-colors duration-200 group relative ${
                         isActive 
-                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 font-semibold' 
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold' 
+                          : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white'
                       }`}
                     >
-                      <item.icon size={22} className={`flex-shrink-0 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 group-hover:text-gray-700 dark:text-gray-400'}`} />
-                      <span className="hidden md:inline ml-4 text-base">{item.label}</span>
+                      <item.icon 
+                        size={22} 
+                        className={`flex-shrink-0 transition-colors ${
+                          isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-zinc-500 group-hover:text-gray-800 dark:group-hover:text-zinc-300'
+                        }`} 
+                      />
+                      <span className="hidden md:inline ml-4 text-sm">{item.label}</span>
                     </Link>
                   </li>
                 )
             })}
           </ul>
         </nav>
-        <div className="p-4 mt-auto border-t dark:border-gray-700">
-            <Link to="/logout" className="flex items-center py-3 px-4 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-colors">
-                <LogOut size={22} className="text-red-500 flex-shrink-0" />
-                <span className="hidden md:inline ml-4 text-base">{t('topBar.logout')}</span>
+
+        <div className="p-2 mt-auto border-t border-gray-200 dark:border-zinc-800">
+            <Link 
+              to="/logout"
+              title={t('topBar.logout')}
+              className="flex items-center py-3 px-4 text-gray-600 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-colors group"
+            >
+                <LogOut size={22} className="text-gray-500 dark:text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors flex-shrink-0" />
+                <span className="hidden md:inline ml-4 text-sm">{t('topBar.logout')}</span>
             </Link>
         </div>
       </aside>
 
-      <main className="flex-1 p-6 md:p-10 overflow-auto">
+      <main className="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto">
         <Outlet />
       </main>
     </div>

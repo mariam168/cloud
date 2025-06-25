@@ -1,10 +1,12 @@
-import { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../components/LanguageContext';
+import { useLanguage } from '../components/LanguageContext'; // استيراد useLanguage هنا
 import { useToast } from '../components/ToastNotification'; 
+
 const WishlistContext = createContext();
+
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
   if (context === undefined) {
@@ -14,7 +16,7 @@ export const useWishlist = () => {
 };
 
 export const WishlistProvider = ({ children }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage(); // استيراد language هنا
   const { showToast } = useToast(); 
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
@@ -22,14 +24,17 @@ export const WishlistProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const fetchWishlist = useCallback(async () => {
+    // لا يتغير منطق الجلب نفسه، لكننا سنستدعيه الآن عند تغيير اللغة
     if (isAuthenticated && API_BASE_URL && token) {
       setLoadingWishlist(true);
       try {
         const response = await axios.get(`${API_BASE_URL}/api/wishlist`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { 
+                Authorization: `Bearer ${token}`,
+                'Accept-Language': language // إرسال اللغة الحالية مع كل طلب
+            }
         });
         setWishlistItems(response.data || []); 
-        console.log("WishlistContext: Fetched wishlist successfully.", response.data);
       } catch (error) {
         console.error('WishlistContext: Failed to fetch wishlist:', error.response?.data?.message || error.message);
         setWishlistItems([]); 
@@ -39,40 +44,32 @@ export const WishlistProvider = ({ children }) => {
     } else {
       setWishlistItems([]); 
     }
-  }, [isAuthenticated, API_BASE_URL, token]);
+  }, [isAuthenticated, API_BASE_URL, token, language]); // إضافة language كمُعتمدية
 
   useEffect(() => {
-    if (isAuthenticated && currentUser && token) {
+    // ===================== التغيير الرئيسي هنا =====================
+    // الآن، سيتم تنفيذ هذا الـ hook عند تسجيل الدخول أو عند تغيير اللغة
+    if (isAuthenticated) {
       fetchWishlist();
-    } else if (!isAuthenticated) {
+    } else {
       setWishlistItems([]); 
     }
-  }, [isAuthenticated, currentUser, token, fetchWishlist]); 
+  }, [isAuthenticated, fetchWishlist]); // fetchWishlist الآن يعتمد على اللغة
 
   const addToWishlist = async (productOrProductId) => {
-    if (!isAuthenticated || !API_BASE_URL) {
+    if (!isAuthenticated) {
       showToast(t('wishlist.loginRequired') || 'Please login to add items to your wishlist.', 'info');
       navigate('/login');
       return;
     }
-
-    let productId = '';
-    if (typeof productOrProductId === 'string') {
-        productId = productOrProductId;
-    } else if (typeof productOrProductId === 'object' && productOrProductId !== null) {
-        productId = productOrProductId._id;
-    } else {
-        showToast(t('wishlist.productDataIncompleteAdd') || 'Product data is incomplete!', 'error');
-        return;
-    }
-
+    
+    const productId = typeof productOrProductId === 'object' ? productOrProductId?._id : productOrProductId;
     if (!productId) { 
         showToast(t('wishlist.productDataIncompleteAdd') || 'Product data is incomplete!', 'error');
         return;
     }
 
     if (isFavorite(productId)) { 
-        console.log("WishlistContext: Product already in wishlist (local check):", productId);
         showToast(t('wishlist.alreadyInWishlist') || "Product is already in your wishlist.", 'info'); 
         return;
     }
@@ -81,32 +78,29 @@ export const WishlistProvider = ({ children }) => {
       const response = await axios.post(`${API_BASE_URL}/api/wishlist/${productId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setWishlistItems(response.data.wishlist || []);
-      console.log("WishlistContext: Added to wishlist (server response). Product ID:", productId, "Updated wishlist:", response.data.wishlist);
+      // بعد الإضافة، نقوم بإعادة جلب القائمة المترجمة بالكامل
+      await fetchWishlist();
     } catch (error) {
       console.error('WishlistContext: Failed to add to wishlist:', error.response?.data?.message || error.message);
-      showToast(`${t('wishlist.addFailed') || 'Could not add product to wishlist. '}${error.response?.data?.message || error.message}`, 'error');
+      showToast(`${t('wishlist.addFailed') || 'Could not add product to wishlist.'}`, 'error');
     }
   };
 
   const removeFromWishlist = async (productId) => {
-    if (!isAuthenticated || !API_BASE_URL) {
-      return;
-    }
+    if (!isAuthenticated) return;
     if (!productId) {
-        console.error("WishlistContext: Product ID is undefined in removeFromWishlist!");
-        showToast(t('wishlist.productDataIncompleteRemove') || "Cannot remove product from wishlist: Product ID is missing.", 'error');
+        showToast(t('wishlist.productDataIncompleteRemove') || "Cannot remove product: ID is missing.", 'error');
         return;
     }
     try {
-      const response = await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, {
+      await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, {
           headers: { Authorization: `Bearer ${token}` }
       });
-      setWishlistItems(response.data.wishlist || []); 
-      console.log("WishlistContext: Removed from wishlist (server response). Product ID:", productId, "Updated wishlist:", response.data.wishlist);
+      // بعد الحذف، نقوم بإعادة جلب القائمة المترجمة بالكامل
+      await fetchWishlist();
     } catch (error) {
       console.error('WishlistContext: Failed to remove from wishlist:', error.response?.data?.message || error.message);
-      showToast(`${t('wishlist.removeFailed') || 'Could not remove product from wishlist. '}${error.response?.data?.message || error.message}`, 'error');
+      showToast(`${t('wishlist.removeFailed') || 'Could not remove product from wishlist.'}`, 'error');
     }
   };
 
@@ -123,19 +117,10 @@ export const WishlistProvider = ({ children }) => {
         navigate('/login');
         return;
     }
-
-    let productId;
-    if (typeof productOrProductId === 'string') {
-        productId = productOrProductId;
-    } else if (typeof productOrProductId === 'object' && productOrProductId !== null) {
-        productId = productOrProductId._id;
-    } else {
-        showToast(t('wishlist.productDataIncompleteToggle') || "Cannot toggle favorite status: Product data is incomplete.", 'error');
-        return;
-    }
-
+    
+    const productId = typeof productOrProductId === 'object' ? productOrProductId?._id : productOrProductId;
     if (!productId) { 
-        showToast(t('wishlist.productDataIncompleteToggle') || "Cannot toggle favorite status: Product data is incomplete.", 'error');
+        showToast(t('wishlist.productDataIncompleteToggle') || "Product data is incomplete.", 'error');
         return;
     }
 
@@ -148,8 +133,6 @@ export const WishlistProvider = ({ children }) => {
 
   const value = {
     wishlistItems, 
-    addToWishlist,
-    removeFromWishlist,
     isFavorite,
     toggleFavorite,
     wishlistCount: wishlistItems.length, 

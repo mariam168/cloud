@@ -5,29 +5,37 @@ const AboutUs = () => {
     const { t } = useLanguage();
 
     return (
-        <section className="w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 py-20 px-4 md:px-8 lg:px-12 transition-colors duration-300">
-            <div className="mx-auto max-w-screen-xl bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 md:p-12 lg:p-16 border border-gray-100 dark:border-gray-700">
-                <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
-                    <div className="w-full md:w-1/2 order-2 md:order-1"> 
-                        <img
-                            src={about}
-                            alt={t('aboutUsPage.imageAlt')}
-                            className="rounded-2xl shadow-lg w-full h-64 md:h-80 lg:h-96 object-cover object-center transform transition-transform duration-300 ease-in-out hover:scale-102 border-4 border-white dark:border-gray-700" /* Subtle border and hover */
-                        />
-                    </div>
-                    <div className="w-full md:w-1/2 flex flex-col justify-center order-1 md:order-2"> 
-                        <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-6">
-                            {t('aboutUsPage.title')}
-                        </h2>
-                        <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                            {t('aboutUsPage.commitment')}
-                        </p>
-                        <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4"> 
-                            {t('aboutUsPage.belief')}
-                        </p>
-                        <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed"> 
-                            {t('aboutUsPage.explore')}
-                        </p>
+        // 1. تحديث خلفية الصفحة لتطابق صفحة الدفع (رمادي فاتح / أسود)
+        <section className="w-full min-h-screen bg-gray-100 dark:bg-black py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+            {/* 2. تحديث تصميم البطاقة الرئيسية لتكون متناسقة */}
+            <div className="container mx-auto max-w-screen-xl">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 overflow-hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                        {/* قسم الصورة */}
+                        <div className="relative h-80 md:h-auto">
+                             <img
+                                src={about}
+                                alt={t('aboutUsPage.imageAlt')}
+                                className="absolute inset-0 w-full h-full object-cover" 
+                            />
+                        </div>
+
+                        {/* قسم النص */}
+                        <div className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                                {t('aboutUsPage.title')}
+                            </h2>
+                            {/* 3. تحديث ألوان النصوص لتكون أكثر وضوحاً وتناسقاً */}
+                            <p className="mt-6 text-base text-gray-600 dark:text-zinc-400 leading-relaxed">
+                                {t('aboutUsPage.commitment')}
+                            </p>
+                            <p className="mt-4 text-base text-gray-600 dark:text-zinc-400 leading-relaxed">
+                                {t('aboutUsPage.belief')}
+                            </p>
+                            <p className="mt-4 text-base text-gray-600 dark:text-zinc-400 leading-relaxed">
+                                {t('aboutUsPage.explore')}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

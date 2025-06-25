@@ -1,11 +1,78 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Tag, Calendar, Copy, Sparkles, Loader2, ShoppingCart, ArrowRight } from "lucide-react";
+import { Copy, Sparkles, Loader2, ShoppingCart, ArrowRight, TrendingUp, CheckCircle2, Tag } from "lucide-react";
 import { useLanguage } from "../../components/LanguageContext";
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
+const useCurrencyFormatter = () => {
+    const { t, language } = useLanguage();
+    const formatCurrencyForDisplay = useCallback((amount, currencyCode = 'SAR') => {
+        if (amount == null) return t('general.notApplicable');
+        const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+        const arabicCurrencySymbols = { 'SAR': ' ر.س', 'USD': ' دولار أمريكي', 'EGP': ' ج.م', 'AED': ' د.إ', 'KWD': ' د.ك', 'BHD': ' د.ب', 'OMR': ' ر.ع', 'QAR': ' ر.ق' };
+        if (language === 'ar') {
+            const formattedNumber = new Intl.NumberFormat('ar-SA', options).format(Number(amount));
+            const symbol = arabicCurrencySymbols[currencyCode.toUpperCase()] || ` ${currencyCode.toUpperCase()}`;
+            return `${formattedNumber}${symbol}`;
+        } else {
+            const ltrOptions = { style: 'currency', currency: currencyCode, minimumFractionDigits: 2, maximumFractionDigits: 2 };
+            return new Intl.NumberFormat('en-US', ltrOptions).format(Number(amount));
+        }
+    }, [language, t]);
+    return formatCurrencyForDisplay;
+};
+
+const DiscountCodeCard = ({ discount, t, isRTL, handleCopyCode, copiedCode }) => {
+    const isCopied = copiedCode === discount.code;
+    const formatCurrency = useCurrencyFormatter();
+
+    return (
+        <div
+            onClick={() => !isCopied && handleCopyCode(discount.code)}
+            className={`relative group bg-white dark:bg-zinc-900 rounded-2xl border ${isCopied ? 'border-emerald-500' : 'border-gray-200 dark:border-zinc-800'} shadow-sm hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors duration-300 cursor-pointer overflow-hidden`}
+        >
+            <div className={`absolute top-0 bottom-0 ${isRTL ? 'right-0' : 'left-0'} w-1.5 bg-emerald-500`}></div>
+            <div className={`flex items-center justify-between gap-4 p-5 ${isRTL ? 'pr-8' : 'pl-8'}`}>
+                <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <h4 className="text-xl font-bold text-gray-900 dark:text-white">{discount.code}</h4>
+                    {discount.percentage && (
+                        <p className="text-sm mt-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                            {`${discount.percentage}% ${t('general.off')}`}
+                        </p>
+                    )}
+                    {discount.fixedAmount && (
+                         <p className="text-sm mt-1 font-semibold text-emerald-600 dark:text-emerald-400" dir="rtl" style={{ unicodeBidi: 'embed' }}>
+                            {`${formatCurrency(discount.fixedAmount, discount.currency)} ${t('general.off')}`}
+                        </p>
+                    )}
+                </div>
+                <div className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 ${isCopied ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 group-hover:bg-emerald-500 group-hover:text-white'}`}>
+                    {isCopied ? <CheckCircle2 size={24} /> : <Copy size={20} />}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AllOffersCard = ({ t, isRTL }) => (
+    <Link to="/all-offers" className="block group">
+        <div className="bg-gray-800 dark:bg-zinc-800 text-white rounded-2xl p-6 shadow-md border border-gray-700 dark:border-zinc-700 relative overflow-hidden transition-all duration-300 hover:bg-black dark:hover:bg-zinc-900 hover:-translate-y-1">
+            <div className={`flex items-center justify-between relative ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div>
+                    <h3 className="text-xl font-bold">{t('heroSection.allOffersTitle')}</h3>
+                    <p className="text-sm text-gray-300 dark:text-zinc-400 mt-1">{t('heroSection.allOffersSubtitle')}</p>
+                </div>
+                <div className={`p-3 bg-gray-700/50 dark:bg-zinc-700/50 rounded-full transition-transform duration-300 ${isRTL ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
+                    <TrendingUp size={24} />
+                </div>
+            </div>
+        </div>
+    </Link>
+);
+
 const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
     const { t, language } = useLanguage();
+    const formatCurrencyForDisplay = useCurrencyFormatter();
     const [slidesData, setSlidesData] = useState([]);
     const [sideOffersData, setSideOffersData] = useState([]);
     const [weeklyOfferData, setWeeklyOfferData] = useState(null);
@@ -13,8 +80,8 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [current, setCurrent] = useState(0);
-    const [hovered, setHovered] = useState(false);
     const [copiedCode, setCopiedCode] = useState(null);
+    const isRTL = language === 'ar';
 
     const fetchHeroData = useCallback(async () => {
         setLoading(true);
@@ -45,61 +112,70 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
     const slidesLength = slidesData.length;
 
     useEffect(() => {
-        if (slidesLength > 1 && !hovered) {
+        if (slidesLength > 1) {
             const timer = setInterval(() => {
                 setCurrent((prev) => (prev + 1) % slidesLength);
             }, 5000);
             return () => clearInterval(timer);
         }
-    }, [slidesLength, hovered]);
-
-    const formatCurrency = useCallback((amount, currencyCode = 'SAR') => {
-        if (amount == null) return t('general.notApplicable');
-        const options = { style: 'currency', currency: currencyCode, minimumFractionDigits: 2, maximumFractionDigits: 2 };
-        return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', options).format(Number(amount));
-    }, [language, t]);
+    }, [slidesLength]);
 
     const handleCopyCode = (code) => {
         navigator.clipboard.writeText(code);
         setCopiedCode(code);
-        setTimeout(() => setCopiedCode(null), 2000);
+        setTimeout(() => setCopiedCode(null), 2500);
     };
 
     const currentSlideContent = slidesData[current];
     const hasContent = currentSlideContent || sideOffersData.length > 0 || weeklyOfferData || discountsData.length > 0;
 
-    if (loading) return <section className="w-full min-h-[450px] flex items-center justify-center bg-gray-100 dark:bg-slate-800/50 animate-pulse rounded-xl"><Loader2 size={48} className="animate-spin text-indigo-500" /></section>;
-    if (error) return <section className="w-full min-h-[450px] flex items-center justify-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 rounded-xl p-4 text-center"><div className="flex items-center gap-3"><Sparkles size={28} /><span className="font-semibold text-lg">{error}</span></div></section>;
-    if (!hasContent) return <section className="w-full min-h-[450px] flex items-center justify-center bg-blue-50 dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-xl"><div className="flex flex-col items-center gap-4 text-center"><ShoppingCart size={48} className="text-blue-400" /><p className="font-semibold text-xl">{t('heroSection.noDataAvailable')}</p></div></section>;
+    if (loading) { return <section dir={isRTL ? 'rtl' : 'ltr'} className="w-full min-h-[450px] flex items-center justify-center bg-gray-100 dark:bg-zinc-950 animate-pulse rounded-3xl"><Loader2 size={48} className="animate-spin text-indigo-600 dark:text-indigo-400" /></section>; }
+    if (error) { return <section dir={isRTL ? 'rtl' : 'ltr'} className="w-full min-h-[450px] flex items-center justify-center bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-300 rounded-3xl p-4 text-center"><div className="flex items-center gap-3"><Sparkles size={28} /><span className="font-semibold text-lg">{error}</span></div></section>; }
+    if (!hasContent) { return <section dir={isRTL ? 'rtl' : 'ltr'} className="w-full min-h-[450px] flex items-center justify-center bg-gray-50 dark:bg-zinc-900 text-gray-700 dark:text-gray-400 rounded-3xl"><div className="flex flex-col items-center gap-4 text-center"><ShoppingCart size={48} className="text-indigo-500 dark:text-indigo-400" /><p className="font-semibold text-xl">{t('heroSection.noDataAvailable')}</p></div></section>; }
 
     return (
-        <section className="w-full py-12 px-4 bg-gray-50 dark:bg-slate-900 sm:py-16">
+        <section dir={isRTL ? 'rtl' : 'ltr'} className="w-full py-12 px-4 bg-gray-100 dark:bg-black sm:py-16">
             <div className="mx-auto grid max-w-7xl h-full grid-cols-1 gap-8 lg:grid-cols-3">
                 {currentSlideContent && (
-                    <div className="relative col-span-1 lg:col-span-2 flex flex-col justify-between rounded-3xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-8 md:p-12 shadow-2xl shadow-indigo-500/30 overflow-hidden group" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-                        <div className="absolute -bottom-16 -right-10 w-48 h-48 bg-white/10 rounded-full filter blur-2xl opacity-50"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                            <div className="flex-1 md:order-1 text-center md:text-left">
-                                <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl">{currentSlideContent.title}</h1>
-                                <p className="mt-4 text-lg text-indigo-200">{currentSlideContent.description}</p>
-                                <div className="mt-6 flex items-baseline justify-center md:justify-start gap-3">
-                                    {currentSlideContent.discountedPrice != null && <span className="text-4xl font-bold">{formatCurrency(currentSlideContent.discountedPrice, currentSlideContent.currency)}</span>}
-                                    {currentSlideContent.originalPrice != null && <span className="text-xl line-through opacity-70">{formatCurrency(currentSlideContent.originalPrice, currentSlideContent.currency)}</span>}
+                    <div className="relative col-span-1 lg:col-span-2 rounded-3xl bg-white dark:bg-zinc-900 p-6 sm:p-8 md:p-12 shadow-md border border-gray-200 dark:border-zinc-800 overflow-hidden group">
+                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 h-full">
+                            <div className={`flex-shrink-0 relative ${isRTL ? 'md:order-1' : 'md:order-2'}`}>
+                                <img src={`${serverUrl}${currentSlideContent.image}`} alt={currentSlideContent.title} className="relative z-10 w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 object-contain transition-transform duration-500 group-hover:scale-105" />
+                            </div>
+                            <div className={`w-full flex-1 text-center md:text-left ${isRTL ? 'md:order-2 md:text-right' : 'md:order-1'}`}>
+                                <p className="font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider text-xs sm:text-sm">{currentSlideContent.category?.name || t('heroSection.featuredProduct')}</p>
+                                <h1 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
+                                    {currentSlideContent.title}
+                                </h1>
+                                <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600 dark:text-zinc-300 leading-relaxed max-w-lg mx-auto md:mx-0">
+                                    {currentSlideContent.description}
+                                </p>
+                                <div className={`mt-4 sm:mt-6 flex items-baseline gap-3 justify-center ${isRTL ? 'md:justify-end flex-row-reverse' : 'md:justify-start flex-row'}`}>
+                                    {currentSlideContent.discountedPrice != null && (
+                                        <span className="text-3xl sm:text-4xl font-bold text-indigo-600 dark:text-indigo-400" dir="rtl" style={{ unicodeBidi: 'embed' }}>
+                                            {formatCurrencyForDisplay(currentSlideContent.discountedPrice, currentSlideContent.currency)}
+                                        </span>
+                                    )}
+                                    {currentSlideContent.originalPrice != null && (
+                                        <span className="text-lg sm:text-xl line-through text-gray-500 dark:text-zinc-500" dir="rtl" style={{ unicodeBidi: 'embed' }}>
+                                            {formatCurrencyForDisplay(currentSlideContent.originalPrice, currentSlideContent.currency)}
+                                        </span>
+                                    )}
                                 </div>
-                                <Link to={currentSlideContent.productRef?._id ? `/shop/${currentSlideContent.productRef._id}` : (currentSlideContent.link || '#')} className="inline-block mt-8">
-                                    <button className="rounded-full bg-white px-8 py-3.5 text-lg font-bold text-indigo-600 shadow-lg hover:bg-gray-100 transition-transform transform hover:scale-105 flex items-center gap-2">
-                                        {t('general.shopNow')} <ArrowRight size={20} />
-                                    </button>
-                                </Link>
-                            </div>
-                            <div className="md:order-2 mt-8 md:mt-0 flex-shrink-0">
-                                <img src={`${serverUrl}${currentSlideContent.image}`} alt={currentSlideContent.title} className="w-48 h-48 md:w-64 md:h-64 object-contain group-hover:scale-110 transition-transform duration-500" />
-                            </div>
+                                <div className="mt-6 sm:mt-8">
+                                    <Link to={currentSlideContent.productRef?._id ? `/shop/${currentSlideContent.productRef._id}` : (currentSlideContent.link || '#')} className="inline-block">
+                                        <button className="px-6 sm:px-8 py-3 sm:py-3.5 text-base sm:text-lg font-bold text-white bg-gray-900 dark:bg-white dark:text-black rounded-full shadow-sm hover:bg-indigo-600 dark:hover:bg-indigo-500 active:scale-95 transition-all duration-300 group/btn flex items-center gap-2">
+                                            <span className="group-hover/btn:text-white dark:group-hover/btn:text-white">{t('general.shopNow')}</span>
+                                            <ArrowRight size={20} className="transform transition-transform group-hover/btn:translate-x-1 group-hover/btn:text-white dark:group-hover/btn:text-white" style={{ transform: isRTL ? 'rotateY(180deg)' : 'none' }} />
+                                        </button>
+                                    </Link>
+                                </div>
+                             </div>
                         </div>
                         {slidesLength > 1 && (
-                            <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 flex gap-2">
+                            <div className="absolute bottom-4 sm:bottom-6 inset-x-0 flex justify-center gap-2 z-20">
                                 {slidesData.map((_, index) => (
-                                    <button key={index} onClick={() => setCurrent(index)} className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${current === index ? "bg-white w-8" : "bg-white/50"}`}></button>
+                                    <button key={index} onClick={() => setCurrent(index)} className={`h-2.5 rounded-full transition-all duration-300 ${current === index ? "bg-indigo-500 w-8" : "bg-gray-300 dark:bg-zinc-700 w-2.5 hover:bg-gray-400 dark:hover:bg-zinc-600"}`}></button>
                                 ))}
                             </div>
                         )}
@@ -107,59 +183,41 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                 )}
                 <div className="col-span-1 flex flex-col gap-6">
                     {sideOffersData.slice(0, 1).map((offer) => (
-                         <Link key={offer._id} to={offer.link || '#'} className="block">
-                            <div className="group flex items-center gap-4 rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-200 dark:border-slate-700">
-                                <div className="flex-1">
-                                    <h2 className="font-bold text-gray-800 dark:text-white group-hover:text-blue-500">{offer.title}</h2>
-                                    <p className="mt-1 font-bold text-blue-500 dark:text-blue-400">{formatCurrency(offer.discountedPrice, offer.currency)}</p>
+                        <Link key={offer._id} to={offer.link || '#'} className="block group">
+                            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-zinc-800 transition-all duration-300 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:shadow-md">
+                                <div className="flex items-center gap-4">
+                                    <img src={offer.image ? `${serverUrl}${offer.image}` : ''} alt={offer.title} className="w-20 h-20 object-contain flex-shrink-0 bg-gray-100 dark:bg-zinc-800 rounded-lg p-1 transition-transform duration-300 group-hover:scale-105" />
+                                    <div className="flex-1">
+                                        <h2 className="font-bold text-base text-gray-800 dark:text-white">{offer.title}</h2>
+                                        <p className="mt-1 font-bold text-indigo-600 dark:text-indigo-400 text-lg" dir="rtl" style={{ unicodeBidi: 'embed' }}>
+                                            {formatCurrencyForDisplay(offer.discountedPrice, offer.currency)}
+                                        </p>
+                                    </div>
                                 </div>
-                                <img src={offer.image ? `${serverUrl}${offer.image}` : ''} alt={offer.title} className="w-20 h-20 object-contain transition-transform group-hover:scale-110" />
                             </div>
                         </Link>
                     ))}
-                     {weeklyOfferData && (
-                         <Link to={weeklyOfferData.link || '#'} className="block">
-                            <div className="group flex items-center gap-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 p-6 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-amber-200 dark:border-amber-500/20">
-                                <div className="flex-1">
-                                    <h2 className="font-bold text-gray-800 dark:text-white group-hover:text-amber-600">{weeklyOfferData.title}</h2>
-                                    <p className="mt-1 font-semibold text-amber-600 dark:text-amber-400">{weeklyOfferData.description}</p>
+                    {weeklyOfferData && (
+                        <Link to={weeklyOfferData.link || '#'} className="block group">
+                           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-zinc-800 transition-all duration-300 hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:shadow-md">
+                                <div className="flex items-center gap-4">
+                                    <img src={weeklyOfferData.image ? `${serverUrl}${weeklyOfferData.image}` : ''} alt={weeklyOfferData.title} className="w-20 h-20 object-contain flex-shrink-0 bg-gray-100 dark:bg-zinc-800 rounded-lg p-1 transition-transform duration-300 group-hover:scale-105" />
+                                    <div className="flex-1">
+                                        <h2 className="font-bold text-base text-gray-800 dark:text-white">{weeklyOfferData.title}</h2>
+                                        <p className="mt-1 font-semibold text-blue-600 dark:text-blue-400">{weeklyOfferData.description}</p>
+                                    </div>
                                 </div>
-                                <img src={weeklyOfferData.image ? `${serverUrl}${weeklyOfferData.image}` : ''} alt={weeklyOfferData.title} className="w-20 h-20 object-contain transition-transform group-hover:scale-110" />
                             </div>
                         </Link>
                     )}
-                    
-                    {/* ✅✅✅ New "All Offers" Card Added Here ✅✅✅ */}
-                    <AllOffersCard t={t} />
-
+                    <AllOffersCard t={t} isRTL={isRTL} />
                     {discountsData.slice(0, 1).map((discount) => (
-                        <div key={discount._id} className="relative flex items-center gap-4 rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-md border border-gray-200 dark:border-slate-700 cursor-pointer group" onClick={() => handleCopyCode(discount.code)}>
-                            {copiedCode === discount.code && (<div className="absolute inset-0 bg-green-500/90 flex items-center justify-center text-white text-xl font-bold rounded-2xl z-20">{t('homepage.copied')}</div>)}
-                            <div className="flex-shrink-0 bg-green-100 dark:bg-green-500/10 p-3 rounded-full"><Tag size={24} className="text-green-600 dark:text-green-400" /></div>
-                            <div className="flex-1"><h4 className="text-lg font-bold text-gray-900 dark:text-white">{discount.code}</h4><p className="text-sm text-green-600 dark:text-green-400 font-semibold">{discount.percentage ? `${discount.percentage}% OFF` : `${formatCurrency(discount.fixedAmount)} OFF`}</p></div>
-                            <button className="ml-auto p-2 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300 transition-transform group-hover:scale-110 group-hover:text-indigo-500"><Copy size={20} /></button>
-                        </div>
+                        <DiscountCodeCard key={discount._id} discount={discount} t={t} isRTL={isRTL} handleCopyCode={handleCopyCode} copiedCode={copiedCode} />
                     ))}
                 </div>
             </div>
         </section>
     );
 };
-
-// New component for the "All Offers" card
-const AllOffersCard = ({ t }) => (
-    <Link to="/all-offers" className="block group">
-        <div className="relative rounded-2xl p-6 bg-gradient-to-r from-blue-500 to-sky-500 text-white shadow-lg hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-            <div className="absolute -right-2 -bottom-2 w-20 h-20 bg-white/10 rounded-full filter blur-lg"></div>
-            <h3 className="text-xl font-bold">{t('heroSection.allOffersTitle')}</h3>
-            <p className="text-sm opacity-80 mt-1">{t('heroSection.allOffersSubtitle')}</p>
-            <div className="flex justify-end mt-4">
-                <div className="p-2 bg-white/20 rounded-full group-hover:bg-white transition-colors duration-300">
-                    <ArrowRight className="text-white group-hover:text-blue-500 transition-colors duration-300" size={20} />
-                </div>
-            </div>
-        </div>
-    </Link>
-);
 
 export default HeroSection;

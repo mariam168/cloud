@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import { FaEdit, FaTrashAlt, FaPlus, FaSearch, FaInfoCircle, FaSpinner } from 'react-icons/fa';
+import { Edit, Trash, Plus, Search, Info, Loader2, X } from 'lucide-react';
 import EditAdvertisementModal from './EditAdvertisementModal';
 import AddAdvertisementPage from './AddAdvertisementPage';
-import { useLanguage } from '../../LanguageContext'; // Assuming this path is correct
+import { useLanguage } from '../../LanguageContext';
 
 const AdvertisementList = () => {
     const { t, language } = useLanguage();
@@ -15,62 +15,59 @@ const AdvertisementList = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Ensure SERVER_URL is correctly defined, consider making it an environment variable
     const SERVER_URL = 'http://localhost:5000';
 
     const formatDate = (dateString) => {
-        if (!dateString) return t('general.notApplicable') || 'N/A';
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(language, options);
+        if (!dateString) return t('general.notApplicable');
+        return new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG' : 'en-GB', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        }).format(new Date(dateString));
     };
 
     const fetchAdvertisements = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get(`${SERVER_URL}/api/advertisements`, {
-                headers: { 'x-admin-request': 'true' }
+                headers: { 'Accept-Language': language, 'x-admin-request': 'true' }
             });
             setAdvertisements(response.data);
             setError(null);
         } catch (err) {
-            console.error('Error fetching advertisements:', err);
-            setError((t('general.errorFetchingData') || 'Error fetching data: ') + (err.response?.data?.message || err.message));
+            setError(t('general.errorFetchingData'));
         } finally {
             setLoading(false);
         }
-    }, [t]);
+    }, [SERVER_URL, language, t]);
 
     useEffect(() => {
         fetchAdvertisements();
     }, [fetchAdvertisements]);
 
     const handleDelete = async (advertisementId, advertisementTitles) => {
-        const advertisementTitle = advertisementTitles?.[language] || advertisementTitles?.en || advertisementTitles?.ar || t('general.unnamedItem');
+        const advertisementTitle = advertisementTitles?.[language] || advertisementTitles?.en || t('general.unnamedItem');
         if (window.confirm(t('advertisementAdmin.confirmDelete', { advertisementTitle }))) {
             try {
                 await axios.delete(`${SERVER_URL}/api/advertisements/${advertisementId}`);
                 setAdvertisements(prev => prev.filter(a => a._id !== advertisementId));
-                alert(t('advertisementAdmin.deleteSuccess') || 'Advertisement deleted successfully!');
+                alert(t('advertisementAdmin.deleteSuccess'));
             } catch (err) {
-                console.error('Error deleting advertisement:', err);
-                alert((t('advertisementAdmin.errorDeletingAdvertisement') || 'An error occurred.') + (err.response?.data?.message || err.message));
+                alert(err.response?.data?.message || t('advertisementAdmin.errorDeletingAdvertisement'));
             }
         }
     };
 
     const handleActionSuccess = () => {
-        fetchAdvertisements(); // Re-fetch to ensure the list is up-to-date
+        fetchAdvertisements();
         setShowEditModal(false);
         setShowAddModal(false);
         setEditingAdvertisement(null);
     };
 
-    // Filter advertisements based on search term
     const filteredAdvertisements = useMemo(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
         return advertisements.filter(ad => {
-            const titleMatch = (ad.title?.en?.toLowerCase().includes(lowerCaseSearchTerm) ||
-                                ad.title?.ar?.toLowerCase().includes(lowerCaseSearchTerm));
+            const titleMatch = ad.title?.en?.toLowerCase().includes(lowerCaseSearchTerm) ||
+                                ad.title?.ar?.toLowerCase().includes(lowerCaseSearchTerm);
             const productMatch = ad.productRef && (
                 ad.productRef.name?.en?.toLowerCase().includes(lowerCaseSearchTerm) ||
                 ad.productRef.name?.ar?.toLowerCase().includes(lowerCaseSearchTerm)
@@ -79,138 +76,115 @@ const AdvertisementList = () => {
         });
     }, [advertisements, searchTerm]);
 
+    if (loading) {
+        return (
+            <div className="flex min-h-[80vh] w-full items-center justify-center">
+                <Loader2 size={48} className="animate-spin text-indigo-500" />
+            </div>
+        );
+    }
 
-    return (
-        <div className="max-w-7xl mx-auto p-4 bg-white dark:bg-gray-900 rounded-lg shadow-xl my-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 className="text-3xl font-bold text-gray-800 dark:text-white flex-grow">
-                    {t('advertisementAdmin.advertisementListTitle')}
-                </h2>
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    {/* Search Bar */}
-                    <div className="relative w-full md:w-64">
-                        <input
-                            type="text"
-                            placeholder={t('general.search') || 'Search...'}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-                        />
-                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-300" />
-                    </div>
-                    {/* Add Advertisement Button */}
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="w-full md:w-auto bg-green-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2 font-semibold"
-                    >
-                        <FaPlus /> {t('advertisementAdmin.addAdvertisementButton')}
+    if (error) {
+        return (
+            <div className="flex min-h-[80vh] w-full items-center justify-center p-4">
+                <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <Info size={48} className="mx-auto mb-5 text-red-500" />
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('general.error')}</h2>
+                    <p className="text-base text-red-600 dark:text-red-400">{error}</p>
+                    <button onClick={fetchAdvertisements} className="mt-6 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                        {t('general.tryAgain')}
                     </button>
                 </div>
             </div>
+        );
+    }
 
-            {/* Loading, Error, and Empty States */}
-            {loading ? (
-                <div className="flex flex-col items-center justify-center min-h-[300px] text-blue-600 dark:text-blue-400">
-                    <FaSpinner className="animate-spin text-5xl mb-4" />
-                    <p className="text-lg">{t('general.loading') || 'Loading advertisements...'}</p>
-                </div>
-            ) : error ? (
-                <div className="flex flex-col items-center justify-center min-h-[300px] text-red-600 dark:text-red-400 p-4">
-                    <FaInfoCircle className="text-5xl mb-4" />
-                    <p className="text-xl font-semibold mb-2">{t('general.errorOccurred') || 'Error Occurred!'}</p>
-                    <p className="text-lg text-center">{error}</p>
+    return (
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+            <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {t('advertisementAdmin.advertisementListTitle')}
+                </h1>
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full sm:w-60">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-zinc-500" />
+                        <input
+                            type="text"
+                            placeholder={t('general.search')}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 pl-9 text-sm text-gray-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                        />
+                    </div>
                     <button
-                        onClick={fetchAdvertisements}
-                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+                        onClick={() => setShowAddModal(true)}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500"
                     >
-                        {t('general.tryAgain') || 'Try Again'}
+                        <Plus size={16} />
+                        {t('advertisementAdmin.addAdvertisementButton')}
                     </button>
                 </div>
-            ) : filteredAdvertisements.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[300px] text-gray-500 dark:text-gray-400 p-4">
-                    <FaInfoCircle className="text-5xl mb-4" />
-                    <p className="text-xl font-semibold mb-2">
-                        {searchTerm ? (t('general.noResultsFound') || 'No advertisements found for your search.') : (t('advertisementAdmin.noAdvertisements') || 'No advertisements added yet.')}
+            </header>
+
+            {filteredAdvertisements.length === 0 ? (
+                <div className="text-center py-16">
+                    <Info size={48} className="mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                        {searchTerm ? t('general.noResultsFound') : t('advertisementAdmin.noAdvertisements')}
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
+                        {searchTerm ? t('general.tryDifferentKeywords') : t('advertisementAdmin.getStartedByAdding')}
                     </p>
-                    {!searchTerm && (
-                        <button
-                            onClick={() => setShowAddModal(true)}
-                            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2 font-semibold"
-                        >
-                            <FaPlus /> {t('advertisementAdmin.addFirstAdvertisement') || 'Add First Advertisement'}
-                        </button>
-                    )}
                 </div>
             ) : (
-                <div className="overflow-x-auto bg-gray-50 dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
-                    <table className="min-w-full text-sm text-left text-gray-700 dark:text-gray-300">
-                        <thead className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 uppercase text-xs">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                        <thead className="bg-gray-50 dark:bg-zinc-800/50">
                             <tr>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.image') || 'Image'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.title') || 'Title'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.linkedProduct') || 'Linked Product'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.type') || 'Type'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.dates') || 'Dates'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.price') || 'Price'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.active') || 'Active'}</th>
-                                <th scope="col" className="px-4 py-3 whitespace-nowrap">{t('advertisementAdmin.tableHeader.order') || 'Order'}</th>
-                                <th scope="col" className="px-4 py-3 text-center whitespace-nowrap">{t('general.actions') || 'Actions'}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('advertisementAdmin.tableHeader.image')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('advertisementAdmin.tableHeader.title')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('advertisementAdmin.tableHeader.linkedProduct')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('advertisementAdmin.tableHeader.type')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('advertisementAdmin.tableHeader.dates')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('advertisementAdmin.tableHeader.price')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('advertisementAdmin.tableHeader.active')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('advertisementAdmin.tableHeader.order')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('general.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                             {filteredAdvertisements.map(ad => (
-                                <tr key={ad._id} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
-                                    <td className="px-4 py-3">
-                                        <img
-                                            src={`${SERVER_URL}${ad.image}`}
-                                            alt={ad.title?.[language] || ad.title?.en || t('general.unnamedItem')}
-                                            className="w-16 h-16 object-cover rounded-md shadow-sm border border-gray-300 dark:border-gray-600"
-                                        />
+                                <tr key={ad._id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                                    <td className="whitespace-nowrap px-4 py-3">
+                                        <img src={`${SERVER_URL}${ad.image}`} alt={ad.title?.[language]} className="h-12 w-12 rounded-md object-cover" />
                                     </td>
-                                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                        {ad.title?.[language] || ad.title?.en || t('general.unnamedItem')}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        {ad.productRef ? (ad.productRef.name?.[language] || ad.productRef.name?.en || t('general.notApplicable')) : (t('general.notApplicable') || 'N/A')}
-                                    </td>
-                                    <td className="px-4 py-3 capitalize">{ad.type || (t('general.notApplicable') || 'N/A')}</td>
-                                    <td className="px-4 py-3 text-xs">
-                                        {formatDate(ad.startDate)} - <br/> {formatDate(ad.endDate)}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        {ad.discountedPrice ? (
+                                    <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-800 dark:text-white">{ad.title?.[language] || ad.title?.en}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-zinc-400">{ad.productRef?.name?.[language] || ad.productRef?.name?.en || t('general.notApplicable')}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-zinc-400 capitalize">{ad.type || t('general.notApplicable')}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-zinc-400">{formatDate(ad.startDate)} - {formatDate(ad.endDate)}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-zinc-400">
+                                        {ad.discountedPrice != null ? (
                                             <>
-                                                <span className="font-bold text-green-600 dark:text-green-400">{ad.discountedPrice} {ad.currency}</span>
-                                                {ad.originalPrice && ad.originalPrice !== ad.discountedPrice && (
-                                                    <span className="line-through text-gray-500 dark:text-gray-400 ml-2 text-xs">{ad.originalPrice} {ad.currency}</span>
-                                                )}
+                                                <span className="font-semibold text-green-600">{ad.discountedPrice} {ad.currency}</span>
+                                                {ad.originalPrice != null && <span className="ml-2 text-xs line-through">{ad.originalPrice} {ad.currency}</span>}
                                             </>
-                                        ) : ad.originalPrice ? (
-                                            <span className="font-bold">{ad.originalPrice} {ad.currency}</span>
-                                        ) : (t('general.notApplicable') || 'N/A')}
+                                        ) : (t('general.notApplicable'))}
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${ad.isActive ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'}`}>
-                                            {ad.isActive ? (t('general.yes') || 'Yes') : (t('general.no') || 'No')}
+                                    <td className="whitespace-nowrap px-4 py-3 text-center">
+                                        <span className={`inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ad.isActive ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
+                                            {ad.isActive ? t('general.yes') : t('general.no')}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">{ad.order ?? (t('general.notApplicable') || 'N/A')}</td>
-                                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                                        <button
-                                            onClick={() => { setEditingAdvertisement(ad); setShowEditModal(true); }}
-                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-500 mx-2 p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-200"
-                                            title={t('general.edit') || 'Edit'}
-                                        >
-                                            <FaEdit size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(ad._id, ad.title)}
-                                            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-500 mx-2 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900 transition-colors duration-200"
-                                            title={t('general.delete') || 'Delete'}
-                                        >
-                                            <FaTrashAlt size={18} />
-                                        </button>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-zinc-400 text-center">{ad.order ?? t('general.notApplicable')}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-center">
+                                        <div className="inline-flex items-center rounded-md -space-x-px bg-gray-100 dark:bg-zinc-800 text-xs">
+                                            <button onClick={() => { setEditingAdvertisement(ad); setShowEditModal(true); }} className="inline-block rounded-l-md p-2 text-gray-600 hover:bg-gray-200 hover:text-indigo-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-indigo-400 focus:relative">
+                                                <Edit size={16} />
+                                            </button>
+                                            <button onClick={() => handleDelete(ad._id, ad.title)} className="inline-block rounded-r-md p-2 text-gray-600 hover:bg-gray-200 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-red-400 focus:relative">
+                                                <Trash size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -218,25 +192,17 @@ const AdvertisementList = () => {
                     </table>
                 </div>
             )}
-
-            {/* Edit Advertisement Modal */}
             {showEditModal && editingAdvertisement && (
                 <EditAdvertisementModal advertisement={editingAdvertisement} onClose={() => setShowEditModal(false)} onAdvertisementUpdated={handleActionSuccess} serverUrl={SERVER_URL} />
             )}
-
-            {/* Add Advertisement Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in">
-                        <button
-                            onClick={() => setShowAddModal(false)}
-                            className="absolute top-4 right-4 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 text-3xl font-bold transition-colors duration-200"
-                            aria-label={t('general.close') || 'Close'}
-                        >
-                            &times;
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-lg relative w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-zinc-800">
+                        <button onClick={() => setShowAddModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 dark:text-zinc-500 dark:hover:text-white transition-colors">
+                            <X size={24} />
                         </button>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
-                            {t('advertisementAdmin.addAdvertisementTitle') || 'Add New Advertisement'}
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                            {t('advertisementAdmin.addAdvertisementTitle')}
                         </h3>
                         <AddAdvertisementPage onAdvertisementAdded={handleActionSuccess} serverUrl={SERVER_URL} />
                     </div>

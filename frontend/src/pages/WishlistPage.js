@@ -1,82 +1,77 @@
+import React from 'react';
 import { useWishlist } from '../context/WishlistContext';
 import ProductCard from '../components/ProductCard';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from "../components/LanguageContext";
-import { HeartCrack, HeartHandshake, Loader2, HeartPulse } from 'lucide-react';
+import { HeartCrack, UserCheck, Loader2, Heart } from 'lucide-react';
+
 const WishlistPage = () => {
     const { wishlistItems, loadingWishlist } = useWishlist();
     const { isAuthenticated } = useAuth();
     const { t } = useLanguage();
-    const baseContainerClasses = "container mx-auto px-4 py-20 text-center min-h-[70vh] flex flex-col items-center justify-center";
-    const baseMessageBoxClasses = "bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 sm:p-12 max-w-lg w-full border border-gray-200 dark:border-gray-700 transform transition-all duration-300 ease-in-out";
-    const baseMessageTextClasses = "text-lg md:text-xl text-gray-700 dark:text-gray-300 font-semibold mb-6";
-    const baseButtonClasses = "inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 transform hover:-translate-y-1";
+
+    const EmptyState = ({ icon: Icon, title, message, buttonText, buttonLink }) => (
+        <div className="flex min-h-[60vh] flex-col items-center justify-center bg-gray-100 dark:bg-black p-4">
+            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900 shadow-sm">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/10 mb-6">
+                    <Icon className="h-8 w-8 text-indigo-600 dark:text-indigo-400" strokeWidth={1.5} />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+                <p className="mt-2 text-sm text-gray-600 dark:text-zinc-400">{message}</p>
+                <Link to={buttonLink} className="mt-6 inline-block rounded-lg bg-gray-900 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500 dark:hover:text-white">
+                    {buttonText}
+                </Link>
+            </div>
+        </div>
+    );
+
     if (loadingWishlist) {
         return (
-            <div className={`${baseContainerClasses} bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black`}>
-                <div className={`${baseMessageBoxClasses} hover:scale-100`}> 
-                    <Loader2 size={48} className="text-blue-600 dark:text-blue-400 animate-spin mb-6 mx-auto" />
-                    <p className={baseMessageTextClasses}>
-                        {t('wishlistPage.loadingWishlist') || 'Loading wishlist...'}
-                    </p>
-                </div>
+            <div className="flex min-h-[80vh] w-full items-center justify-center bg-white dark:bg-black">
+                <Loader2 size={48} className="animate-spin text-indigo-500" />
             </div>
         );
     }
 
     if (!isAuthenticated) {
         return (
-            <div className={`${baseContainerClasses} bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/50`}>
-                <div className={`${baseMessageBoxClasses}`}>
-                    <HeartHandshake size={48} className="text-red-600 dark:text-red-400 mb-6 mx-auto" />
-                    <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
-                        {t('wishlistPage.loginRequiredTitle') || 'Access Denied'}
-                    </h2>
-                    <p className={baseMessageTextClasses}>
-                        {t('wishlistPage.pleaseLogin') || 'Please log in to view your wishlist.'}
-                    </p>
-                    <Link
-                        to="/login"
-                        className={`${baseButtonClasses} bg-blue-600 focus:ring-blue-500`}
-                    >
-                        {t('topBar.signIn') || 'Sign In'}
-                    </Link>
-                </div>
-            </div>
+            <EmptyState
+                icon={UserCheck}
+                title={t('wishlistPage.loginRequiredTitle', 'Please Log In')}
+                message={t('wishlistPage.pleaseLogin', 'Log in to see your favorite items and build your wishlist.')}
+                buttonText={t('auth.login', 'Log In')}
+                buttonLink="/login"
+            />
         );
     }
 
     if (wishlistItems.length === 0) {
         return (
-            <div className={`${baseContainerClasses} bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/50`}> {/* تغيير الألوان */}
-                <div className={`${baseMessageBoxClasses}`}>
-                    <HeartCrack size={48} className="text-indigo-600 dark:text-indigo-400 mb-6 mx-auto" /> {/* تغيير لون الأيقونة */}
-                    <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">
-                        {t('wishlistPage.emptyWishlistTitle') || 'Your Wishlist is Empty!'}
-                    </h2>
-                    <p className={baseMessageTextClasses}>
-                        {t('wishlistPage.emptyWishlist') || 'Your wishlist is currently empty. Start adding your favorite items!'}
-                    </p>
-                    <Link
-                        to="/shop"
-                        className={`${baseButtonClasses} bg-green-600 hover:bg-green-700 focus:ring-green-500`}
-                    >
-                        {t('general.shopNow') || 'Shop Now'}
-                    </Link>
-                </div>
-            </div>
+            <EmptyState
+                icon={HeartCrack}
+                title={t('wishlistPage.emptyWishlistTitle', 'Your Wishlist is Empty')}
+                message={t('wishlistPage.emptyWishlist', "You haven't added any items yet. Start exploring and save what you love!")}
+                buttonText={t('mainHeader.shop', 'Go Shopping')}
+                buttonLink="/shop"
+            />
         );
     }
 
     return (
-        <section className="w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black py-16 px-4 transition-colors duration-500 ease-in-out md:px-8 lg:px-12">
-            <div className="mx-auto max-w-screen-xl">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-12 text-gray-800 dark:text-white leading-tight tracking-wide drop-shadow-lg flex items-center justify-center gap-3">
-                    <HeartPulse size={48} className="text-red-500 dark:text-red-400" />
-                    {t('wishlistPage.wishlistTitle') || 'My Wishlist'}
-                </h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+        <section className="w-full bg-gray-100 dark:bg-black">
+            <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+                <header className="text-center mb-12">
+                     <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl lg:text-5xl flex items-center justify-center gap-3">
+                        <Heart size={36} className="text-red-500" />
+                        {t('wishlistPage.wishlistTitle', 'My Wishlist')}
+                    </h1>
+                    <p className="mx-auto mt-4 max-w-xl text-gray-600 dark:text-zinc-400">
+                        {t('wishlistPage.wishlistSubtitle', 'Here are the items you saved for later. Don\'t let them get away!')}
+                    </p>
+                </header>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {wishlistItems.map(product => (
                         <ProductCard product={product} key={product._id} />
                     ))}

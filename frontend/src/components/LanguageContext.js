@@ -33,27 +33,38 @@ const translations = {
     "offerPrice": "سعر العرض",
     "originalPrice": "كان",
     "price": "السعر",
-     "selectFinalProduct": "الرجاء تحديد الخيار النهائي للمنتج"
+     "selectFinalProduct": "الرجاء تحديد الخيار النهائي للمنتج",
+      "addToCart": "أضف إلى السلة",
+    "specifications": "المواصفات",
+    "description": "الوصف",
+    "whyShopWithUs": "لماذا تتسوق معنا؟"
+
   },
         "topBar": {
             "language": "English", "home": "الرئيسية", "shop": "المتجر", "aboutUs": "من نحن", "contactUs": "اتصل بنا",
-            "dashboard": "لوحة التحكم", "logout": "تسجيل الخروج", "welcome": "أهلاً بك", "helloGuest": "أهلاً بالزائر"
+            "dashboard": "لوحة التحكم", "logout": "تسجيل الخروج", "welcome": "أهلاً بك", "helloGuest": "أهلاً بالزائر",
+             "lightMode": "الوضع الفاتح",
+    "darkMode": "الوضع الداكن"
         },
         "mainHeader": {
             "siteName": "متجري", "searchPlaceholder": "ابحث...", "myAccount": "حسابي", "login": "تسجيل الدخول",
-            "myWishlist": "المفضلة", "myCart": "سلتي", "hotline": "الخط الساخن"
+            "myWishlist": "المفضلة", "myCart": "سلتي", "hotline": "الخط الساخن",
+             "menu": "القائمة"
         },
         "features": {
             "freeShipping": "شحن مجاني", "freeShippingDesc": "شحن مجاني لجميع الطلبات فوق 100 ر.س",
             "support247": "دعم 24/7", "support247Desc": "احصل على المساعدة في أي وقت تحتاجه",
             "onlinePayment": "دفع آمن", "onlinePaymentDesc": "خيارات دفع آمنة عبر الإنترنت",
-            "easyReturn": "إرجاع سهل", "easyReturnDesc": "إرجاع بدون متاعب خلال 30 يومًا"
+            "easyReturn": "إرجاع سهل", "easyReturnDesc": "إرجاع بدون متاعب خلال 30 يومًا",
+             "easyReturns": "إرجاع سهل",
+    "securePayment": "دفع آمن"
         },
         "heroSection": {
             "bigSale": "عرض لفترة محدودة", "price": "السعر", "validFrom": "صالح من", "validUntil": "صالح حتى",
             "installment": "أقساط ميسرة", "weeklySale": "عروض الأسبوع", "allOffersTitle": "اكتشف كل العروض",
             "allOffersDesc": "استكشف جميع العروض والخصومات المتاحة.", "noDataAvailable": "لا توجد عروض متاحة حالياً.",
-              "allOffersSubtitle": "اكتشف عروضاً مذهلة ووفّر الكثير على منتجاتك المفضلة."
+              "allOffersSubtitle": "اكتشف عروضاً مذهلة ووفّر الكثير على منتجاتك المفضلة.",
+                "featuredProduct": "منتج مميز"
         },
         "homepage": {
             "discountsTitle": "أكواد خصم حصرية", "copied": "تم النسخ!", "copyCode": "نسخ",
@@ -62,6 +73,10 @@ const translations = {
             "trendingProductsTitle": "المنتجات الأكثر رواجاً", "trendingProductsDesc": "اكتشف منتجاتنا الأكثر شهرة هذا الأسبوع. مختارة بعناية للجودة والشعبية!",
             "noTrendingProductsFound": "لم يتم العثور على منتجات رائجة."
         },
+        "trendingProducts": {
+    "title": "المنتجات الأكثر رواجًا",
+    "subtitle": "اطلع على المنتجات الأكثر شهرة الآن."
+  },
         "wishlist": { "loginRequired": "يرجى تسجيل الدخول للإضافة إلى المفضلة." },
         "cart": {
             "loginRequired": "يرجى تسجيل الدخول لإضافة المنتجات إلى السلة.", "productAddedSuccess": "تمت اضافة المنتج لسلتك بنجاح.",
@@ -91,7 +106,7 @@ const translations = {
         },
         "productCard": {
             "uncategorized": "غير مصنف", "removeFromFavorites": "إزالة من المفضلة", "addToFavorites": "إضافة إلى المفضلة",
-            "viewDetails": "عرض التفاصيل","viewOffer": "عرض العرض"
+            "viewDetails": "عرض التفاصيل","viewOffer": "عرض العرض", "addToCart": "أضف إلى السلة"
         },
         "productDetails": {
             "quantity": "الكمية", "availability": "التوفر", "inStock": "متوفر", "outOfStock": "غير متوفر", "addToCart": "إضافة إلى السلة",
@@ -343,7 +358,9 @@ const translations = {
         },
         "categoryList": {
             "searchPlaceholder": "ابحث بالاسم...","searchCategoriesLabel": "ابحث في الفئات",
-            "tryDifferentSearch": "حاول بحث اخر","noSearchResults": "لا توجد نتايج للبحث."
+            "tryDifferentSearch": "حاول بحث اخر","noSearchResults": "لا توجد نتايج للبحث.",
+              "title": "تسوق حسب الفئة",
+    "subtitle": "استكشف مجموعتنا الواسعة من فئات المنتجات."
         },
       
         "forms":{
@@ -400,23 +417,27 @@ const translations = {
         },
         "topBar": {
             "language": "العربية", "home": "Home", "shop": "Shop", "aboutUs": "About Us", "contactUs": "Contact Us",
-            "dashboard": "Dashboard", "logout": "Logout", "welcome": "Welcome", "helloGuest": "Hello, Guest"
+            "dashboard": "Dashboard", "logout": "Logout", "welcome": "Welcome", "helloGuest": "Hello, Guest","lightMode": "Light Mode",
+    "darkMode": "Dark Mode"
         },
         "mainHeader": {
             "siteName": "My Store", "searchPlaceholder": "Search...", "myAccount": "My Account", "login": "Login",
-            "myWishlist": "My Wishlist", "myCart": "My Cart", "hotline": "Hotline"
+            "myWishlist": "My Wishlist", "myCart": "My Cart", "hotline": "Hotline","menu": "Menu"
         },
         "features": {
             "freeShipping": "Free Shipping", "freeShippingDesc": "Free shipping on all orders over $100",
             "support247": "Support 24/7", "support247Desc": "Get help anytime you need it",
             "onlinePayment": "Online Payment", "onlinePaymentDesc": "Secure online payment options",
-            "easyReturn": "Easy Return", "easyReturnDesc": "Hassle-free returns within 30 days"
+            "easyReturn": "Easy Return", "easyReturnDesc": "Hassle-free returns within 30 days",
+             "easyReturns": "Easy Returns",
+    "securePayment": "Secure Payment",
         },
         "heroSection": {
             "bigSale": "Limited Time Offer", "price": "Price", "validFrom": "Valid From", "validUntil": "Valid Until",
             "installment": "Easy Installments", "weeklySale": "Weekly Deals", "allOffersTitle": "Discover All Offers",
             "allOffersDesc": "Explore all available promotions and discounts.", "noDataAvailable": "No exciting offers available right now.",
-             "allOffersSubtitle": "Discover amazing deals and save big on your favorite products."
+             "allOffersSubtitle": "Discover amazing deals and save big on your favorite products.",
+             "featuredProduct": "Featured Product"
         },
         "homepage": {
             "discountsTitle": "Exclusive Discount Codes", "copied": "Copied!", "copyCode": "Copy",
@@ -425,6 +446,10 @@ const translations = {
             "trendingProductsTitle": "Trending Products", "trendingProductsDesc": "Discover our most popular products this week. Handpicked for quality and trending popularity!",
             "noTrendingProductsFound": "No trending products found."
         },
+        "trendingProducts": {
+    "title": "Trending Products",
+    "subtitle": "Check out what's popular right now."
+  },
         "wishlist": { "loginRequired": "Please log in to manage your wishlist." },
         "cart": {
             "loginRequired": "Please log in to add items to your cart.", "productAddedSuccess": "Product added to cart successfully.",
@@ -455,7 +480,7 @@ const translations = {
         },
         "productCard": {
             "uncategorized": "Uncategorized", "removeFromFavorites": "Remove from Favorites", "addToFavorites": "Add to Favorites",
-            "viewDetails": "View Details","viewOffer": "View Offer"
+            "viewDetails": "View Details","viewOffer": "View Offer",  "addToCart": "Add to Cart"
         },
         "productDetails": {
             "quantity": "Quantity", "availability": "Availability", "inStock": "In Stock", "outOfStock": "Out of Stock", "addToCart": "Add to Cart",
@@ -721,7 +746,10 @@ const translations = {
         },
         "categoryList": {
             "searchPlaceholder": "Search by name...","searchCategoriesLabel": "Search Categories",
-            "tryDifferentSearch": "Try different search","noSearchResults": "No search results found."
+            "tryDifferentSearch": "Try different search","noSearchResults": "No search results found.",
+            "title": "Shop by Category",
+    "subtitle": "Explore our wide range of product categories."
+  
         },
         "forms":{
              "select":"select","saveProduct":"save","uploadImage":"upload Image","dragOrClick":"drag Or Click",
@@ -755,6 +783,10 @@ const translations = {
     "originalPrice": "Was",
     "price": "Price",
        "selectFinalProduct": "Please select the final product version",
+        "addToCart": "Add to Cart",
+    "specifications": "Specifications",
+    "description": "Description",
+    "whyShopWithUs": "Why Shop With Us?"
   },
     }
 };
