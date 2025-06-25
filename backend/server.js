@@ -1,23 +1,12 @@
-// ========================================================
-//     Server Main File (server.js)
-// ========================================================
-
-// 1. Import Dependencies
-// --------------------------------------------------------
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
 
-// 2. Import Custom Middleware
-// --------------------------------------------------------
 const languageHandler = require('./middleware/languageHandler');
 const { protect, admin } = require('./middleware/authMiddleware');
 
-// 3. Import Route Handlers
-// (Please verify these filenames match your actual files in the 'routes' folder)
-// --------------------------------------------------------
 const productRoutes = require('./routes/product');
 const categoryRoutes = require('./routes/category');
 const advertisementRoutes = require('./routes/advertisementRoutes');
@@ -28,18 +17,12 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 
-// 4. Import Mongoose Models for Dashboard
-// --------------------------------------------------------
 const Order = require('./models/Order');
 const Product = require('./models/Product');
 const User = require('./models/User');
 
-// 5. Initialize Express App
-// --------------------------------------------------------
 const app = express();
 
-// 6. Core Middleware Setup
-// --------------------------------------------------------
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
@@ -49,19 +32,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (e.g., images) from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 7. Database Connection
-// --------------------------------------------------------
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/productsDB';
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ MongoDB connected successfully.'))
     .catch((error) => console.error('❌ MongoDB connection error:', error));
 
-// 8. API Routes Setup
-// --------------------------------------------------------
-// Apply the language handler middleware ONLY to API routes to avoid running it on static files.
 app.use('/api', languageHandler);
 
 app.use('/api/products', productRoutes);
@@ -74,11 +51,6 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/contact', contactRoutes);
 
-// ========================================================
-//     Dashboard-specific API Routes
-// ========================================================
-
-// Summary Statistics
 app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
     try {
         const totalSalesResult = await Order.aggregate([{ $group: { _id: null, totalRevenue: { $sum: "$totalPrice" }, totalOrders: { $sum: 1 } } }]);
@@ -97,7 +69,6 @@ app.get('/api/dashboard/summary-stats', protect, admin, async (req, res) => {
     }
 });
 
-// Sales Over Time
 app.get('/api/dashboard/sales-over-time', protect, admin, async (req, res) => {
     try {
         const salesData = await Order.aggregate([
@@ -111,7 +82,6 @@ app.get('/api/dashboard/sales-over-time', protect, admin, async (req, res) => {
     }
 });
 
-// Top Selling Products
 app.get('/api/dashboard/product-sales', protect, admin, async (req, res) => {
     try {
         const productSalesData = await Order.aggregate([
@@ -129,7 +99,6 @@ app.get('/api/dashboard/product-sales', protect, admin, async (req, res) => {
     }
 });
 
-// Category Distribution
 app.get('/api/dashboard/category-distribution', protect, admin, async (req, res) => {
     try {
         const categoryDistributionData = await Product.aggregate([
@@ -144,7 +113,6 @@ app.get('/api/dashboard/category-distribution', protect, admin, async (req, res)
     }
 });
 
-// Order Status Distribution
 app.get('/api/dashboard/order-status-distribution', protect, admin, async (req, res) => {
     try {
         const orderStatusData = await Order.aggregate([
@@ -157,7 +125,6 @@ app.get('/api/dashboard/order-status-distribution', protect, admin, async (req, 
     }
 });
 
-// Recent Orders
 app.get('/api/dashboard/recent-orders', protect, admin, async (req, res) => {
     try {
         const recentOrders = await Order.find({})
@@ -170,15 +137,11 @@ app.get('/api/dashboard/recent-orders', protect, admin, async (req, res) => {
     }
 });
 
-// 9. Global Error Handling Middleware
-// --------------------------------------------------------
 app.use((err, req, res, next) => {
     console.error("❌ Unhandled Error:", err.stack);
     res.status(500).send('Something broke!');
 });
 
-// 10. Start Server
-// --------------------------------------------------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);

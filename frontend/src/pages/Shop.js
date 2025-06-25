@@ -129,7 +129,6 @@ const ShopPage = () => {
             if (sortBy === 'price-asc') return (a.basePrice || 0) - (b.basePrice || 0);
             if (sortBy === 'price-desc') return (b.basePrice || 0) - (a.basePrice || 0);
             if (sortBy === 'name-asc') {
-                // **تصحيح دفاعي هنا**
                 const nameA = a.name || '';
                 const nameB = b.name || '';
                 return nameA.localeCompare(nameB);

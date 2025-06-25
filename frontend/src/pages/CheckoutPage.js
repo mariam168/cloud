@@ -69,13 +69,18 @@ const CheckoutPage = () => {
             const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } };
             const { data } = await axios.post(`${API_BASE_URL}/api/orders`, orderData, config);
             
-            setCreatedOrder(data);
+            // *** التصحيح هنا: التعامل مع الاستجابة بشكل أكثر أمانًا ***
+            const newOrder = data.order || data;
+            setCreatedOrder(newOrder);
+            
             setOrderSuccess(true);
             clearCart();
             showToast(t('checkoutPage.orderPlacedSuccessTitle'), 'success');
             
         } catch (error) {
-            showToast(error.response?.data?.message || t('checkoutPage.orderPlacementError'), 'error');
+            const errorMessage = error.response?.data?.message || t('checkoutPage.orderPlacementError');
+            showToast(errorMessage, 'error');
+            console.error("Order placement error:", error.response || error);
         } finally {
             setPlacingOrder(false);
         }

@@ -12,7 +12,7 @@ const ProductCard = ({ product }) => {
     const { isAuthenticated, API_BASE_URL } = useAuth();
 
     if (!product || typeof product !== 'object') {
-        return null; // Return nothing if product data is invalid
+        return null;
     }
 
     const handleCardClick = () => {

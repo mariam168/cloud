@@ -19,7 +19,22 @@ const translations = {
     "edit": "تعديل",
     "delete": "حذف",
     "actions": "إجراءات","noDataForChart":"لا توجد بيانات للمخطط.",
+      "days": "أيام",
+    "hours": "ساعات",
+    "minutes": "دقائق",
+    "seconds": "ثواني",
+    "off": "خصم",
+    "subtotal": "المجموع الفرعي",
+    "total": "المجموع الكلي",
         },
+         "productDetailsPage": {
+    "specialOffer": "عرض خاص",
+    "offerEndsIn": "العرض ينتهي خلال",
+    "offerPrice": "سعر العرض",
+    "originalPrice": "كان",
+    "price": "السعر",
+     "selectFinalProduct": "الرجاء تحديد الخيار النهائي للمنتج"
+  },
         "topBar": {
             "language": "English", "home": "الرئيسية", "shop": "المتجر", "aboutUs": "من نحن", "contactUs": "اتصل بنا",
             "dashboard": "لوحة التحكم", "logout": "تسجيل الخروج", "welcome": "أهلاً بك", "helloGuest": "أهلاً بالزائر"
@@ -37,7 +52,8 @@ const translations = {
         "heroSection": {
             "bigSale": "عرض لفترة محدودة", "price": "السعر", "validFrom": "صالح من", "validUntil": "صالح حتى",
             "installment": "أقساط ميسرة", "weeklySale": "عروض الأسبوع", "allOffersTitle": "اكتشف كل العروض",
-            "allOffersDesc": "استكشف جميع العروض والخصومات المتاحة.", "noDataAvailable": "لا توجد عروض متاحة حالياً."
+            "allOffersDesc": "استكشف جميع العروض والخصومات المتاحة.", "noDataAvailable": "لا توجد عروض متاحة حالياً.",
+              "allOffersSubtitle": "اكتشف عروضاً مذهلة ووفّر الكثير على منتجاتك المفضلة."
         },
         "homepage": {
             "discountsTitle": "أكواد خصم حصرية", "copied": "تم النسخ!", "copyCode": "نسخ",
@@ -83,12 +99,27 @@ const translations = {
         },
         "shoppingCartPage": {
             "title": "سلة التسوق", "product": "المنتج", "price": "السعر", "quantity": "الكمية", "total": "الإجمالي", "subtotal": "المجموع الفرعي",
-            "emptyCart": "سلة التسوق فارغة.", "continueShopping": "متابعة التسوق", "proceedToCheckout": "الذهاب للدفع"
+            "emptyCart": "سلة التسوق فارغة.", "continueShopping": "متابعة التسوق", "proceedToCheckout": "الذهاب للدفع",
+                "shoppingCart": "سلة التسوق",
+    "cartTotal": "إجمالي السلة",
+    "proceedToCheckout": "متابعة إلى الدفع"
         },
         "checkoutPage": {
             "title": "إتمام الطلب", "billingDetails": "تفاصيل الفاتورة", "shippingAddress": "عنوان الشحن",
-            "placeOrder": "تأكيد الطلب", "paymentMethod": "طريقة الدفع", "orderSummary": "ملخص الطلب"
+            "placeOrder": "تأكيد الطلب", "paymentMethod": "طريقة الدفع", "orderSummary": "ملخص الطلب",
+             "checkoutTitle": "الدفع",
+    "discountCode": "كود الخصم",
+    "enterDiscountCodePlaceholder": "أدخل كود الخصم",
+    "apply": "تطبيق",
+    "enterAddressPlaceholder": "أدخل عنوانك",
+    "enterCityPlaceholder": "أدخل مدينتك",
+    "enterPostalCodePlaceholder": "أدخل الرمز البريدي",
+    "enterCountryPlaceholder": "أدخل دولتك",
+    "cashOnDelivery": "الدفع عند الإستلام"
         },
+        "wishlistPage": {
+    "wishlistTitle": "قائمة أمنياتي"
+  },
         "auth": {
             "email": "البريد الإلكتروني", "password": "كلمة المرور", "rememberMe": "تذكرني", "forgotPassword": "هل نسيت كلمة المرور؟",
             "loginTitle": "تسجيل الدخول", "registerTitle": "إنشاء حساب جديد", "noAccount": "ليس لديك حساب؟", "signUp": "إنشاء حساب",
@@ -358,6 +389,13 @@ const translations = {
     "edit": "Edit",
     "delete": "Delete",
     "actions": "Actions","noDataForChart":"No data for chart.",
+      "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "off": "Off",
+    "subtotal": "Subtotal",
+    "total": "Total",
 
         },
         "topBar": {
@@ -377,7 +415,8 @@ const translations = {
         "heroSection": {
             "bigSale": "Limited Time Offer", "price": "Price", "validFrom": "Valid From", "validUntil": "Valid Until",
             "installment": "Easy Installments", "weeklySale": "Weekly Deals", "allOffersTitle": "Discover All Offers",
-            "allOffersDesc": "Explore all available promotions and discounts.", "noDataAvailable": "No exciting offers available right now."
+            "allOffersDesc": "Explore all available promotions and discounts.", "noDataAvailable": "No exciting offers available right now.",
+             "allOffersSubtitle": "Discover amazing deals and save big on your favorite products."
         },
         "homepage": {
             "discountsTitle": "Exclusive Discount Codes", "copied": "Copied!", "copyCode": "Copy",
@@ -424,12 +463,32 @@ const translations = {
         },
         "shoppingCartPage": {
             "title": "Shopping Cart", "product": "Product", "price": "Price", "quantity": "Quantity", "total": "Total", "subtotal": "Subtotal",
-            "emptyCart": "Your cart is empty.", "continueShopping": "Continue Shopping", "proceedToCheckout": "Proceed to Checkout"
+            "emptyCart": "Your cart is empty.", "continueShopping": "Continue Shopping", "proceedToCheckout": "Proceed to Checkout",
+               "shoppingCart": "Shopping Cart",
+    "cartTotal": "Cart Total",
+    "proceedToCheckout": "Proceed to Checkout"
         },
         "checkoutPage": {
             "title": "Checkout", "billingDetails": "Billing Details", "shippingAddress": "Shipping Address",
-            "placeOrder": "Place Order", "paymentMethod": "Payment Method", "orderSummary": "Order Summary"
+            "placeOrder": "Place Order", "paymentMethod": "Payment Method", "orderSummary": "Order Summary",
+            "checkoutTitle": "Checkout",
+    "discountCode": "Discount Code",
+    "enterDiscountCodePlaceholder": "Enter discount code",
+    "apply": "Apply",
+    "enterAddressPlaceholder": "Enter your address",
+    "enterCityPlaceholder": "Enter your city",
+    "enterPostalCodePlaceholder": "Enter postal code",
+    "enterCountryPlaceholder": "Enter your country",
+    "cashOnDelivery": "Cash on Delivery",
+    "orderPlacedSuccessTitle": "Order Placed Successfully!",
+    "orderPlacedSuccessMessage": "Your order has been placed successfully. You will receive an email with the order details.",
+    "orderID": "Order ID",
+    "continueShopping": "Continue Shopping",
+    "continueShopping":"Continue Shopping"
         },
+          "wishlistPage": {
+    "wishlistTitle": "My Wishlist"
+  },
         "auth": {
             "email": "Email Address", "password": "Password", "rememberMe": "Remember Me", "forgotPassword": "Forgot Password?",
             "loginTitle": "Login", "registerTitle": "Register", "noAccount": "Don't have an account?", "signUp": "Sign Up",
@@ -688,7 +747,15 @@ const translations = {
             "productList" : "product list",
             "manageProductsMessage" :"  Welcome to product management page",
             "title":"title"
-        }
+        },
+         "productDetailsPage": {
+    "specialOffer": "Special Offer",
+    "offerEndsIn": "Offer ends in",
+    "offerPrice": "Offer Price",
+    "originalPrice": "Was",
+    "price": "Price",
+       "selectFinalProduct": "Please select the final product version",
+  },
     }
 };
 

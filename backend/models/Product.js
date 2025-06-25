@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const SkuSchema = new mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     name_en: { type: String, required: true, trim: true },
@@ -7,6 +8,7 @@ const SkuSchema = new mongoose.Schema({
     stock: { type: Number, default: 0, min: 0 },
     sku: { type: String, trim: true, unique: true, sparse: true }
 });
+
 const VariationOptionSchema = new mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     name_en: { type: String, required: true, trim: true },
@@ -22,6 +24,7 @@ const VariationSchema = new mongoose.Schema({
     options: [VariationOptionSchema]
 });
 
+// *** التصحيح هنا: new mongoose.Schema بدلاً من new mongoose.schema ***
 const productSchema = new mongoose.Schema({
     name: {
         en: { type: String, required: true, trim: true },
