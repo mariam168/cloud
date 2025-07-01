@@ -26,20 +26,37 @@ const translations = {
             "total": "المجموع الكلي",
             "discountPercentage": "نسبة الخصم",
             "currency": "جنيه",
+            "star":"نجوم",
         },
         
         "productDetailsPage": {
-            "specialOffer": "عرض خاص",
-            "offerEndsIn": "العرض ينتهي خلال",
-            "offerPrice": "سعر العرض",
-            "originalPrice": "كان",
-            "price": "السعر",
-            "selectFinalProduct": "الرجاء تحديد الخيار النهائي للمنتج",
-            "addToCart": "أضف إلى السلة",
-            "specifications": "المواصفات",
-            "description": "الوصف",
-            "whyShopWithUs": "لماذا تتسوق معنا؟",
-            "inStock": "متوفر",
+             "reviews": "تقييمات",
+      "customerReviews": "تقييمات العملاء",
+      "basedOnReviews": "بناءً على {{count}} تقييمات",
+      "reviewForm": {
+        "title": "اكتب تقييمك",
+        "ratingLabel": "تقييمك للمنتج",
+        "commentLabel": "تعليقك",
+        "commentPlaceholder": "شاركنا رأيك حول هذا المنتج...",
+        "submit": "إرسال التقييم",
+        "validationError": "يرجى تقديم تقييم وتعليق.",
+        "success": "شكراً لك! تم إرسال تقييمك بنجاح.",
+        "error": "عذراً، لم نتمكن من إرسال تقييمك. يرجى المحاولة مرة أخرى.",
+        "alreadyReviewed": "لقد قمت بتقييم هذا المنتج مسبقاً.",
+        "loginToReview": "يرجى تسجيل الدخول لكتابة تقييم.",
+        "noReviewsYet": "لا توجد تقييمات بعد. كن أول من يقيّم!",
+        "beTheFirst": "كن اول من يقيّم هذا المنتج!"
+      },
+      "failedToLoad": "فشل تحميل تفاصيل المنتج.",
+      "selectAllOptions": "يرجى اختيار جميع الخيارات قبل الإضافة إلى السلة.",
+      "specialOffer": "عرض خاص",
+      "offerEndsIn": "العرض ينتهي خلال",
+      "selectFinalProduct": "اختر الحجم/النوع",
+      "addToCart": "أضف إلى السلة",
+      "inStock": "متوفر {{count}} قطعة",
+      "outOfStock": "غير متوفر",
+      "description": "الوصف",
+      "specifications": "المواصفات"
 
         },
         "topBar": {
@@ -235,7 +252,25 @@ const translations = {
             "orderStatuses": { "pending": "قيد الانتظار", "processing": "قيد المعالجة", "shipped": "تم الشحن", "delivered": "تم التوصيل", "cancelled": "ملغي" },
             "productManagement": "إدارة المنتجات", "categoryManagement": "إدارة الفئات", "orderManagement": "إدارة الطلبات",
             "userManagement": "إدارة المستخدمين", "advertisementManagement": "إدارة الإعلانات", "discountManagement": "إدارة الخصومات",
-            "welcomeMessage": "مرحبا بك في لوحة التحكم", "orderStatuses.": "حالات الطلبات"
+            "welcomeMessage": "مرحبا بك في لوحة التحكم", "orderStatuses.": "حالات الطلبات",
+            "orderStatuses": {
+                "pending": "قيد الانتظار",
+                "processing": "قيد المعالجة",
+                "shipped": "تم الشحن",
+                "delivered": "تم التوصيل",
+                "cancelled": "ملغي"
+            },
+            "orderStatuses": {
+                "pending": "قيد الانتظار",
+                "processing": "قيد المعالجة",
+                "shipped": "تم الشحن",
+                "delivered": "تم التوصيل",
+                "cancelled": "ملغي",
+                "null": "Null",
+                "undefined": "غير محدد"
+            },
+            "productCountLabel":"عدد المنتجات",
+            "orderCountLabel":"عدد الطلبات",
 
         },
         "adminCategoryPage": {
@@ -509,6 +544,7 @@ const translations = {
             "total": "Total",
             "discountPercentage": "Discount Percentage",
             "currency": "EGP",
+            "star": "star",
 
         },
         "topBar": {
@@ -747,7 +783,17 @@ const translations = {
                 "shipped": "Shipped",
                 "delivered": "Delivered",
                 "cancelled": "Cancelled"
-            }
+            },
+            "orderStatuses": {
+                "pending": "Pending",
+                "processing": "Processing",
+                "shipped": "Shipped",
+                "delivered": "Delivered",
+                "cancelled": "Cancelled",
+                "null": "Null",
+                "undefined": "Undefined"
+            },
+            "productCountLabel":"Product Count",
         },
         "adminCategoryPage": {
             "errorFetchingCategories": "Error fetching categories.", "confirmDelete": "Are you sure you want to delete the category \"{categoryName}\"?",
@@ -975,17 +1021,33 @@ const translations = {
             "title": "title"
         },
         "productDetailsPage": {
-            "specialOffer": "Special Offer",
-            "offerEndsIn": "Offer ends in",
-            "offerPrice": "Offer Price",
-            "originalPrice": "Was",
-            "price": "Price",
-            "selectFinalProduct": "Please select the final product version",
-            "addToCart": "Add to Cart",
-            "specifications": "Specifications",
-            "description": "Description",
-            "whyShopWithUs": "Why Shop With Us?",
-            "inStock": "In Stock",
+            "reviews": "Reviews",
+      "customerReviews": "Customer Reviews",
+      "basedOnReviews": "Based on {{count}} reviews",
+      "reviewForm": {
+        "title": "Write a Review",
+        "ratingLabel": "Your Rating",
+        "commentLabel": "Your Comment",
+        "commentPlaceholder": "Share your thoughts about this product...",
+        "submit": "Submit Review",
+        "validationError": "Please provide a rating and a comment.",
+        "success": "Thank you! Your review has been submitted.",
+        "error": "Sorry, we couldn't submit your review. Please try again.",
+        "alreadyReviewed": "You have already reviewed this product.",
+        "loginToReview": "Please log in to write a review.",
+        "noReviewsYet": "No reviews yet. Be the first to review!",
+        "beTheFirst": "Be the first to review this product!"
+      },
+      "failedToLoad": "Failed to load product details.",
+      "selectAllOptions": "Please select all options before adding to cart.",
+      "specialOffer": "Special Offer",
+      "offerEndsIn": "Offer ends in",
+      "selectFinalProduct": "Select Size/Type",
+      "addToCart": "Add to Cart",
+      "inStock": "{{count}} items in stock",
+      "outOfStock": "Out of Stock",
+      "description": "Description",
+      "specifications": "Specifications"
         },
     }
 };

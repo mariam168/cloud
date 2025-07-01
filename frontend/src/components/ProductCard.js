@@ -1,10 +1,24 @@
 import React from "react";
-import { Heart, Award, ShoppingCart, ArrowRight } from "lucide-react"; 
+import { Heart, Award, Star, ArrowRight } from "lucide-react"; 
 import { useLanguage } from "./LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "./ToastNotification";
+
+const StarRating = ({ rating }) => (
+    <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+            <Star
+                key={i}
+                size={14}
+                className={i < rating ? 'text-yellow-400' : 'text-gray-300'}
+                fill="currentColor"
+            />
+        ))}
+    </div>
+);
+
 const ProductCard = ({ product, advertisement }) => {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
@@ -107,6 +121,12 @@ const ProductCard = ({ product, advertisement }) => {
                     >
                         {productName}
                     </h3>
+                    {product.numReviews > 0 && (
+                        <div className="flex items-center gap-1.5">
+                            <StarRating rating={product.averageRating} />
+                            <span className="text-xs font-medium text-gray-500 dark:text-zinc-400">({product.numReviews})</span>
+                        </div>
+                    )}
                 </div>
                 
                 <div className="mt-auto pt-2">
