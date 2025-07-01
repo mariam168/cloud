@@ -20,8 +20,9 @@ export const WishlistProvider = ({ children }) => {
   const { showToast } = useToast(); 
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
-  const { isAuthenticated, currentUser, API_BASE_URL, token } = useAuth(); 
+  const { isAuthenticated, API_BASE_URL, token } = useAuth(); 
   const navigate = useNavigate();
+
   const fetchWishlist = useCallback(async () => {
     if (isAuthenticated && API_BASE_URL && token) {
       setLoadingWishlist(true);
@@ -51,6 +52,7 @@ export const WishlistProvider = ({ children }) => {
       setWishlistItems([]); 
     }
   }, [isAuthenticated, fetchWishlist]); 
+
   const addToWishlist = async (productOrProductId) => {
     if (!isAuthenticated) {
       showToast(t('wishlist.loginRequired') || 'Please login to add items to your wishlist.', 'info');
@@ -69,14 +71,17 @@ export const WishlistProvider = ({ children }) => {
         return;
     }
 
+    setLoadingWishlist(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/wishlist/${productId}`, {}, {
+      await axios.post(`${API_BASE_URL}/api/wishlist/${productId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       await fetchWishlist();
     } catch (error) {
       console.error('WishlistContext: Failed to add to wishlist:', error.response?.data?.message || error.message);
       showToast(`${t('wishlist.addFailed') || 'Could not add product to wishlist.'}`, 'error');
+    } finally {
+        setLoadingWishlist(false);
     }
   };
 
@@ -86,6 +91,7 @@ export const WishlistProvider = ({ children }) => {
         showToast(t('wishlist.productDataIncompleteRemove') || "Cannot remove product: ID is missing.", 'error');
         return;
     }
+    setLoadingWishlist(true);
     try {
       await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -94,6 +100,8 @@ export const WishlistProvider = ({ children }) => {
     } catch (error) {
       console.error('WishlistContext: Failed to remove from wishlist:', error.response?.data?.message || error.message);
       showToast(`${t('wishlist.removeFailed') || 'Could not remove product from wishlist.'}`, 'error');
+    } finally {
+        setLoadingWishlist(false);
     }
   };
 
@@ -130,7 +138,7 @@ export const WishlistProvider = ({ children }) => {
     toggleFavorite,
     wishlistCount: wishlistItems.length, 
     loadingWishlist,
-    fetchWishlist,
+    fetchWishlist, 
   };
 
   return (

@@ -5,7 +5,9 @@ const User = require('../models/User');
 const Product = require('../models/Product'); 
 router.get('/', protect, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).populate('wishlist');
+    const user = await User.findById(req.user.id)
+      .populate('wishlist', 'name basePrice mainImage'); 
+
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
@@ -26,14 +28,16 @@ router.post('/:productId', protect, async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
+
     if (user.wishlist.includes(productId)) {
-      const updatedUser = await User.findById(req.user.id).populate('wishlist');
+      const updatedUser = await User.findById(req.user.id).populate('wishlist', 'name basePrice mainImage');
       return res.status(200).json({ message: 'Product already in wishlist.', wishlist: updatedUser.wishlist });
     } else {
       user.wishlist.push(productId);
       await user.save();
     }
-    const updatedUser = await User.findById(req.user.id).populate('wishlist');
+    
+    const updatedUser = await User.findById(req.user.id).populate('wishlist', 'name basePrice mainImage');
     res.status(200).json({ message: 'Product added to wishlist successfully.', wishlist: updatedUser.wishlist });
 
   } catch (error) {
@@ -58,7 +62,8 @@ router.delete('/:productId', protect, async (req, res, next) => {
     }
 
     await user.save();
-    const updatedUser = await User.findById(req.user.id).populate('wishlist');
+    
+    const updatedUser = await User.findById(req.user.id).populate('wishlist', 'name basePrice mainImage');
     res.status(200).json({ message: 'Product removed from wishlist successfully.', wishlist: updatedUser.wishlist });
 
   } catch (error) {

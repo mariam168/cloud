@@ -31,6 +31,7 @@ import AdminOrderDetailsPage from './pages/Admin/AdminOrderDetailsPage';
 import AdvertisementList from './components/Admin/AdvertisementPage/AdvertisementList';
 import DiscountList from './components/Admin/DiscountPage/DiscountList';
 import ProfilePage from './pages/ProfilePage';
+import OrderDetailsPage from './pages/OrderDetailsPage';
 
 const MainLayout = () => (
   <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen flex flex-col">
@@ -67,6 +68,7 @@ function App() {
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/all-offers" element={<AllOffersPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/order/:id" element={<OrderDetailsPage />} /> 
                   </Route>
 
                   <Route element={<AuthLayout />}>
