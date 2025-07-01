@@ -1,27 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Outlet, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './components/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext'; 
+import { CartProvider } from './context/CartContext';
+import { ToastProvider } from './components/ToastNotification';
 import TopBar from './components/Header/TopBar';
 import MainHeader from './components/Header/MainHeader';
+import Footer from './components/Footer';
+import DashboardLayout from './components/layouts/DashboardLayout';
 import Home from './pages/Home';
 import About from './pages/About';
 import ContactUs from './pages/ContactUs';
 import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
-import LoginPage from './pages/Auth/LoginPage';
-import RegisterPage from './pages/Auth/RegisterPage';
-import DashboardLayout from './components/layouts/DashboardLayout';
 import WishlistPage from './pages/WishlistPage';
-import { WishlistProvider } from './context/WishlistContext'; 
-import { CartProvider } from './context/CartContext';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import AllOffersPage from './pages/AllOffersPage';
+import LoginPage from './pages/Auth/LoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
 import ActivationPage from './pages/Auth/ActivationPage';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/Auth/ResetPasswordPage';
-import AllOffersPage from './pages/AllOffersPage';
-import { ToastProvider } from './components/ToastNotification';
 import AdminDashboardPage from './pages/Admin/Dashboard'; 
 import AdminProductsPage from './pages/Admin/Products';
 import AdminCategoriesPage from './pages/Admin/Categories';
@@ -29,22 +30,22 @@ import AdminOrdersPage from './pages/Admin/AdminOrdersPage';
 import AdminOrderDetailsPage from './pages/Admin/AdminOrderDetailsPage';
 import AdvertisementList from './components/Admin/AdvertisementPage/AdvertisementList';
 import DiscountList from './components/Admin/DiscountPage/DiscountList';
+import ProfilePage from './pages/ProfilePage';
 
-function MainSiteLayout() {
-  const location = useLocation();
-  const hideHeader = ['/login', '/register', '/activate', '/forgotpassword', '/resetpassword'].some(path => location.pathname.startsWith(path));
-  return (
-    <div className="bg-white text-black min-h-screen">
-      {!hideHeader && (
-        <>
-          <TopBar />
-          <MainHeader />
-        </>
-      )}
-      <Outlet /> 
-    </div>
-  );
-}
+const MainLayout = () => (
+  <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen flex flex-col">
+    <TopBar />
+    <MainHeader />
+    <main className="flex-grow">
+      <Outlet />
+    </main>
+    <Footer />
+  </div>
+);
+
+const AuthLayout = () => (
+    <Outlet />
+);
 
 function App() {
   return (
@@ -55,7 +56,7 @@ function App() {
             <WishlistProvider>
               <CartProvider>
                 <Routes>
-                  <Route element={<MainSiteLayout />}>
+                  <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<ContactUs />} />
@@ -65,12 +66,17 @@ function App() {
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/all-offers" element={<AllOffersPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
                   </Route>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/activate/:token" element={<ActivationPage />} />
-                  <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
-                  <Route path="/resetpassword/:token" element={<ResetPasswordPage />} />
+
+                  <Route element={<AuthLayout />}>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/activate/:token" element={<ActivationPage />} />
+                    <Route path="/forgotpassword" element={<ForgotPasswordPage />} />
+                    <Route path="/resetpassword/:token" element={<ResetPasswordPage />} />
+                  </Route>
+                  
                   <Route path="/admin" element={<DashboardLayout />}> 
                     <Route index element={<Navigate to="dashboard" replace />} />
                     <Route path="dashboard" element={<AdminDashboardPage />} />

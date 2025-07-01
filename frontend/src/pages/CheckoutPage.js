@@ -26,7 +26,8 @@ const CheckoutPage = () => {
 
     const formatPrice = useCallback((price) => {
         if (price === undefined || price === null) return t('general.priceNotAvailable', 'N/A');
-        const currencyCode = cartItems[0]?.product?.currency || 'SAR';
+        // FIX: Changed 'EG' to 'EGP' for valid currency code
+        const currencyCode = cartItems[0]?.product?.currency || 'EGP';
         return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: currencyCode }).format(Number(price));
     }, [language, t, cartItems]);
     

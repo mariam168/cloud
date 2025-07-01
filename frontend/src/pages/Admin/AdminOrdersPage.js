@@ -3,14 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../components/LanguageContext';
-import {
-    Loader2,
-    CheckCircle,
-    XCircle,
-    ShoppingCart,
-    Eye,
-    Info // يمكن استخدامها لرسالة "لا توجد طلبات"
-} from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, ShoppingCart, Eye, Info } from 'lucide-react';
 import { useToast } from '../../components/ToastNotification';
 
 const AdminOrdersPage = () => {
@@ -18,11 +11,9 @@ const AdminOrdersPage = () => {
     const { currentUser, token, API_BASE_URL, loadingAuth } = useAuth();
     const navigate = useNavigate();
     const { showToast } = useToast();
-
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [error, setError] = useState(null);
-
     const fetchOrders = useCallback(async () => {
         setLoadingOrders(true);
         try {
@@ -31,9 +22,8 @@ const AdminOrdersPage = () => {
             setOrders(response.data);
             setError(null);
         } catch (err) {
-            console.error("Error fetching orders:", err);
             setError(t('adminOrdersPage.errorFetchingOrdersToast'));
-            showToast({ message: t('adminOrdersPage.errorFetchingOrdersToast'), type: 'error' });
+           showToast(t('adminOrdersPage.errorFetchingOrdersToast'), 'error');
         } finally {
             setLoadingOrders(false);
         }
@@ -41,13 +31,11 @@ const AdminOrdersPage = () => {
 
     useEffect(() => {
         if (loadingAuth) return;
-
         if (!currentUser || currentUser.role !== 'admin') {
             navigate('/');
-            showToast({ message: t('general.accessDenied'), type: 'error' });
+           showToast(t('general.accessDenied'), 'error');
             return;
         }
-
         if (token) {
             fetchOrders();
         }
@@ -55,104 +43,96 @@ const AdminOrdersPage = () => {
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', {
-            style: 'currency', currency: t('general.currencyCode') || 'USD'
+            style: 'currency',currency: t('general.currencyCode')
         }).format(Number(price || 0));
     };
 
-    // --- Loading and Error States (Styled for a calmer look) ---
     if (loadingAuth || loadingOrders) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-700 dark:text-gray-300">
-                <Loader2 className="animate-spin h-14 w-14 text-indigo-500 dark:text-indigo-400 mb-4" />
-                <p className="text-xl font-medium">{t('general.loadingOrders')}</p>
+            <div className="flex min-h-[80vh] w-full items-center justify-center">
+                <Loader2 size={48} className="animate-spin text-indigo-500" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900 dark:to-red-800 text-red-700 dark:text-red-200 p-8">
-                <XCircle className="h-16 w-16 mb-4 opacity-70" />
-                <p className="text-2xl font-bold mb-4">{t('general.errorOccurred')}</p>
-                <p className="text-lg text-center max-w-md">{error}</p>
-                <button
-                    onClick={fetchOrders}
-                    className="mt-8 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300 dark:focus:ring-red-700"
-                >
-                    {t('general.tryAgain')}
-                </button>
+            <div className="flex min-h-[80vh] w-full items-center justify-center p-4">
+                <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <Info size={48} className="mx-auto mb-5 text-red-500" />
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('general.errorOccurred')}</h2>
+                    <p className="text-base text-red-600 dark:text-red-400">{error}</p>
+                    <button onClick={fetchOrders} className="mt-6 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                        {t('general.tryAgain')}
+                    </button>
+                </div>
             </div>
         );
     }
 
-    // --- Main Content (Refined for a softer aesthetic) ---
     return (
-        <div className="container mx-auto p-4 md:p-8 max-w-7xl bg-white dark:bg-gray-800 rounded-3xl shadow-xl my-8 border border-gray-100 dark:border-gray-700">
-            {/* Page Title */}
-            <h1 className="text-4xl font-extrabold text-gray-800 dark:text-white mb-8 pb-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-4">
-                <ShoppingCart className="text-indigo-600 dark:text-indigo-400" size={36} strokeWidth={2} />
-                {t('adminOrdersPage.allOrders')}
-            </h1>
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+            <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                    <ShoppingCart size={26} className="text-indigo-500" />
+                    {t('adminOrdersPage.allOrders')}
+                </h1>
+            </header>
 
-            {/* No Orders Found Message */}
             {orders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300">
-                    <Info className="h-16 w-16 mb-6 text-indigo-400 dark:text-indigo-300 opacity-80" />
-                    <p className="text-2xl font-semibold mb-3">{t('adminOrdersPage.noOrdersFound')}</p>
-                    <p className="text-lg text-gray-500 dark:text-gray-400">{t('adminOrdersPage.checkLater')}</p>
+                <div className="text-center py-16">
+                    <Info size={48} className="mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                        {t('adminOrdersPage.noOrdersFound')}
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
+                        {t('adminOrdersPage.checkLater')}
+                    </p>
                 </div>
             ) : (
-                /* Orders Table */
-                <div className="overflow-hidden shadow-lg rounded-2xl border border-gray-200 dark:border-gray-700">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-100 dark:bg-gray-700">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                        <thead className="bg-gray-50 dark:bg-zinc-800/50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('adminOrdersPage.user')}</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('adminOrdersPage.date')}</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('adminOrdersPage.total')}</th>
-                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('adminOrdersPage.paid')}</th>
-                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('adminOrdersPage.delivered')}</th>
-                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('adminOrdersPage.actions')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">ID</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('adminOrdersPage.user')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('adminOrdersPage.date')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('adminOrdersPage.total')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('adminOrdersPage.paid')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('adminOrdersPage.delivered')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('adminOrdersPage.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
-                            {orders.map((order, index) => (
-                                <tr
-                                    key={order._id}
-                                    className={`${index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700/50'} hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ease-in-out`}
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 dark:text-gray-400" title={order._id}>
-                                        <span className="font-bold text-gray-700 dark:text-gray-300">#</span>{order._id.slice(-8)}
+                        <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
+                            {orders.map((order) => (
+                                <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                                    <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-gray-500 dark:text-zinc-500" title={order._id}>
+                                        #{order._id.slice(-6).toUpperCase()}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
+                                    <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-800 dark:text-white">
                                         {order.user?.name || t('general.notAvailable')}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-zinc-400">
                                         {new Date(order.createdAt).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-md font-extrabold text-indigo-700 dark:text-indigo-400">
+                                    <td className="whitespace-nowrap px-4 py-3 font-semibold text-green-600">
                                         {formatPrice(order.totalPrice)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                    <td className="whitespace-nowrap px-4 py-3 text-center">
                                         {order.isPaid ?
-                                            <CheckCircle className="text-green-500 dark:text-green-400 inline-block h-6 w-6" title={t('general.yes')} /> :
-                                            <XCircle className="text-red-500 dark:text-red-400 inline-block h-6 w-6" title={t('general.no')} />
+                                            <CheckCircle className="text-green-500 inline-block h-5 w-5" /> :
+                                            <XCircle className="text-red-500 inline-block h-5 w-5" />
                                         }
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                    <td className="whitespace-nowrap px-4 py-3 text-center">
                                         {order.isDelivered ?
-                                            <CheckCircle className="text-green-500 dark:text-green-400 inline-block h-6 w-6" title={t('general.yes')} /> :
-                                            <XCircle className="text-red-500 dark:text-red-400 inline-block h-6 w-6" title={t('general.no')} />
+                                            <CheckCircle className="text-green-500 inline-block h-5 w-5" /> :
+                                            <XCircle className="text-red-500 inline-block h-5 w-5" />
                                         }
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                        <Link
-                                            to={`/admin/orders/${order._id}`}
-                                            className="inline-flex items-center justify-center p-2 rounded-full text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-all duration-200 ease-in-out transform hover:scale-110"
-                                            title={t('adminOrdersPage.viewDetails')}
-                                        >
-                                            <Eye size={20} />
+                                    <td className="whitespace-nowrap px-4 py-3 text-center">
+                                        <Link to={`/admin/orders/${order._id}`} className="inline-block rounded-md p-2 text-gray-600 hover:bg-gray-200 hover:text-indigo-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-indigo-400 focus:relative">
+                                            <Eye size={16} />
                                         </Link>
                                     </td>
                                 </tr>

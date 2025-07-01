@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { X, CheckCircle, Info, TriangleAlert } from 'lucide-react'; 
+import { X, CheckCircle, Info, TriangleAlert } from 'lucide-react';
 
 const ToastContext = createContext();
 
@@ -10,7 +10,6 @@ export const useToast = () => {
     }
     return context;
 };
-
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
 
@@ -26,7 +25,6 @@ export const ToastProvider = ({ children }) => {
     return (
         <ToastContext.Provider value={{ showToast }}>
             {children}
-            {/* Position the container at the top right */}
             <div className="fixed top-4 right-4 z-[9999] flex flex-col items-end gap-3">
                 {toasts.map((toast) => (
                     <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
@@ -38,11 +36,11 @@ export const ToastProvider = ({ children }) => {
 
 const ToastItem = ({ toast, onRemove }) => {
     const { id, message, type, duration } = toast;
-    const [isVisible, setIsVisible] = useState(false); 
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         const enterTimeout = setTimeout(() => setIsVisible(true), 10);
-        
+
         const exitTimer = setTimeout(() => {
             setIsVisible(false);
             setTimeout(() => onRemove(id), 400);
@@ -62,7 +60,7 @@ const ToastItem = ({ toast, onRemove }) => {
                 return { borderColor: 'border-red-500', iconColor: 'text-red-500', Icon: X };
             case 'warning':
                 return { borderColor: 'border-orange-500', iconColor: 'text-orange-500', Icon: TriangleAlert };
-            default: // 'info'
+            default: 
                 return { borderColor: 'border-indigo-500', iconColor: 'text-indigo-500', Icon: Info };
         }
     };
@@ -75,7 +73,11 @@ const ToastItem = ({ toast, onRemove }) => {
             role="alert"
         >
             {Icon && (<div className="flex-shrink-0"><Icon size={20} className={iconColor} /></div>)}
-            <div className="flex-1"><p className="text-sm font-medium text-gray-800 dark:text-white">{message}</p></div>
+            <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800 dark:text-white">
+                    {typeof message === 'object' && message !== null ? JSON.stringify(message) : message}
+                </p>
+            </div>
             <button onClick={() => { setIsVisible(false); setTimeout(() => onRemove(id), 400); }} className="flex-shrink-0 p-1 text-gray-400 transition-colors hover:text-gray-700 dark:text-zinc-500 dark:hover:text-white" aria-label="Close toast">
                 <X size={16} />
             </button>

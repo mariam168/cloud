@@ -26,7 +26,7 @@ const advertisementSchema = new mongoose.Schema({
     endDate: { type: Date, default: null },
     originalPrice: { type: Number, default: null, min: 0 }, 
     discountedPrice: { type: Number, default: null, min: 0 },
-    currency: { type: String, default: 'SAR', trim: true, maxlength: 10 },
+    currency: { type: String, default: 'EG', trim: true, maxlength: 10 },
 }, {
     timestamps: true 
 });

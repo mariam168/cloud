@@ -51,7 +51,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                 endDate: advertisement.endDate ? new Date(advertisement.endDate).toISOString().slice(0, 10) : '',
                 originalPrice: advertisement.originalPrice ?? '',
                 discountedPrice: advertisement.discountedPrice ?? '',
-                currency: advertisement.currency || 'SAR',
+                currency: advertisement.currency || 'EG',
                 productRef: advertisement.productRef?._id || advertisement.productRef || '',
             });
             setCurrentImageUrl(advertisement.image ? `${serverUrl}${advertisement.image}` : '');
@@ -221,7 +221,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                         </div>
                         <div>
                             <label htmlFor="edit-currency" className={labelClasses}>{t('advertisementAdmin.currency')}</label>
-                            <input type="text" id="edit-currency" name="currency" value={editedAdvertisement.currency} onChange={handleChange} className={inputClasses} placeholder="SAR, USD..." />
+                            <input type="text" id="edit-currency" name="currency" value={editedAdvertisement.currency} onChange={handleChange} className={inputClasses} placeholder="EG, USD..." />
                         </div>
                     </div>
 

@@ -1,25 +1,10 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../components/LanguageContext';
-import {
-    Loader2,
-    CheckCircle,
-    XCircle,
-    Truck,
-    DollarSign,
-    User,
-    MapPin,
-    Package,
-    Calendar,
-    Clock,
-    ChevronLeft,
-    Info, // Added for "Order Not Found"
-    ReceiptText // New icon for Order Details title
-} from 'lucide-react';
-import { useToast } from '../../components/ToastNotification'; // Assuming this provides a more persistent/styled toast
+import { Loader2, CheckCircle, XCircle, Truck, DollarSign, User, MapPin, Package, Calendar, ChevronLeft, Info, ReceiptText } from 'lucide-react';
+import { useToast } from '../../components/ToastNotification';
 
 const AdminOrderDetailsPage = () => {
     const { id } = useParams();
@@ -32,22 +17,16 @@ const AdminOrderDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [updatingStatus, setUpdatingStatus] = useState(false);
-    // Removed uiMessage state, will rely on useToast for feedback
 
     const fetchOrderDetails = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            };
+            const config = { headers: { Authorization: `Bearer ${token}` } };
             const response = await axios.get(`${API_BASE_URL}/api/orders/${id}`, config);
             setOrder(response.data);
         } catch (err) {
-            console.error("Error fetching order details:", err.response ? err.response.data : err.message);
-            const errorMessage = t('adminOrdersPage.errorFetchingOrderDetails') || 'Failed to fetch order details.';
+            const errorMessage = t('adminOrdersPage.errorFetchingOrderDetails');
             setError(errorMessage);
             showToast({ message: errorMessage, type: 'error' });
         } finally {
@@ -57,68 +36,45 @@ const AdminOrderDetailsPage = () => {
 
     useEffect(() => {
         if (loadingAuth) return;
-
         if (!isAuthenticated || !currentUser || currentUser.role !== 'admin') {
             navigate('/');
             showToast({ message: t('general.accessDenied'), type: 'error' });
             return;
         }
-
         if (token && API_BASE_URL && id) {
             fetchOrderDetails();
         }
     }, [id, isAuthenticated, currentUser, token, API_BASE_URL, navigate, t, loadingAuth, fetchOrderDetails, showToast]);
 
-
     const handleUpdateStatus = async (type) => {
         setUpdatingStatus(true);
-        let successMessage = ''; // Initialize successMessage
-        let specificErrorMessage = ''; // Initialize specificErrorMessage here
-        const defaultErrorMessage = t('general.errorOccurred') || 'An unexpected error occurred.'; // Default error
-
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-            };
+            const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } };
             let response;
-
+            let successMessage = '';
+            
             if (type === 'pay') {
-                const paymentResult = {
-                    id: 'mock_payment_id_' + Date.now(),
-                    status: 'COMPLETED',
-                    update_time: new Date().toISOString(),
-                    email_address: order.user?.email,
-                };
+                const paymentResult = { id: `mock_id_${Date.now()}`, status: 'COMPLETED', update_time: new Date().toISOString(), email_address: order.user?.email };
                 response = await axios.put(`${API_BASE_URL}/api/orders/${id}/pay`, paymentResult, config);
-                successMessage = t('adminOrdersPage.paidSuccess') || 'Order marked as paid successfully!';
-                specificErrorMessage = t('adminOrdersPage.paidError') || 'Failed to mark order as paid.';
+                successMessage = t('adminOrdersPage.paidSuccess');
             } else if (type === 'deliver') {
                 response = await axios.put(`${API_BASE_URL}/api/orders/${id}/deliver`, {}, config);
-                successMessage = t('adminOrdersPage.deliveredSuccess') || 'Order marked as delivered successfully!';
-                specificErrorMessage = t('adminOrdersPage.deliveredError') || 'Failed to mark order as delivered.';
+                successMessage = t('adminOrdersPage.deliveredSuccess');
             }
 
             setOrder(response.data);
             showToast({ message: successMessage, type: 'success' });
         } catch (err) {
-            // Use the specificErrorMessage if available, otherwise fallback to a generic one
-            const msg = err.response?.data?.message || specificErrorMessage || defaultErrorMessage;
-            setError(msg); // Set component-level error for persistent display if needed
-            showToast({ message: msg, type: 'error' });
-            console.error(`Error updating order status (${type}):`, err.response ? err.response.data : err.message);
+            const errorMessageString = err.response?.data?.message || t('general.errorOccurred');
+            setError(errorMessageString);
+            showToast({ message: errorMessageString, type: 'error' });
         } finally {
             setUpdatingStatus(false);
         }
     };
 
     const formatPrice = (price) => {
-        // Use Intl.NumberFormat for robust currency formatting
-        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', {
-            style: 'currency', currency: t('general.currencyCode') || 'USD'
-        }).format(Number(price || 0));
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: t('general.currencyCode') }).format(Number(price || 0));
     };
 
     const formatDateTime = (dateString) => {
@@ -127,226 +83,121 @@ const AdminOrderDetailsPage = () => {
         return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', options);
     };
 
-    // --- Loading State ---
     if (loading || loadingAuth) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300">
-                <Loader2 className="animate-spin h-14 w-14 text-indigo-500 dark:text-indigo-400 mb-4" />
-                <p className="text-xl font-medium">{t('general.loading') || 'Loading...'}</p>
+            <div className="flex min-h-[80vh] w-full items-center justify-center">
+                <Loader2 size={48} className="animate-spin text-indigo-500" />
             </div>
         );
     }
-
-    // --- Error State ---
-    if (error) {
+    
+    if (error && !order) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-300 p-8 text-center">
-                <XCircle className="h-16 w-16 mb-4 opacity-70" />
-                <p className="text-2xl font-bold mb-4">{t('general.errorOccurred') || 'Error Occurred!'}</p>
-                <p className="text-lg max-w-md">{error}</p>
-                <button
-                    onClick={fetchOrderDetails}
-                    className="mt-8 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300 dark:focus:ring-red-700"
-                >
-                    {t('general.tryAgain') || 'Try Again'}
-                </button>
+            <div className="flex min-h-[80vh] w-full items-center justify-center p-4">
+                <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <Info size={48} className="mx-auto mb-5 text-red-500" />
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('adminOrdersPage.orderNotFound')}</h2>
+                    <p className="text-base text-red-600 dark:text-red-400">{error}</p>
+                    <Link to="/admin/orders" className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500">
+                        <ChevronLeft size={16} />{t('general.backToOrders')}
+                    </Link>
+                </div>
             </div>
         );
     }
 
-    // --- Order Not Found State ---
-    if (!order) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 p-8 text-center">
-                <Info className="h-16 w-16 mb-6 text-yellow-500 dark:text-yellow-400 opacity-80" />
-                <p className="text-2xl font-semibold mb-3">{t('adminOrdersPage.orderNotFound') || 'Order not found.'}</p>
-                <p className="text-lg text-gray-500 dark:text-gray-400">{t('adminOrdersPage.checkOrderId') || 'Please check the order ID and try again.'}</p>
-                <Link to="/admin/orders" className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition duration-300 flex items-center">
-                    <ChevronLeft size={20} className="mr-2" /> {t('general.backToOrders') || 'Back to Orders'}
-                </Link>
-            </div>
-        );
-    }
+    if (!order) return null;
 
-    // --- Main Content ---
+    const DetailCard = ({ title, icon, children, className = '' }) => (
+        <div className={`bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 ${className}`}>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                {React.cloneElement(icon, { className: "text-indigo-500", size: 22 })}
+                {title}
+            </h2>
+            <div className="space-y-4">{children}</div>
+        </div>
+    );
+
+    const StatusBadge = ({ isTrue, trueText, falseText, icon: Icon }) => (
+        <div className={`p-3 rounded-lg text-sm font-medium flex items-center gap-2 ${isTrue ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400'}`}>
+            {isTrue ? <CheckCircle size={16} /> : <Icon size={16} />}
+            <span>{isTrue ? trueText : falseText}</span>
+        </div>
+    );
+    
     return (
-        <div className="container mx-auto p-4 md:p-8 max-w-7xl bg-white dark:bg-gray-900 shadow-2xl rounded-2xl my-8 border border-gray-100 dark:border-gray-800">
-            {/* Back Button */}
-            <Link to="/admin/orders" className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-500 mb-6 font-medium transition-colors duration-200">
-                <ChevronLeft size={20} className="mr-2" />
-                {t('general.backToOrders') || 'Back to Orders'}
-            </Link>
+        <div className="space-y-8">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                        <ReceiptText size={30} />{t('adminOrdersPage.orderDetails')}
+                    </h1>
+                    <p className="mt-1 font-mono text-sm text-gray-500 dark:text-zinc-500">#{order._id}</p>
+                </div>
+                <Link to="/admin/orders" className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700">
+                    <ChevronLeft size={16} />{t('general.backToOrders')}
+                </Link>
+            </header>
 
-            {/* Page Title */}
-            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-8 pb-5 border-b border-gray-200 dark:border-gray-700 flex items-center gap-4">
-                <ReceiptText className="text-purple-600 dark:text-purple-400" size={36} strokeWidth={2} />
-                {t('adminOrdersPage.orderDetails') || 'Order Details'}
-                <span className="text-gray-500 dark:text-gray-400 text-2xl font-mono ml-2 opacity-80">#{order._id.slice(-8)}</span>
-            </h1>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column (Shipping, Payment, Items) */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Shipping Address Card */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <MapPin size={24} className="mr-3 text-indigo-600 dark:text-indigo-400" />
-                            {t('adminOrdersPage.shippingAddress') || 'Shipping Address'}
-                        </h2>
-                        <p className="text-gray-700 dark:text-gray-300 mb-2">
-                            <strong>{t('adminOrdersPage.address') || 'Address'}:</strong> {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-                        </p>
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">
-                            <strong>{t('adminOrdersPage.status') || 'Status'}:</strong>
-                            <span className={`ml-2 px-3 py-1 rounded-full text-sm font-semibold ${order.isDelivered ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'}`}>
-                                {order.isDelivered ? (t('adminOrdersPage.delivered') || 'Delivered') : (t('adminOrdersPage.notDelivered') || 'Not Delivered')}
-                            </span>
-                            {order.deliveredAt && (
-                                <span className="ml-2 text-gray-500 dark:text-gray-400 text-xs">
-                                    ({formatDateTime(order.deliveredAt)})
-                                </span>
-                            )}
-                        </p>
-                        {!order.isDelivered && (
-                            <button
-                                onClick={() => handleUpdateStatus('deliver')}
-                                disabled={updatingStatus}
-                                className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium transform hover:scale-[1.01]"
-                            >
-                                {updatingStatus ? <Loader2 className="animate-spin mr-2" size={20} /> : <Truck size={20} className="mr-2" />}
-                                {updatingStatus ? (t('adminOrdersPage.markingDelivered') || 'Marking Delivered...') : (t('adminOrdersPage.markAsDelivered') || 'Mark As Delivered')}
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Payment Method Card */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <DollarSign size={24} className="mr-3 text-green-600 dark:text-green-400" />
-                            {t('adminOrdersPage.paymentMethod') || 'Payment Method'}
-                        </h2>
-                        <p className="text-gray-700 dark:text-gray-300 mb-2">
-                            <strong>{t('adminOrdersPage.method') || 'Method'}:</strong> {order.paymentMethod}
-                        </p>
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">
-                            <strong>{t('adminOrdersPage.status') || 'Status'}:</strong>
-                            <span className={`ml-2 px-3 py-1 rounded-full text-sm font-semibold ${order.isPaid ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'}`}>
-                                {order.isPaid ? (t('adminOrdersPage.paid') || 'Paid') : (t('adminOrdersPage.notPaid') || 'Not Paid')}
-                            </span>
-                            {order.paidAt && (
-                                <span className="ml-2 text-gray-500 dark:text-gray-400 text-xs">
-                                    ({formatDateTime(order.paidAt)})
-                                </span>
-                            )}
-                        </p>
-                        {!order.isPaid && (
-                            <button
-                                onClick={() => handleUpdateStatus('pay')}
-                                disabled={updatingStatus}
-                                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium transform hover:scale-[1.01]"
-                            >
-                                {updatingStatus ? <Loader2 className="animate-spin mr-2" size={20} /> : <CheckCircle size={20} className="mr-2" />}
-                                {updatingStatus ? (t('adminOrdersPage.markingPaid') || 'Marking Paid...') : (t('adminOrdersPage.markAsPaid') || 'Mark As Paid')}
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Order Items Card */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <Package size={24} className="mr-3 text-purple-600 dark:text-purple-400" />
-                            {t('adminOrdersPage.orderItems') || 'Order Items'}
-                        </h2>
-                        <div className="space-y-6">
-                            {order.orderItems.map((item) => (
-                                <div key={item.product} className="flex items-start border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0 last:pb-0">
-                                    <img
-                                        src={item.image ? `${API_BASE_URL}${item.image}` : 'https://via.placeholder.com/80x80?text=No+Image'}
-                                        alt={item.name?.[language] || item.name?.en || t('general.unnamedItem')}
-                                        className="w-20 h-20 object-cover rounded-lg mr-4 shadow-sm border border-gray-200 dark:border-gray-600"
-                                    />
-                                    <div className="flex-1">
-                                        <Link
-                                            to={`/product/${item.product}`}
-                                            className="text-lg font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-500 hover:underline transition-colors duration-200"
-                                        >
-                                            {item.name?.[language] || item.name?.en || t('general.unnamedItem')}
-                                        </Link>
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                                            {item.quantity} x {formatPrice(item.price)}
-                                        </p>
-                                        <p className="text-gray-800 dark:text-gray-200 font-semibold mt-1">
-                                            {t('adminOrdersPage.subtotal') || 'Subtotal'}: {formatPrice(item.quantity * item.price)}
-                                        </p>
-                                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                <div className="lg:col-span-3 space-y-8">
+                    <DetailCard title={t('adminOrdersPage.orderItems')} icon={<Package />}>
+                        {order.orderItems.map((item) => (
+                            <div key={item.product} className="flex items-start border-b border-gray-200 dark:border-zinc-800 pb-4 last:border-b-0 last:pb-0">
+                                <img src={item.image ? `${API_BASE_URL}${item.image}` : `https://via.placeholder.com/80?text=N/A`} alt={item.name?.[language]} className="w-16 h-16 object-cover rounded-lg mr-4 border border-gray-200 dark:border-zinc-700" />
+                                <div className="flex-1">
+                                    <Link to={`/product/${item.product}`} className="font-semibold text-gray-800 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400">{item.name?.[language]}</Link>
+                                    <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">{item.quantity} x {formatPrice(item.price)}</p>
                                 </div>
-                            ))}
+                                <p className="text-sm font-semibold text-gray-800 dark:text-white">{formatPrice(item.quantity * item.price)}</p>
+                            </div>
+                        ))}
+                    </DetailCard>
+                    <DetailCard title={t('adminOrdersPage.customerInfo')} icon={<User />}>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white">{order.user?.name || t('general.notAvailable')}</p>
+                        <p className="text-sm text-gray-500 dark:text-zinc-400">{order.user?.email || t('general.notAvailable')}</p>
+                        <div className="text-sm text-gray-600 dark:text-zinc-300 pt-3 border-t border-gray-200 dark:border-zinc-800">
+                            <strong className="block text-gray-800 dark:text-white mb-1">{t('adminOrdersPage.shippingAddress')}</strong>
+                            {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
                         </div>
-                    </div>
+                    </DetailCard>
                 </div>
 
-                {/* Right Column (Customer Info, Order Summary, Dates) */}
-                <div className="lg:col-span-1 space-y-8">
-                    {/* Customer Information Card */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <User size={24} className="mr-3 text-blue-600 dark:text-blue-400" />
-                            {t('adminOrdersPage.customerInfo') || 'Customer Information'}
-                        </h2>
-                        <p className="text-gray-700 dark:text-gray-300">
-                            <strong>{t('adminOrdersPage.name') || 'Name'}:</strong> {order.user?.name || t('general.notAvailable')}
-                        </p>
-                        <p className="text-gray-700 dark:text-gray-300 mt-2">
-                            <strong>{t('adminOrdersPage.email') || 'Email'}:</strong> {order.user?.email || t('general.notAvailable')}
-                        </p>
-                    </div>
+                <div className="lg:col-span-2 space-y-8">
+                    <DetailCard title={t('adminOrdersPage.orderStatus')} icon={<Truck />}>
+                        <StatusBadge isTrue={order.isPaid} trueText={t('adminOrdersPage.paid')} falseText={t('adminOrdersPage.notPaid')} icon={XCircle} />
+                        {!order.isPaid && (
+                             <button onClick={() => handleUpdateStatus('pay')} disabled={updatingStatus} className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500 disabled:opacity-60">
+                                {updatingStatus ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
+                                {t('adminOrdersPage.markAsPaid')}
+                            </button>
+                        )}
+                        <StatusBadge isTrue={order.isDelivered} trueText={t('adminOrdersPage.delivered')} falseText={t('adminOrdersPage.notDelivered')} icon={Truck} />
+                        {!order.isDelivered && (
+                            <button onClick={() => handleUpdateStatus('deliver')} disabled={updatingStatus} className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500 disabled:opacity-60">
+                                {updatingStatus ? <Loader2 className="animate-spin" size={16} /> : <Truck size={16} />}
+                                {t('adminOrdersPage.markAsDelivered')}
+                            </button>
+                        )}
+                    </DetailCard>
 
-                    {/* Order Summary Card */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <DollarSign size={24} className="mr-3 text-yellow-600 dark:text-yellow-400" />
-                            {t('adminOrdersPage.orderSummary') || 'Order Summary'}
-                        </h2>
-                        <div className="space-y-3 text-gray-700 dark:text-gray-300">
-                            <div className="flex justify-between items-center text-md">
-                                <span>{t('adminOrdersPage.itemsPrice') || 'Items Price'}:</span>
-                                <span className="font-medium">{formatPrice(order.itemsPrice)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-md">
-                                <span>{t('adminOrdersPage.shippingPrice') || 'Shipping Price'}:</span>
-                                <span className="font-medium">{formatPrice(order.shippingPrice)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-md">
-                                <span>{t('adminOrdersPage.taxPrice') || 'Tax Price'}:</span>
-                                <span className="font-medium">{formatPrice(order.taxPrice)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xl font-bold border-t pt-4 mt-4 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
-                                <span>{t('adminOrdersPage.totalPrice') || 'Total Price'}:</span>
-                                <span>{formatPrice(order.totalPrice)}</span>
-                            </div>
+                    <DetailCard title={t('adminOrdersPage.orderSummary')} icon={<ReceiptText />}>
+                        <div className="space-y-2 text-sm text-gray-600 dark:text-zinc-300">
+                            <div className="flex justify-between"><span>{t('adminOrdersPage.itemsPrice')}</span><span className="font-medium text-gray-800 dark:text-white">{formatPrice(order.itemsPrice)}</span></div>
+                            <div className="flex justify-between"><span>{t('adminOrdersPage.shippingPrice')}</span><span className="font-medium text-gray-800 dark:text-white">{formatPrice(order.shippingPrice)}</span></div>
+                            <div className="flex justify-between"><span>{t('adminOrdersPage.taxPrice')}</span><span className="font-medium text-gray-800 dark:text-white">{formatPrice(order.taxPrice)}</span></div>
                         </div>
-                    </div>
+                        <div className="flex justify-between items-center text-lg font-bold border-t pt-3 mt-3 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white">
+                            <span>{t('adminOrdersPage.totalPrice')}</span>
+                            <span>{formatPrice(order.totalPrice)}</span>
+                        </div>
+                    </DetailCard>
 
-                    {/* Dates Card */}
-                    <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <Calendar size={24} className="mr-3 text-orange-600 dark:text-orange-400" />
-                            {t('adminOrdersPage.importantDates') || 'Important Dates'}
-                        </h2>
-                        <p className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-2">
-                            <Clock size={16} className="text-gray-500" /> <strong>{t('adminOrdersPage.orderedAt') || 'Ordered At'}:</strong> {formatDateTime(order.createdAt)}
-                        </p>
-                        {order.isPaid && order.paidAt && (
-                            <p className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-2">
-                                <CheckCircle size={16} className="text-green-600 dark:text-green-400" /> <strong>{t('adminOrdersPage.paidAt') || 'Paid At'}:</strong> {formatDateTime(order.paidAt)}
-                            </p>
-                        )}
-                        {order.isDelivered && order.deliveredAt && (
-                            <p className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                <Truck size={16} className="text-indigo-600 dark:text-indigo-400" /> <strong>{t('adminOrdersPage.deliveredAt') || 'Delivered At'}:</strong> {formatDateTime(order.deliveredAt)}
-                            </p>
-                        )}
-                    </div>
+                    <DetailCard title={t('adminOrdersPage.importantDates')} icon={<Calendar />}>
+                        <p className="text-sm text-gray-600 dark:text-zinc-300"><strong>{t('adminOrdersPage.orderedAt')}:</strong> {formatDateTime(order.createdAt)}</p>
+                        {order.paidAt && <p className="text-sm text-gray-600 dark:text-zinc-300"><strong>{t('adminOrdersPage.paidAt')}:</strong> {formatDateTime(order.paidAt)}</p>}
+                        {order.deliveredAt && <p className="text-sm text-gray-600 dark:text-zinc-300"><strong>{t('adminOrdersPage.deliveredAt')}:</strong> {formatDateTime(order.deliveredAt)}</p>}
+                    </DetailCard>
                 </div>
             </div>
         </div>

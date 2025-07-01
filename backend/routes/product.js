@@ -6,10 +6,8 @@ const fs = require('fs');
 const Product = require('../models/Product');
 const Advertisement = require('../models/Advertisement');
 const { protect, admin } = require('../middleware/authMiddleware');
-
 const UPLOADS_DIR = path.join(__dirname, '..', 'uploads', 'products');
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, UPLOADS_DIR),
     filename: (req, file, cb) => {
@@ -18,7 +16,6 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage }).any();
-
 const deleteFile = (filePath) => {
     if (!filePath) return;
     const fullPath = path.join(__dirname, '..', filePath);
@@ -31,11 +28,20 @@ const deleteFile = (filePath) => {
 
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.find({})
+        const keyword = req.query.search;
+        const query = {};
+
+        if (keyword) {
+            const searchRegex = new RegExp(keyword, 'i');
+            query.$or = [
+                { 'name.en': { $regex: searchRegex } },
+                { 'name.ar': { $regex: searchRegex } }
+            ];
+        }
+        const products = await Product.find({ ...query })
             .populate('category', 'name')
             .sort({ createdAt: -1 })
             .lean();
-
         const activeAds = await Advertisement.find({
             isActive: true,
             productRef: { $in: products.map(p => p._id) },
@@ -68,22 +74,15 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
-    // --- DEBUG CONSOLE.LOG ---
-    console.log(`\n[BACKEND] 1. Request received for product ID: ${req.params.id}`);
-
     try {
         const product = await Product.findById(req.params.id)
             .populate('category', 'name')
             .lean();
 
         if (!product) {
-            console.log(`[BACKEND] 2. Product with ID ${req.params.id} NOT FOUND.`);
             return res.status(404).json({ message: 'Product not found.' });
         }
         
-        // --- DEBUG CONSOLE.LOG ---
-        console.log(`[BACKEND] 2. Found Product from DB. Attributes are:`, JSON.stringify(product.attributes, null, 2));
-
         const activeAd = await Advertisement.findOne({
             isActive: true,
             productRef: product._id,
@@ -91,19 +90,14 @@ router.get('/:id', async (req, res) => {
             $or: [{ endDate: { $gte: new Date() } }, { endDate: null }]
         }).lean();
 
-        // --- DEBUG CONSOLE.LOG ---
-        console.log(`[BACKEND] 3. Found related Advertisement:`, activeAd ? `Ad ID: ${activeAd._id}` : 'None');
-
         if (activeAd) {
             product.advertisement = activeAd;
         }
 
-        // --- DEBUG CONSOLE.LOG ---
-        console.log('[BACKEND] 4. Final object being sent to frontend.');
         res.json(product);
         
     } catch (error) {
-        console.error(`[BACKEND] Error fetching product ${req.params.id}:`, error);
+        console.error(`Error fetching product ${req.params.id}:`, error);
         res.status(500).json({ message: 'Server error while fetching product.' });
     }
 });
@@ -127,15 +121,19 @@ router.post('/', protect, admin, upload, async (req, res) => {
         if (mainImage) {
             newProductData.mainImage = `/uploads/products/${mainImage.filename}`;
         }
-        newProductData.variations.forEach((v, vIndex) => {
-            v.options.forEach((o, oIndex) => {
-                const imageFile = req.files.find(f => f.fieldname === `variationImage_${vIndex}_${oIndex}`);
-                if (imageFile) {
-                    o.image = `/uploads/products/${imageFile.filename}`;
+        if (newProductData.variations) {
+            newProductData.variations.forEach((v, vIndex) => {
+                if(v.options) {
+                    v.options.forEach((o, oIndex) => {
+                        const imageFile = req.files.find(f => f.fieldname === `variationImage_${vIndex}_${oIndex}`);
+                        if (imageFile) {
+                            o.image = `/uploads/products/${imageFile.filename}`;
+                        }
+                        delete o.imagePlaceholder;
+                    });
                 }
-                delete o.imagePlaceholder;
             });
-        });
+        }
         const product = new Product(newProductData);
         await product.save();
         res.status(201).json(product);
@@ -183,20 +181,24 @@ router.put('/:id', protect, admin, upload, async (req, res) => {
                 }
             });
         });
-        incomingVariations.forEach((iVar, vIndex) => {
-            iVar.options.forEach((iOpt, oIndex) => {
-                const imageFile = req.files.find(f => f.fieldname === `variationImage_${vIndex}_${oIndex}`);
-                if (imageFile) {
-                    const oldVar = productToUpdate.variations.find(v => v._id.toString() === iVar._id);
-                    if (oldVar) {
-                        const oldOpt = oldVar.options.find(o => o._id.toString() === iOpt._id);
-                        if(oldOpt && oldOpt.image) deleteFile(oldOpt.image);
-                    }
-                    iOpt.image = `/uploads/products/${imageFile.filename}`;
+        if (incomingVariations) {
+            incomingVariations.forEach((iVar, vIndex) => {
+                if(iVar.options) {
+                    iVar.options.forEach((iOpt, oIndex) => {
+                        const imageFile = req.files.find(f => f.fieldname === `variationImage_${vIndex}_${oIndex}`);
+                        if (imageFile) {
+                            const oldVar = productToUpdate.variations.find(v => v._id.toString() === iVar._id);
+                            if (oldVar) {
+                                const oldOpt = oldVar.options.find(o => o._id.toString() === iOpt._id);
+                                if(oldOpt && oldOpt.image) deleteFile(oldOpt.image);
+                            }
+                            iOpt.image = `/uploads/products/${imageFile.filename}`;
+                        }
+                        delete iOpt.imagePlaceholder;
+                    });
                 }
-                delete iOpt.imagePlaceholder;
             });
-        });
+        }
         productToUpdate.variations = incomingVariations;
         productToUpdate.markModified('variations');
         const updatedProduct = await productToUpdate.save();

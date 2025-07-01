@@ -9,20 +9,16 @@ const ContactUs = () => {
     });
     const [submissionMessage, setSubmissionMessage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     }, []);
-
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setSubmissionMessage(null);
         setIsLoading(true);
-        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000'; // Fallback for local dev
-
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000'; 
         const endpoint = `${apiUrl}/api/contact`;
-
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -43,8 +39,6 @@ const ContactUs = () => {
             setIsLoading(false);
         }
     }, [formData, t]);
-    
-    // Custom Input Component for consistency
     const InputField = ({ icon: Icon, name, type, placeholder, value, onChange, required = false, isRTL }) => (
         <div className="relative">
             <Icon size={18} className="absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 pointer-events-none" style={{ [isRTL ? 'right' : 'left']: '14px' }} />
@@ -55,7 +49,6 @@ const ContactUs = () => {
                 value={value}
                 onChange={onChange}
                 required={required}
-                // Unified input styles
                 className="w-full rounded-lg border-gray-200 bg-gray-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
                 style={{ paddingLeft: isRTL ? '14px' : '40px', paddingRight: isRTL ? '40px' : '14px' }}
             />
@@ -63,10 +56,8 @@ const ContactUs = () => {
     );
 
     return (
-        // 1. Unified page background
         <section className="w-full min-h-screen bg-gray-100 dark:bg-black py-16 sm:py-24">
             <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                {/* 2. Unified main card styling */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-10 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                     <header className="text-center mb-10">
                         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
@@ -81,8 +72,7 @@ const ContactUs = () => {
                         <InputField icon={User} name="name" type="text" placeholder={t('contactUsPage.yourName')} value={formData.name} onChange={handleChange} required isRTL={language === 'ar'} />
                         <InputField icon={Tag} name="subject" type="text" placeholder={t('contactUsPage.yourSubject')} value={formData.subject} onChange={handleChange} required isRTL={language === 'ar'} />
                         <InputField icon={Mail} name="email" type="email" placeholder={t('contactUsPage.yourEmail')} value={formData.email} onChange={handleChange} required isRTL={language === 'ar'} />
-                        <InputField icon={Phone} name="phone" type="tel" placeholder={t('contactUsPage.yourPhone')} value={formData.phone} onChange={handleChange} isRTL={language === 'ar'} />
-                        
+                        <InputField icon={Phone} name="phone" type="tel" placeholder={t('contactUsPage.yourPhone')} value={formData.phone} onChange={handleChange} isRTL={language === 'ar'} />                        
                         <div className="md:col-span-2 relative">
                             <MessageSquare size={18} className="absolute top-4 text-gray-400 dark:text-zinc-500 pointer-events-none" style={{ [language === 'ar' ? 'right' : 'left']: '14px' }} />
                             <textarea
@@ -107,7 +97,6 @@ const ContactUs = () => {
                         )}
 
                         <div className="md:col-span-2 flex justify-center mt-2">
-                            {/* 3. Unified button styling */}
                             <button
                                 type="submit"
                                 disabled={isLoading}

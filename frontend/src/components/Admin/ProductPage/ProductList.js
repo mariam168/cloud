@@ -3,7 +3,7 @@ import axios from 'axios';
 import EditProductModal from './EditProductModal';
 import AddProductModal from './AddProductModal';
 import { useLanguage } from '../../LanguageContext';
-import { Loader2, Info, Edit, Trash2, PlusCircle, Copy, CheckCircle, Image as ImageIcon, XCircle, Search } from 'lucide-react';
+import { Loader2, Info, Edit, Trash2, Plus, Copy, CheckCircle, Image as ImageIcon, Search } from 'lucide-react';
 
 const ProductList = () => {
     const { t, language } = useLanguage();
@@ -16,33 +16,30 @@ const ProductList = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [copiedId, setCopiedId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-
     const SERVER_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);
-            const headers = { 'x-admin-request': 'true' };
+            const headers = { 'x-admin-request': 'true', 'Accept-Language': language };
             const [productsResponse, categoriesResponse] = await Promise.all([
                 axios.get(`${SERVER_URL}/api/products`, { headers }),
                 axios.get(`${SERVER_URL}/api/categories`, { headers })
             ]);
-
             const categoriesMap = new Map(categoriesResponse.data.map(cat => [cat._id, cat]));
             const productsWithCategories = productsResponse.data.map(prod => ({
                 ...prod,
                 category: categoriesMap.get(prod.category) || prod.category
             }));
-
             setProducts(productsWithCategories);
             setFilteredProducts(productsWithCategories);
             setError(null);
         } catch (err) {
-            setError(`${t('general.errorFetchingData') || 'Error fetching data'}: ${err.response?.data?.message || err.message}`);
+            setError(`${t('general.errorFetchingData')}: ${err.response?.data?.message || err.message}`);
         } finally {
             setLoading(false);
         }
-    }, [t, SERVER_URL]);
+    }, [t, SERVER_URL, language]);
 
     useEffect(() => {
         fetchProducts();
@@ -72,7 +69,7 @@ const ProductList = () => {
         if (window.confirm(t('productAdmin.confirmDelete', { productName: productName || 'this product' }))) {
             try {
                 await axios.delete(`${SERVER_URL}/api/products/${productId}`);
-                fetchProducts(); // Refetch to ensure data consistency
+                fetchProducts();
                 alert(t('productAdmin.deleteSuccess'));
             } catch (err) {
                 alert(`${t('productAdmin.deleteError')}: ${err.response?.data?.message || err.message}`);
@@ -99,88 +96,103 @@ const ProductList = () => {
     };
 
     if (loading) {
-        return <div className="flex justify-center items-center h-96"><Loader2 size={48} className="animate-spin text-blue-500" /></div>;
+        return (
+            <div className="flex min-h-[80vh] w-full items-center justify-center">
+                <Loader2 size={48} className="animate-spin text-indigo-500" />
+            </div>
+        );
     }
 
     if (error) {
-        return <div className="p-6 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg flex items-center gap-3"><XCircle />{error}</div>;
+        return (
+            <div className="flex min-h-[80vh] w-full items-center justify-center p-4">
+                <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                    <Info size={48} className="mx-auto mb-5 text-red-500" />
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('general.error')}</h2>
+                    <p className="text-base text-red-600 dark:text-red-400">{error}</p>
+                    <button onClick={fetchProducts} className="mt-6 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                        {t('general.tryAgain')}
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="p-4 sm:p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700">
-            <header className="flex flex-col sm:flex-row justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-slate-700 gap-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
+            <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('adminProductsPage.productList')}</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {t('adminProductsPage.manageProductsMessage', { count: filteredProducts.length })}
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('adminProductsPage.productList')}</h1>
+                    <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">{t('adminProductsPage.manageProductsMessage', { count: filteredProducts.length })}</p>
                 </div>
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full sm:w-60">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-zinc-500" />
                         <input
                             type="text"
-                            placeholder={t('general.search') + '...'}
+                            placeholder={t('general.search')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full rounded-lg border-gray-200 bg-gray-50 p-2.5 pl-9 text-sm text-gray-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
                         />
                     </div>
-                    <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                        <PlusCircle size={20} />
-                        <span className="hidden sm:inline">{t('productAdmin.addProductButton')}</span>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500"
+                    >
+                        <Plus size={16} />
+                        {t('productAdmin.addProductButton')}
                     </button>
                 </div>
             </header>
 
             {filteredProducts.length === 0 ? (
-                <div className="text-center p-16 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
+                <div className="text-center py-16">
                     <Info size={48} className="mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-xl font-semibold">{t('productAdmin.noProducts')}</h3>
-                    <p className="mt-1">{t('productAdmin.tryDifferentSearch')}</p>
+                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white">{t('productAdmin.noProducts')}</h3>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">{t('productAdmin.tryDifferentSearch')}</p>
                 </div>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-sm">
-                        <thead className="bg-gray-100 dark:bg-slate-700">
+                        <thead className="bg-gray-50 dark:bg-zinc-800/50">
                             <tr>
-                                <th className="p-4 text-left font-semibold text-gray-600 dark:text-gray-300"></th>
-                                <th className="p-4 text-left font-semibold text-gray-600 dark:text-gray-300">{t('productAdmin.nameTable')}</th>
-                                <th className="p-4 text-left font-semibold text-gray-600 dark:text-gray-300">{t('productAdmin.categoryTable')}</th>
-                                <th className="p-4 text-left font-semibold text-gray-600 dark:text-gray-300">{t('productAdmin.priceTable')}</th>
-                                <th className="p-4 text-center font-semibold text-gray-600 dark:text-gray-300">{t('productAdmin.actionsTable')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left"></th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('productAdmin.nameTable')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('productAdmin.categoryTable')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-left">{t('productAdmin.priceTable')}</th>
+                                <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white text-center">{t('productAdmin.actionsTable')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                        <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
                             {filteredProducts.map(product => (
-                                <tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-150">
-                                    <td className="p-4">
-                                        {product.mainImage ? (
-                                            <img src={`${SERVER_URL}${product.mainImage}`} alt={getDisplayName(product)} className="w-16 h-16 object-cover rounded-md border border-gray-200 dark:border-slate-600" />
-                                        ) : (
-                                            <div className="w-16 h-16 bg-gray-200 dark:bg-slate-700 rounded-md flex items-center justify-center">
-                                                <ImageIcon className="text-gray-400" />
-                                            </div>
-                                        )}
+                                <tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50">
+                                    <td className="whitespace-nowrap p-4">
+                                        <div className="h-12 w-12 rounded-md bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
+                                            {product.mainImage ? 
+                                                <img src={`${SERVER_URL}${product.mainImage}`} alt={getDisplayName(product)} className="h-full w-full object-cover rounded-md" /> : 
+                                                <ImageIcon className="h-6 w-6 text-gray-400" />
+                                            }
+                                        </div>
                                     </td>
-                                    <td className="p-4">
-                                        <div className="font-medium text-gray-900 dark:text-white">{getDisplayName(product)}</div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="font-mono text-xs text-gray-500" title={product._id}>ID: ...{product._id.slice(-6)}</span>
-                                            <button onClick={() => copyToClipboard(product._id)} className="text-gray-400 hover:text-blue-500">
+                                    <td className="whitespace-nowrap p-4">
+                                        <p className="font-medium text-gray-800 dark:text-white">{getDisplayName(product)}</p>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="font-mono text-xs text-gray-500 dark:text-zinc-500">...{product._id.slice(-6)}</span>
+                                            <button onClick={() => copyToClipboard(product._id)} className="text-gray-400 hover:text-indigo-500">
                                                 {copiedId === product._id ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
                                             </button>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-gray-600 dark:text-gray-300">{getCategoryName(product)}</td>
-                                    <td className="p-4 font-semibold text-green-600 dark:text-green-400">{t('general.currencySymbol')}{product.basePrice?.toFixed(2)}</td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center items-center gap-2">
-                                            <button onClick={() => handleOpenEditModal(product)} className="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors" title={t('actions.edit')}>
-                                                <Edit size={18} />
+                                    <td className="whitespace-nowrap p-4 text-gray-600 dark:text-zinc-400">{getCategoryName(product)}</td>
+                                    <td className="whitespace-nowrap p-4 font-semibold text-green-600">{product.basePrice?.toFixed(2)} {t('general.currency')}</td>
+                                    <td className="whitespace-nowrap p-4 text-center">
+                                        <div className="inline-flex items-center rounded-md -space-x-px bg-gray-100 dark:bg-zinc-800 text-xs">
+                                            <button onClick={() => handleOpenEditModal(product)} className="inline-block rounded-l-md p-2 text-gray-600 hover:bg-gray-200 hover:text-indigo-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-indigo-400 focus:relative">
+                                                <Edit size={16} />
                                             </button>
-                                            <button onClick={() => handleDelete(product._id, getDisplayName(product))} className="text-gray-500 hover:text-red-600 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors" title={t('actions.delete')}>
-                                                <Trash2 size={18} />
+                                            <button onClick={() => handleDelete(product._id, getDisplayName(product))} className="inline-block rounded-r-md p-2 text-gray-600 hover:bg-gray-200 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-red-400 focus:relative">
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>

@@ -3,9 +3,6 @@ const router = express.Router();
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { protect } = require('../middleware/authMiddleware');
-
-// ... (GET and POST routes remain the same) ...
-
 router.get('/', protect, async (req, res) => {
     try {
         const userCart = await Cart.findOne({ user: req.user.id }).populate('items.product', 'name');
@@ -102,11 +99,6 @@ router.put('/', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-// ======================> الكود الجديد هنا <======================
-// @desc    Clear all items from user's cart
-// @route   DELETE /api/cart/clear
-// @access  Private
 router.delete('/clear', protect, async (req, res) => {
     try {
         const userCart = await Cart.findOne({ user: req.user.id });
@@ -125,6 +117,5 @@ router.delete('/clear', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error while clearing cart.' });
     }
 });
-// =============================================================
 
 module.exports = router;

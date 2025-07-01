@@ -1,11 +1,13 @@
 import React from 'react';
-import { Home, Package, Folder, ShoppingCart, Megaphone, Tag, LogOut } from 'lucide-react';
+import { Home, Package, Folder, ShoppingCart, Megaphone, Tag, LogOut, Settings, UserCircle } from 'lucide-react';
 import { useLanguage } from "../LanguageContext";
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const DashboardLayout = () => {
   const { t } = useLanguage();
   const location = useLocation();
+  const { currentUser } = useAuth();
 
   const navItems = [
     { to: "/admin/dashboard", icon: Home, label: t('adminDashboardPage.dashboardTitle') },
@@ -57,15 +59,26 @@ const DashboardLayout = () => {
           </ul>
         </nav>
 
-        <div className="p-2 mt-auto border-t border-gray-200 dark:border-zinc-800">
-            <Link 
-              to="/logout"
-              title={t('topBar.logout')}
-              className="flex items-center py-3 px-4 text-gray-600 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-colors group"
-            >
-                <LogOut size={22} className="text-gray-500 dark:text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors flex-shrink-0" />
-                <span className="hidden md:inline ml-4 text-sm">{t('topBar.logout')}</span>
-            </Link>
+        <div className="p-2 mt-auto border-t border-gray-200 dark:border-zinc-800 space-y-2">
+            <div className="px-2">
+                 <div className="flex items-center p-3 rounded-lg">
+                    <UserCircle size={28} className="text-gray-500 dark:text-zinc-500 flex-shrink-0" />
+                    <div className="hidden md:inline ml-3">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{currentUser?.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400">{currentUser?.role}</p>
+                    </div>
+                </div>
+            </div>
+             <div className="px-2">
+                <Link 
+                  to="/logout"
+                  title={t('topBar.logout')}
+                  className="flex items-center py-3 px-4 text-gray-600 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 rounded-lg transition-colors group"
+                >
+                    <LogOut size={22} className="text-gray-500 dark:text-zinc-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors flex-shrink-0" />
+                    <span className="hidden md:inline ml-4 text-sm">{t('topBar.logout')}</span>
+                </Link>
+            </div>
         </div>
       </aside>
 

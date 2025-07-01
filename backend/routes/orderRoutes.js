@@ -4,6 +4,10 @@ const { protect, admin } = require('../middleware/authMiddleware');
 const Order = require('../models/Order'); 
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+
+// @desc    Create new order
+// @route   POST /api/orders
+// @access  Private
 router.post('/', protect, async (req, res) => {
     try {
         const { shippingAddress, paymentMethod, discount } = req.body;
@@ -75,6 +79,24 @@ router.post('/', protect, async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
+
+// @desc    Get logged in user's orders
+// @route   GET /api/orders/myorders
+// @access  Private
+router.get('/myorders', protect, async (req, res) => {
+    try {
+        // Find all orders where the 'user' field matches the logged-in user's ID
+        const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching user orders:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// @desc    Get all orders
+// @route   GET /api/orders
+// @access  Private/Admin
 router.get('/', protect, admin, async (req, res) => { 
     try { 
         const orders = await Order.find({}).populate('user', 'id name').sort({ createdAt: -1 }); 
@@ -83,12 +105,17 @@ router.get('/', protect, admin, async (req, res) => {
         res.status(500).json({ message: 'Server Error' }); 
     } 
 });
+
+// @desc    Get order by ID
+// @route   GET /api/orders/:id
+// @access  Private
 router.get('/:id', protect, async (req, res) => { 
     try { 
         const order = await Order.findById(req.params.id).populate('user', 'name email');
         if (order) { 
+            // Check if the logged-in user is the owner of the order OR is an admin
             if (order.user._id.toString() !== req.user.id.toString() && req.user.role !== 'admin') { 
-                return res.status(401).json({ message: 'Not authorized' }); 
+                return res.status(401).json({ message: 'Not authorized to view this order' }); 
             } 
             res.json(order); 
         } else { 
@@ -98,6 +125,10 @@ router.get('/:id', protect, async (req, res) => {
         res.status(500).json({ message: 'Server Error' }); 
     } 
 });
+
+// @desc    Update order to paid
+// @route   PUT /api/orders/:id/pay
+// @access  Private/Admin
 router.put('/:id/pay', protect, admin, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -120,6 +151,9 @@ router.put('/:id/pay', protect, admin, async (req, res) => {
     }
 });
 
+// @desc    Update order to delivered
+// @route   PUT /api/orders/:id/deliver
+// @access  Private/Admin
 router.put('/:id/deliver', protect, admin, async (req, res) => { 
     try { 
         const order = await Order.findById(req.params.id); 

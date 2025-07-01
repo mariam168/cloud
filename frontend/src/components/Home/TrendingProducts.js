@@ -3,14 +3,12 @@ import ProductCard from "../ProductCard";
 import { useLanguage } from "../LanguageContext";
 import { Loader2, TrendingUp, AlertCircle, Info } from "lucide-react";
 import axios from 'axios';
-
 const TrendingProducts = () => {
     const { t, language } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-
     const fetchTrendingData = useCallback(async () => {
         try {
             setLoading(true);
@@ -61,8 +59,6 @@ const TrendingProducts = () => {
     useEffect(() => {
         fetchTrendingData();
     }, [fetchTrendingData]); 
-    
-    // Skeleton for ProductCard to be used in loading state
     const ProductCardSkeleton = () => (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-zinc-800 animate-pulse">
             <div className="w-full h-48 bg-gray-200 dark:bg-zinc-800 rounded-lg mb-4"></div>
@@ -70,8 +66,6 @@ const TrendingProducts = () => {
             <div className="h-4 w-1/2 bg-gray-200 dark:bg-zinc-800 rounded-md"></div>
         </div>
     );
-    
-    // Loading State
     if (loading) {
         return (
             <section className="py-16 bg-gray-100 dark:bg-black">
@@ -85,8 +79,6 @@ const TrendingProducts = () => {
             </section>
         );
     }
-    
-    // Error State
     if (error) {
         return (
             <section className="py-16 bg-gray-100 dark:bg-black">

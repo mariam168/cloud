@@ -86,14 +86,11 @@ export const CartProvider = ({ children }) => {
         }
     };
     const removeFromCart = async (productId, selectedVariantId = null) => {
-        // To remove an item, we simply update its quantity to 0
         await updateCartItemQuantity(productId, 0, selectedVariantId);
     };
-    // ==========================================================
 
     const clearCart = useCallback(async () => {
         try {
-            // Assuming a backend endpoint to clear the entire cart
             await axios.delete(`${API_BASE_URL}/api/cart/clear`, { headers: { Authorization: `Bearer ${token}` } });
             setCartItems([]);
         } catch (error) {
@@ -106,7 +103,6 @@ export const CartProvider = ({ children }) => {
     const getCartCount = useMemo(() => cartItems.reduce((total, item) => total + (item.quantity || 0), 0), [cartItems]);
 
     return (
-        // Also exposing removeFromCart in the provider value
         <CartContext.Provider value={{ cartItems, addToCart, updateCartItemQuantity, removeFromCart, clearCart, loadingCart, getCartCount, cartTotal, fetchCart }}>
             {children}
         </CartContext.Provider>

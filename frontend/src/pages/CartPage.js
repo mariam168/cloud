@@ -15,33 +15,26 @@ const CartPage = () => {
 
     const formatPrice = useCallback((price) => {
         if (price === undefined || price === null) return t('general.priceNotAvailable', 'N/A');
-        const currencyCode = cartItems[0]?.product?.currency || 'SAR';
+        const currencyCode = cartItems[0]?.product?.currency || 'EGP'; 
         return new Intl.NumberFormat(language === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: currencyCode }).format(Number(price));
     }, [language, t, cartItems]);
-
-    // ===================== التصحيح الرئيسي هنا =====================
     const handleQuantityChange = (item, newQuantity) => {
         const numQuantity = Number(newQuantity);
         if (isNaN(numQuantity) || numQuantity < 1) return;
         
-        const stock = item.stock; // Stock is directly on the cart item from your backend
+        const stock = item.stock; 
         if (stock !== undefined && numQuantity > stock) {
             showToast(t('cartPage.notEnoughStockForUpdate', { quantity: stock }), 'warning');
             updateCartItemQuantity(item.product._id, stock, item.selectedVariant);
             return;
         }
-        // Pass all required identifiers to the update function
         updateCartItemQuantity(item.product._id, numQuantity, item.selectedVariant);
     }; 
     
     const handleRemoveItem = (item) => {
-        // Pass all required identifiers to the remove function
         removeFromCart(item.product._id, item.selectedVariant);
     };
-    // ==========================================================
-
     const handleProceedToCheckout = () => navigate('/checkout');
-    
     if (loadingCart && cartItems.length === 0) {
         return (
             <div className="flex min-h-[80vh] w-full items-center justify-center bg-white dark:bg-black">
@@ -73,15 +66,14 @@ const CartPage = () => {
             <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
                 <header className="text-center mb-12">
                      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
-                        {t('cartPage.shoppingCart')}
-                    </h1>
+                         {t('cartPage.shoppingCart')}
+                     </h1>
                 </header>
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     <div className="lg:col-span-2">
                         <div className="space-y-4">
                             {cartItems.map(item => (
-                                // Use a composite key since there's no unique item._id
                                 <div key={`${item.product._id}-${item.selectedVariant || 'default'}`} className="flex flex-col sm:flex-row items-start gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                                     <Link to={`/shop/${item.product._id}`} className="flex-shrink-0">
                                         <div className="h-28 w-28 overflow-hidden rounded-lg bg-gray-100 dark:bg-zinc-800">

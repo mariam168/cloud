@@ -1,8 +1,7 @@
-// components/Admin/DiscountPage/EditDiscountModal.js
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../../LanguageContext';
-import { FaSpinner, FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa'; // Added icons
+import { Loader2, CheckCircle, XCircle, X } from 'lucide-react';
 
 const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) => {
     const { t } = useLanguage();
@@ -12,14 +11,14 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
         startDate: '', endDate: '', isActive: true,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitMessage, setSubmitMessage] = useState(''); // Renamed from errorMessage
-    const [submitMessageType, setSubmitMessageType] = useState(''); // 'success' or 'error'
+    const [submitMessage, setSubmitMessage] = useState('');
+    const [submitMessageType, setSubmitMessageType] = useState('');
 
     useEffect(() => {
         if (discount) {
             setEditedDiscount({
                 code: discount.code || '',
-                percentage: discount.percentage ?? '', // Use ?? for null/undefined
+                percentage: discount.percentage ?? '',
                 fixedAmount: discount.fixedAmount ?? '',
                 minOrderAmount: discount.minOrderAmount ?? '',
                 maxDiscountAmount: discount.maxDiscountAmount ?? '',
@@ -27,7 +26,6 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
                 endDate: discount.endDate ? new Date(discount.endDate).toISOString().split('T')[0] : '',
                 isActive: discount.isActive,
             });
-            // Clear any previous messages when a new discount is loaded
             setSubmitMessage('');
             setSubmitMessageType('');
         }
@@ -35,19 +33,12 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-
-        let newDiscount = {
-            ...editedDiscount,
-            [name]: type === 'checkbox' ? checked : value
-        };
-
-        // Logic to clear the other field if one is being typed into
+        let newDiscount = { ...editedDiscount, [name]: type === 'checkbox' ? checked : value };
         if (name === 'percentage' && value) {
             newDiscount.fixedAmount = '';
         } else if (name === 'fixedAmount' && value) {
             newDiscount.percentage = '';
         }
-
         setEditedDiscount(newDiscount);
     };
 
@@ -56,29 +47,28 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
         setSubmitMessage('');
         setSubmitMessageType('');
 
-        // Client-side validation
         if (!editedDiscount.code.trim()) {
-            setSubmitMessage(t('discountAdmin.codeRequired') || 'Discount code is required.');
+            setSubmitMessage(t('discountAdmin.codeRequired'));
             setSubmitMessageType('error');
             return;
         }
         if (!editedDiscount.percentage && !editedDiscount.fixedAmount) {
-            setSubmitMessage(t('discountAdmin.amountRequired') || 'Either percentage or fixed amount is required.');
+            setSubmitMessage(t('discountAdmin.amountRequired'));
             setSubmitMessageType('error');
             return;
         }
         if (editedDiscount.percentage && editedDiscount.fixedAmount) {
-            setSubmitMessage(t('discountAdmin.amountExclusive') || 'You cannot set both percentage and fixed amount.');
+            setSubmitMessage(t('discountAdmin.amountExclusive'));
             setSubmitMessageType('error');
             return;
         }
         if (!editedDiscount.startDate || !editedDiscount.endDate) {
-            setSubmitMessage(t('discountAdmin.datesRequired') || 'Start and End dates are required.');
+            setSubmitMessage(t('discountAdmin.datesRequired'));
             setSubmitMessageType('error');
             return;
         }
         if (new Date(editedDiscount.startDate) > new Date(editedDiscount.endDate)) {
-            setSubmitMessage(t('discountAdmin.endDateError') || 'End date cannot be before start date.');
+            setSubmitMessage(t('discountAdmin.endDateError'));
             setSubmitMessageType('error');
             return;
         }
@@ -86,24 +76,22 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
         setIsSubmitting(true);
         try {
             const payload = { ...editedDiscount };
-            // Ensure numbers are numbers and remove empty strings for optional fields
             payload.percentage = payload.percentage === "" ? undefined : parseFloat(payload.percentage);
             payload.fixedAmount = payload.fixedAmount === "" ? undefined : parseFloat(payload.fixedAmount);
             payload.minOrderAmount = payload.minOrderAmount === "" ? undefined : parseFloat(payload.minOrderAmount);
             payload.maxDiscountAmount = payload.maxDiscountAmount === "" ? undefined : parseFloat(payload.maxDiscountAmount);
 
             await axios.put(`${serverUrl}/api/discounts/${discount._id}`, payload);
-
-            setSubmitMessage(t('discountAdmin.updateSuccess') || 'Discount updated successfully!');
+            setSubmitMessage(t('discountAdmin.updateSuccess'));
             setSubmitMessageType('success');
-            setTimeout(() => { // Give time for success message to be seen
+            setTimeout(() => {
                 onDiscountUpdated();
                 onClose();
-            }, 1500); // Close after 1.5 seconds
+            }, 1500);
         } catch (err) {
             console.error("Error updating discount:", err.response?.data);
             const errorMessage = err.response?.data?.message || err.message;
-            setSubmitMessage(`${t('discountAdmin.updateError') || 'Error updating discount:'} ${errorMessage}`);
+            setSubmitMessage(`${t('discountAdmin.updateError')} ${errorMessage}`);
             setSubmitMessageType('error');
         } finally {
             setIsSubmitting(false);
@@ -112,178 +100,88 @@ const EditDiscountModal = ({ discount, onClose, onDiscountUpdated, serverUrl }) 
 
     if (!discount) return null;
 
-    const inputClasses = "w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out";
-    const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
-    const checkboxClasses = "h-5 w-5 text-indigo-600 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500 dark:focus:ring-indigo-400 dark:bg-gray-700 dark:checked:bg-indigo-600";
+    const inputClasses = "w-full rounded-lg border-gray-200 bg-gray-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
+    const labelClasses = "block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5";
+    const checkboxLabelClasses = "flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300 cursor-pointer";
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in relative">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 text-3xl font-bold transition-colors duration-200"
-                    aria-label={t('general.close') || 'Close'}
-                >
-                    <FaTimes />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-lg relative w-full max-w-lg max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-zinc-800">
+                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 dark:text-zinc-500 dark:hover:text-white transition-colors">
+                    <X size={24} />
                 </button>
-
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white border-b pb-3 border-gray-200 dark:border-gray-700">
-                    {t('discountAdmin.editDiscountTitle') || 'Edit Discount Code'}
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+                    {t('discountAdmin.editDiscountTitle')}
                 </h2>
 
-                {/* Submission Message */}
                 {submitMessage && (
-                    <div className={`flex items-center gap-2 p-3 rounded-lg mb-4 ${
-                        submitMessageType === 'success' ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200" :
-                        "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+                    <div className={`flex items-center gap-3 p-3 rounded-lg mb-4 text-sm font-medium ${
+                        submitMessageType === 'success' 
+                        ? "bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400" 
+                        : "bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400"
                     }`}>
-                        {submitMessageType === 'success' ? <FaCheckCircle className="text-xl" /> : <FaExclamationCircle className="text-xl" />}
-                        <p className="text-sm font-medium">{submitMessage}</p>
+                        {submitMessageType === 'success' ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                        <span>{submitMessage}</span>
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Code */}
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label htmlFor="edit-code" className={labelClasses}>{t('discountAdmin.codeLabel')}</label>
-                        <input
-                            type="text"
-                            id="edit-code"
-                            name="code"
-                            value={editedDiscount.code}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            placeholder={t('discountAdmin.codePlaceholder') || 'e.g., SUMMER20'}
-                            required
-                        />
+                        <input type="text" id="edit-code" name="code" value={editedDiscount.code} onChange={handleChange} className={inputClasses} placeholder={t('discountAdmin.codePlaceholder')} required />
                     </div>
-                    {/* Percentage */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                            <label htmlFor="edit-percentage" className={labelClasses}>{t('discountAdmin.percentageLabel')}</label>
+                            <input type="number" id="edit-percentage" name="percentage" value={editedDiscount.percentage} onChange={handleChange} className={inputClasses} min="0" max="100" step="0.01" disabled={!!editedDiscount.fixedAmount} placeholder="e.g., 20" />
+                        </div>
+                        <div className="relative">
+                            <p className="absolute top-1/2 left-1/2 -translate-x-1/2 text-xs font-semibold text-gray-400 dark:text-zinc-500 bg-white dark:bg-zinc-900 px-2">{t('general.or').toUpperCase()}</p>
+                            <hr className="border-gray-200 dark:border-zinc-700" />
+                        </div>
+                        <div>
+                            <label htmlFor="edit-fixedAmount" className={labelClasses}>{t('discountAdmin.fixedAmountLabel')}</label>
+                            <input type="number" id="edit-fixedAmount" name="fixedAmount" value={editedDiscount.fixedAmount} onChange={handleChange} className={inputClasses} min="0" step="0.01" disabled={!!editedDiscount.percentage} placeholder={t('discountAdmin.fixedAmountPlaceholder')} />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="edit-minOrderAmount" className={labelClasses}>{t('discountAdmin.minOrderAmountLabel')}</label>
+                            <input type="number" id="edit-minOrderAmount" name="minOrderAmount" value={editedDiscount.minOrderAmount} onChange={handleChange} className={inputClasses} min="0" step="0.01" placeholder={t('discountAdmin.minOrderAmountPlaceholder')} />
+                        </div>
+                        <div>
+                            <label htmlFor="edit-maxDiscountAmount" className={labelClasses}>{t('discountAdmin.maxDiscountAmountLabel')}</label>
+                            <input type="number" id="edit-maxDiscountAmount" name="maxDiscountAmount" value={editedDiscount.maxDiscountAmount} onChange={handleChange} className={inputClasses} min="0" step="0.01" placeholder={t('discountAdmin.maxDiscountAmountPlaceholder')} />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="edit-startDate" className={labelClasses}>{t('discountAdmin.startDateLabel')}</label>
+                            <input type="date" id="edit-startDate" name="startDate" value={editedDiscount.startDate} onChange={handleChange} className={inputClasses} required />
+                        </div>
+                        <div>
+                            <label htmlFor="edit-endDate" className={labelClasses}>{t('discountAdmin.endDateLabel')}</label>
+                            <input type="date" id="edit-endDate" name="endDate" value={editedDiscount.endDate} onChange={handleChange} className={inputClasses} required />
+                        </div>
+                    </div>
+
                     <div>
-                        <label htmlFor="edit-percentage" className={labelClasses}>{t('discountAdmin.percentageLabel')}</label>
-                        <input
-                            type="number"
-                            id="edit-percentage"
-                            name="percentage"
-                            value={editedDiscount.percentage}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            disabled={!!editedDiscount.fixedAmount}
-                            placeholder="0-100%"
-                        />
-                    </div>
-                    {/* Fixed Amount */}
-                    <div>
-                        <label htmlFor="edit-fixedAmount" className={labelClasses}>{t('discountAdmin.fixedAmountLabel')}</label>
-                        <input
-                            type="number"
-                            id="edit-fixedAmount"
-                            name="fixedAmount"
-                            value={editedDiscount.fixedAmount}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            min="0"
-                            step="0.01"
-                            disabled={!!editedDiscount.percentage}
-                            placeholder={t('discountAdmin.fixedAmountPlaceholder') || 'e.g., 25.00'}
-                        />
-                    </div>
-                    {/* Minimum Order Amount */}
-                    <div>
-                        <label htmlFor="edit-minOrderAmount" className={labelClasses}>{t('discountAdmin.minOrderAmountLabel')}</label>
-                        <input
-                            type="number"
-                            id="edit-minOrderAmount"
-                            name="minOrderAmount"
-                            value={editedDiscount.minOrderAmount}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            min="0"
-                            step="0.01"
-                            placeholder={t('discountAdmin.minOrderAmountPlaceholder') || 'Minimum order value (optional)'}
-                        />
-                    </div>
-                    {/* Maximum Discount Amount */}
-                    <div>
-                        <label htmlFor="edit-maxDiscountAmount" className={labelClasses}>{t('discountAdmin.maxDiscountAmountLabel')}</label>
-                        <input
-                            type="number"
-                            id="edit-maxDiscountAmount"
-                            name="maxDiscountAmount"
-                            value={editedDiscount.maxDiscountAmount}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            min="0"
-                            step="0.01"
-                            placeholder={t('discountAdmin.maxDiscountAmountPlaceholder') || 'Maximum discount value (optional)'}
-                        />
-                    </div>
-                    {/* Start Date */}
-                    <div>
-                        <label htmlFor="edit-startDate" className={labelClasses}>{t('discountAdmin.startDateLabel')}</label>
-                        <input
-                            type="date"
-                            id="edit-startDate"
-                            name="startDate"
-                            value={editedDiscount.startDate}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            required
-                        />
-                    </div>
-                    {/* End Date */}
-                    <div>
-                        <label htmlFor="edit-endDate" className={labelClasses}>{t('discountAdmin.endDateLabel')}</label>
-                        <input
-                            type="date"
-                            id="edit-endDate"
-                            name="endDate"
-                            value={editedDiscount.endDate}
-                            onChange={handleChange}
-                            className={inputClasses}
-                            required
-                        />
-                    </div>
-                    {/* Is Active Checkbox */}
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="edit-isActive"
-                            name="isActive"
-                            checked={editedDiscount.isActive}
-                            onChange={handleChange}
-                            className={checkboxClasses}
-                        />
-                        <label htmlFor="edit-isActive" className="ml-2 block text-base text-gray-900 dark:text-gray-300">
-                            {t('discountAdmin.isActive') || 'Is Active'}
+                        <label className={checkboxLabelClasses}>
+                            <input type="checkbox" id="edit-isActive" name="isActive" checked={editedDiscount.isActive} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                            <span>{t('discountAdmin.isActive')}</span>
                         </label>
                     </div>
-                    {/* Action Buttons */}
-                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={isSubmitting}
-                            className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                        >
-                            {t('general.cancel') || 'Cancel'}
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-zinc-800">
+                        <button type="button" onClick={onClose} disabled={isSubmitting} className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-5 py-2.5 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50">
+                            {t('general.cancel')}
                         </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all duration-200"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <FaSpinner className="animate-spin" /> {t('discountAdmin.updatingButton') || 'Updating...'}
-                                </>
-                            ) : (
-                                <>
-                                    <FaCheckCircle /> {t('discountAdmin.updateButton') || 'Update Discount'}
-                                </>
-                            )}
+                        <button type="submit" disabled={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500 disabled:opacity-60">
+                            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
+                            <span>{isSubmitting ? t('discountAdmin.updatingButton') : t('discountAdmin.updateButton')}</span>
                         </button>
                     </div>
                 </form>

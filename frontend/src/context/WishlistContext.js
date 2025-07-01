@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../components/LanguageContext'; // استيراد useLanguage هنا
+import { useLanguage } from '../components/LanguageContext'; 
 import { useToast } from '../components/ToastNotification'; 
 
 const WishlistContext = createContext();
@@ -16,22 +16,20 @@ export const useWishlist = () => {
 };
 
 export const WishlistProvider = ({ children }) => {
-  const { t, language } = useLanguage(); // استيراد language هنا
+  const { t, language } = useLanguage(); 
   const { showToast } = useToast(); 
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
   const { isAuthenticated, currentUser, API_BASE_URL, token } = useAuth(); 
   const navigate = useNavigate();
-
   const fetchWishlist = useCallback(async () => {
-    // لا يتغير منطق الجلب نفسه، لكننا سنستدعيه الآن عند تغيير اللغة
     if (isAuthenticated && API_BASE_URL && token) {
       setLoadingWishlist(true);
       try {
         const response = await axios.get(`${API_BASE_URL}/api/wishlist`, {
             headers: { 
                 Authorization: `Bearer ${token}`,
-                'Accept-Language': language // إرسال اللغة الحالية مع كل طلب
+                'Accept-Language': language 
             }
         });
         setWishlistItems(response.data || []); 
@@ -44,18 +42,15 @@ export const WishlistProvider = ({ children }) => {
     } else {
       setWishlistItems([]); 
     }
-  }, [isAuthenticated, API_BASE_URL, token, language]); // إضافة language كمُعتمدية
+  }, [isAuthenticated, API_BASE_URL, token, language]); 
 
   useEffect(() => {
-    // ===================== التغيير الرئيسي هنا =====================
-    // الآن، سيتم تنفيذ هذا الـ hook عند تسجيل الدخول أو عند تغيير اللغة
     if (isAuthenticated) {
       fetchWishlist();
     } else {
       setWishlistItems([]); 
     }
-  }, [isAuthenticated, fetchWishlist]); // fetchWishlist الآن يعتمد على اللغة
-
+  }, [isAuthenticated, fetchWishlist]); 
   const addToWishlist = async (productOrProductId) => {
     if (!isAuthenticated) {
       showToast(t('wishlist.loginRequired') || 'Please login to add items to your wishlist.', 'info');
@@ -78,7 +73,6 @@ export const WishlistProvider = ({ children }) => {
       const response = await axios.post(`${API_BASE_URL}/api/wishlist/${productId}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // بعد الإضافة، نقوم بإعادة جلب القائمة المترجمة بالكامل
       await fetchWishlist();
     } catch (error) {
       console.error('WishlistContext: Failed to add to wishlist:', error.response?.data?.message || error.message);
@@ -96,7 +90,6 @@ export const WishlistProvider = ({ children }) => {
       await axios.delete(`${API_BASE_URL}/api/wishlist/${productId}`, {
           headers: { Authorization: `Bearer ${token}` }
       });
-      // بعد الحذف، نقوم بإعادة جلب القائمة المترجمة بالكامل
       await fetchWishlist();
     } catch (error) {
       console.error('WishlistContext: Failed to remove from wishlist:', error.response?.data?.message || error.message);
