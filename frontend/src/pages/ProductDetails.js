@@ -8,8 +8,6 @@ import { useLanguage } from '../components/LanguageContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../components/ToastNotification';
 
-// --- المكونات المساعدة والبيانات (بدون أي تغيير في المنطق) ---
-
 const colorMap = {
     'black': '#111827', 'white': '#FFFFFF', 'red': '#EF4444', 'blue': '#3B82F6',
     'green': '#22C55E', 'silver': '#D1D5DB', 'gold': '#FBBF24', 'rose gold': '#F472B6',
@@ -82,10 +80,7 @@ const ProductSkeleton = () => (
 );
 
 
-// --- المكون الرئيسي ProductDetails ---
-
 const ProductDetails = () => {
-    // --- الحالة والمتغيرات (المنطق الأصلي) ---
     const { id } = useParams();
     const { t, language } = useLanguage();
     const navigate = useNavigate();
@@ -104,8 +99,6 @@ const ProductDetails = () => {
     const [timeLeft, setTimeLeft] = useState(null);
     const [imageOpacity, setImageOpacity] = useState(1);
     const isOfferProduct = useMemo(() => !!advertisement, [advertisement]);
-
-    // --- الدوال والمؤثرات (المنطق الأصلي) ---
     const handleImageSelect = (imgUrl) => { if (imgUrl !== mainDisplayImage) { setImageOpacity(0); setTimeout(() => { setMainDisplayImage(imgUrl); setImageOpacity(1); }, 200); } };
     const fetchProductDetails = useCallback(async () => { setLoading(true); setError(null); try { const res = await axios.get(`${API_BASE_URL}/api/products/${id}`, { headers: { 'accept-language': language } }); setProduct(res.data); setAdvertisement(res.data.advertisement || null); setMainDisplayImage(res.data.mainImage || ''); } catch (err) { setError(t('productDetailsPage.failedToLoad')); } finally { setLoading(false); } }, [id, API_BASE_URL, t, language]);
     useEffect(() => { fetchProductDetails(); }, [fetchProductDetails]);
@@ -113,8 +106,6 @@ const ProductDetails = () => {
     useEffect(() => { if (!isOfferProduct || !advertisement.endDate) { setTimeLeft(null); return; } const intervalId = setInterval(() => { const difference = new Date(advertisement.endDate) - new Date(); if (difference > 0) { setTimeLeft({ days: Math.floor(difference / 86400000), hours: Math.floor((difference / 3600000) % 24), minutes: Math.floor((difference / 60000) % 60), seconds: Math.floor((difference / 1000) % 60) }); } else { setTimeLeft(null); clearInterval(intervalId); } }, 1000); return () => clearInterval(intervalId); }, [isOfferProduct, advertisement]);
     const handlePrimaryOptionSelect = (variationId, option) => { setSelectedOptions(prev => ({ ...prev, [variationId]: option._id })); setSelectedSku(null); if (option.image) handleImageSelect(option.image); };
     const handleSkuSelect = (sku) => { setSelectedSku(sku); };
-    
-    // --- القيم المحسوبة (المنطق الأصلي) ---
     const priceInfo = useMemo(() => { const basePrice = selectedSku?.price ?? product?.basePrice ?? 0; if (isOfferProduct && advertisement.discountedPrice != null) { const adOriginalPrice = advertisement.originalPrice ?? basePrice; const percentage = adOriginalPrice > 0 ? Math.round(((adOriginalPrice - advertisement.discountedPrice) / adOriginalPrice) * 100) : 0; return { finalPrice: advertisement.discountedPrice, originalPrice: adOriginalPrice, discountPercentage: percentage }; } return { finalPrice: basePrice, originalPrice: null, discountPercentage: 0 }; }, [selectedSku, product, advertisement, isOfferProduct]);
     const formatPrice = useCallback((price) => { if (price == null) return t('general.priceNotAvailable'); const currencyCode = (advertisement?.currency || product?.currency || 'EGP').replace('EG', 'EGP'); const locale = language === 'ar' ? 'ar-EG' : 'en-US'; try { return new Intl.NumberFormat(locale, { style: 'currency', currency: currencyCode }).format(Number(price)); } catch (error) { return `${price} ${currencyCode}`; } }, [language, t, advertisement, product]);
     const isAddToCartDisabled = useMemo(() => { if (loadingCart) return true; if (product?.variations?.length > 0) { const requiredVariations = product.variations.filter(v => v.options?.length > 0); if (!requiredVariations.every(v => selectedOptions[v._id])) return true; const lastSelectedOption = requiredVariations.length > 0 ? product.variations.flatMap(v => v.options).find(o => o._id === selectedOptions[requiredVariations[requiredVariations.length - 1]._id]) : null; if (lastSelectedOption?.skus?.length > 0 && !selectedSku) return true; } return false; }, [loadingCart, product, selectedOptions, selectedSku]);
@@ -123,9 +114,6 @@ const ProductDetails = () => {
     const allImages = useMemo(() => { if (!product) return []; const images = new Map(); if (product.mainImage) images.set(product.mainImage, product.mainImage); (product.images || []).forEach(img => images.set(img, img)); (product.variations || []).forEach(v => (v.options || []).forEach(o => o.image && !images.has(o.image) && images.set(o.image, o.image))); return Array.from(images.values()); }, [product]);
     const userHasReviewed = useMemo(() => !(!product || !currentUser || !Array.isArray(product.reviews)) && product.reviews.some(review => review.user?._id === currentUser._id || review.user === currentUser._id), [product, currentUser]);
     const reviewBreakdown = useMemo(() => { if (!product || !product.reviews || product.reviews.length === 0) { return { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }; } return product.reviews.reduce((acc, review) => { acc[review.rating] = (acc[review.rating] || 0) + 1; return acc; }, { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }); }, [product]);
-    
-    // --- العرض والواجهة ---
-
     if (loading) return <ProductSkeleton />;
     if (error) return <div className="flex h-screen w-full items-center justify-center bg-gray-100 dark:bg-black p-4"><div className="text-center text-red-700 dark:text-red-400 p-8 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-500/30 flex flex-col items-center gap-4"><p className="font-semibold text-xl">{error}</p></div></div>;
     if (!product) return null;
