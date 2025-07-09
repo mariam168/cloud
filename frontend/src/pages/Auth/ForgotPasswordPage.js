@@ -77,7 +77,7 @@ const ForgotPasswordPage = () => {
     );
 
     return (
-        <section className="flex min-h-[80vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
+        <section className="flex min-h-[100vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
             <div className="w-full max-w-md" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                 <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
                     <header className="text-center mb-8">

@@ -99,7 +99,7 @@ const RegisterPage = () => {
 
     if (showActivationModal) {
         return (
-            <section className="flex min-h-[80vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
+            <section className="flex min-h-[100vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
                  <div className="w-full max-w-lg text-center bg-white dark:bg-zinc-900 p-8 sm:p-12 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/10 mb-6">
                         <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
@@ -116,7 +116,7 @@ const RegisterPage = () => {
     }
 
     return (
-        <section className="flex min-h-[80vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
+        <section className="flex min-h-[100vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
             <div className="w-full max-w-md" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                 <div className="bg-white dark:bg-zinc-900 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
                     <header className="text-center mb-8">

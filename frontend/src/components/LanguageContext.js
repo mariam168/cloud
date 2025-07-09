@@ -196,6 +196,10 @@ const translations = {
             "emptyWishlist": "قائمة المفضلات فارغة.",
         },
         "auth": {
+            "login": "تسجيل الدخول", "register": "انشاء حساب",
+            "loginSubtitle": "تسجيل الدخول",
+            "backToLogin": "العودة لتسجيل الدخول",
+            "registerSubtitle": "انشاء حساب جديد", "name": "الاسم",
             "email": "البريد الإلكتروني", "password": "كلمة المرور", "rememberMe": "تذكرني", "forgotPassword": "هل نسيت كلمة المرور؟",
             "loginTitle": "تسجيل الدخول", "registerTitle": "إنشاء حساب جديد", "noAccount": "ليس لديك حساب؟", "signUp": "إنشاء حساب",
             "haveAccount": "لديك حساب بالفعل؟", "loginButton": "تسجيل الدخول", "registerButton": "إنشاء حساب",
@@ -720,6 +724,10 @@ const translations = {
             "emptyWishlist": "Your wishlist is empty.",
         },
         "auth": {
+            "registerSubtitle": "Create an account",
+            "backToLogin": "Back to Login",
+            "loginSubtitle": "Login to your account",
+            "login": "Login", "register": "Register", "name": "Full Name",
             "email": "Email Address", "password": "Password", "rememberMe": "Remember Me", "forgotPassword": "Forgot Password?",
             "loginTitle": "Login", "registerTitle": "Register", "noAccount": "Don't have an account?", "signUp": "Sign Up",
             "haveAccount": "Already have an account?", "loginButton": "Login", "registerButton": "Register",

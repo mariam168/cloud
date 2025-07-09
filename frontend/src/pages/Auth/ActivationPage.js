@@ -83,7 +83,7 @@ const ActivationPage = () => {
     };
 
     return (
-        <section className="flex min-h-[80vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
+        <section className="flex min-h-[100vh] w-full items-center justify-center bg-gray-100 dark:bg-black p-4">
             <div className="w-full max-w-lg text-center bg-white dark:bg-zinc-900 p-8 sm:p-12 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
                 <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8">
                     {t('auth.accountActivation')}
