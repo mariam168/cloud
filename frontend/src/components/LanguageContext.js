@@ -27,6 +27,20 @@ const translations = {
             "discountPercentage": "نسبة الخصم",
             "currency": "جنيه",
             "star":"نجوم",
+            "home":"الرئيسية",
+            "quantity":"الكمية",
+            "secureCheckout":"الدفع الآمن",
+            "paymentMethod":"طريقة الدفع",
+            "fastShipping":"شحن سريع",
+            "customerSupport":"دعم العملاء",
+            "discount":"خصم",
+            "minSpendLabel":"الحد الادنى للمشتريات",
+            "maxDiscount":"الحد الاقصى للخصم",
+            "validUntilLabel":"الصلاحية حتى",
+            "codeRequired": "الرجاء ادخال رمز الخصم",
+            "amountRequired": "الرجاء ادخال نسبة الخصم او قيمة الخصم",
+            "viewAll":"عرض الكل",
+
         },
         
         "productDetailsPage": {
@@ -63,7 +77,8 @@ const translations = {
             "language": "English", "home": "الرئيسية", "shop": "المتجر", "aboutUs": "من نحن", "contactUs": "اتصل بنا",
             "dashboard": "لوحة التحكم", "logout": "تسجيل الخروج", "welcome": "أهلاً بك", "helloGuest": "أهلاً بالزائر",
             "lightMode": "الوضع الفاتح",
-            "darkMode": "الوضع الداكن"
+            "darkMode": "الوضع الداكن",
+            "callUs": "اتصل بنا",
         },
         "mainHeader": {
             "siteName": "متجري", "searchPlaceholder": "ابحث...", "myAccount": "حسابي", "login": "تسجيل الدخول",
@@ -78,6 +93,7 @@ const translations = {
             "easyReturns": "إرجاع سهل",
             "securePayment": "دفع آمن"
         },
+ 
         "footer": {
             "description": "متجرك الأول لأفضل المنتجات. جودة وثقة تصلك حتى باب منزلك.",
             "newsletterTitle": "انضم إلى نشرتنا البريدية",
@@ -95,9 +111,10 @@ const translations = {
             "returnPolicy": "سياسة الإرجاع",
             "contactInfo": "معلومات التواصل",
             "address": "123 الشارع الرئيسي، القاهرة، مصر",
-            "phone": "+20 123 456 7890",
-            "email": "contact@yourstore.com",
-            "copyright": "جميع الحقوق محفوظة، {{siteName}}."
+            "phone": "+20 15 00553457",
+            "email": "ouno66666@gmail.com",
+            "copyright": "جميع الحقوق محفوظة، OUNO.",
+            "followUs": "تابعنا",
         },
         "heroSection": {
             "bigSale": "عرض لفترة محدودة", "price": "السعر", "validFrom": "صالح من", "validUntil": "صالح حتى",
@@ -122,6 +139,7 @@ const translations = {
             "loginRequired": "يرجى تسجيل الدخول لإضافة المنتجات إلى السلة.", "productAddedSuccess": "تمت اضافة المنتج لسلتك بنجاح.",
             "addError": "خطأ في إضافة المنتج للسلة.", "updateSuccess": "تم تحديث سلة التسوق.", "updateError": "خطأ في تحديث السلة.",
             "productRemovedSuccess": "تمت ازالة المنتج من سلتك.", "removeError": "خطأ في إزالة المنتج.",
+            "clearSuccess": "تم مسح سلة التسوق بنجاح.", "clearError": "خطاء في مسح السلة."
         },
         "allOffersPage": {
             "title": "جميع العروض المتاحة", "noOffers": "لا توجد عروض متاحة في الوقت الحالي.", "noOffersTitle": "لا توجد عروض!",
@@ -133,16 +151,21 @@ const translations = {
             "goToOffer": "انتقل إلى العرض", "typeSlide": "عرض الشريحة الرئيسية", "typeSideOffer": "عرض جانبي",
             "typeWeeklyOffer": "صفقة الأسبوع", "typeOther": "عرض خاص", "priceDetails": "تفاصيل السعر"
         },
-        "aboutUsPage": {
-            "title": "عن متجرنا", "commitment": "نلتزم بتقديم أحدث وأفضل المنتجات. سواء كنت تبحث عن هواتف ذكية متطورة، أو أجهزة لابتوب عالية الأداء، أو إكسسوارات فاخرة، فإننا نقدم مجموعة واسعة من المنتجات عالية الجودة بأسعار لا تضاهى.",
-            "belief": "نؤمن بتقديم تجربة تسوق استثنائية من خلال ضمان التوصيل السريع، خيارات الدفع الآمنة، وخدمة عملاء ممتازة.",
-            "explore": "اكتشف مجموعتنا وابقَ على اطلاع بأحدث الصيحات. رضاكم هو أولويتنا!", "imageAlt": "صورة تعبر عن فريق العمل"
-        },
+      
+  "aboutUsPage": {
+    "title": "عن OUNO",
+    "commitment": "في OUNO، وجهتك الأولى لكل ما هو عصري ومبتكر. نؤمن بأن الجودة هي أساس كل شيء، لذلك نحرص على انتقاء تشكيلة فريدة من أحدث المنتجات، الأجهزة عالية الأداء، والإكسسوارات الفاخرة التي تلبي شغفك وتفوق توقعاتك.",
+    "belief": "تجربتك معنا لا تقتصر على مجرد شراء منتج، بل هي رحلة متكاملة من الراحة والثقة. نضمن لك توصيلاً سريعاً يصلك أينما كنت، خيارات دفع آمنة ومتنوعة، وفريق خدمة عملاء جاهز لمساعدتك في كل خطوة.",
+    "explore": "استكشف مجموعتنا الآن وكن دائماً في المقدمة. في OUNO، رضاكم ليس مجرد هدف، بل هو مقياس نجاحنا.",
+    "imageAlt": "صورة تعبر عن هوية ورؤية متجر OUNO"
+  },
+
         "contactUsPage": {
             "title": "اتصل بنا", "description": "هل لديك أي أسئلة؟ لا تتردد في التواصل معنا. فريقنا متاح لمساعدتك.",
             "yourName": "اسمك", "yourSubject": "الموضوع", "yourEmail": "بريدك الإلكتروني", "yourPhone": "رقم هاتفك",
             "yourMessage": "رسالتك", "submitMessage": "إرسال الرسالة", "successMessage": "تم إرسال رسالتك بنجاح!",
-            "errorMessage": "فشل في إرسال الرسالة.", "networkError": "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى."
+            "errorMessage": "فشل في إرسال الرسالة.", "networkError": "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+            "submitting": "جاري التقديم..."
         },
         "productCard": {
             "uncategorized": "غير مصنف", "removeFromFavorites": "إزالة من المفضلة", "addToFavorites": "إضافة إلى المفضلة",
@@ -187,6 +210,10 @@ const translations = {
             "enterCountryPlaceholder": "أدخل دولتك",
             "cashOnDelivery": "الدفع عند الإستلام",
             "placingOrder": "جاري الطلب",
+            "discountCode": "كود الخصم",
+            "discount":"خصم",
+            "discountAppliedSuccessfully":"تم تطبيق الخصم بنجاح",
+            "remove":"حذف",
         },
         "wishlistPage": {
             "wishlistTitle": "قائمة أمنياتي",
@@ -194,6 +221,7 @@ const translations = {
             "emptyWishlist": "قائمة المفضلات فارغة.",
             "emptyWishlistDesc": "لا يوجد منتجات في قائمة المفضلات.",
             "emptyWishlist": "قائمة المفضلات فارغة.",
+
         },
         "auth": {
             "login": "تسجيل الدخول", "register": "انشاء حساب",
@@ -239,6 +267,9 @@ const translations = {
             "noProductsFoundTitle": "لا يوجد منتجات",
             "noProductsFoundSubtitle": "نعتذر، لا يوجد منتجات في الوقت الحالي.",
             "filters": "الفلاتر",
+            "categories": "الفئات", "subCategories": "الفئات الفرعية", "allSubCategories": "كل الفئات الفرعية",
+             "viewResults": "عرض النتايج",
+            
         },
         "adminDashboardPage": {
             "footerText": "متجري. جميع الحقوق محفوظة.", "errorFetchingData": "خطأ في جلب بيانات لوحة التحكم: ",
@@ -306,6 +337,7 @@ const translations = {
             "subtotal": "المجموع الفرعي",
             "importantDates": "تواريخ هامة", "noOrdersFound": "لا يوجد طلبات", "checkLater": "تحقق من جديد",
             "orderID": "Order ID",
+            "orderStatus": "حالة الطلب",
         },
         "advertisementAdmin": {
             "titleRequired": "عناوين الإعلان باللغة الإنجليزية والعربية مطلوبة.", "imageRequired": "صورة الإعلان مطلوبة.",
@@ -447,6 +479,7 @@ const translations = {
         },
          "profile": {
       "profileDetails": "تفاصيل الملف الشخصي",
+      "processing": "جاري المعالجة...",
       "myOrders": "طلباتي",
       "security": "الأمان",
       "logout": "تسجيل الخروج",
@@ -473,7 +506,9 @@ const translations = {
       "passwordUpdateSuccess": "تم تحديث كلمة المرور بنجاح!",
       "passwordUpdateError": "فشل تحديث كلمة المرور.",
       "fetchOrdersError": "فشل في جلب طلباتك.",
-      "logoutSuccess": "تم تسجيل خروجك بنجاح."
+      "logoutSuccess": "تم تسجيل خروجك بنجاح.",
+      "pageTitle": "الملف الشخصي",
+      "pageSubtitle": "معلوماتك الشخصية وطلباتك."
     },
     "orderDetails": {
       "title": "تفاصيل الطلب",
@@ -549,12 +584,21 @@ const translations = {
             "discountPercentage": "Discount Percentage",
             "currency": "EGP",
             "star": "star",
+            "home": "Home",
+            "secureCheckout": "Secure Checkout",
+            "fastShipping": "Fast Shipping",
+            "customerSupport": "Customer Support","discount": "Discount","minSpend": "Min Spend",
+            "maxDiscount": "Max Discount",
+            "validUntilLabel": "Valid Until","minSpendLabel":"Min Spend","maxDiscountLabel":"Max Discount",
+            "viewAll": "View All",
+            "quantity": "Quantity",
+
 
         },
         "topBar": {
             "language": "العربية", "home": "Home", "shop": "Shop", "aboutUs": "About Us", "contactUs": "Contact Us",
             "dashboard": "Dashboard", "logout": "Logout", "welcome": "Welcome", "helloGuest": "Hello, Guest", "lightMode": "Light Mode",
-            "darkMode": "Dark Mode"
+            "darkMode": "Dark Mode", "callUs": "Call Us",
         },
         "mainHeader": {
             "siteName": "My Store", "searchPlaceholder": "Search...", "myAccount": "My Account", "login": "Login",
@@ -592,6 +636,7 @@ const translations = {
             "loginRequired": "Please log in to add items to your cart.", "productAddedSuccess": "Product added to cart successfully.",
             "addError": "Error adding product to cart.", "updateSuccess": "Cart updated successfully.", "updateError": "Error updating cart.",
             "productRemovedSuccess": "Product removed from cart.", "removeError": "Error removing item.",
+            "clearSuccess": "Cart cleared successfully.", "clearError": "Error clearing cart.",
         },
         "allOffersPage": {
             "title": "All Available Offers", "noOffers": "No offers are available at the moment.", "noOffersTitle": "No Offers Available!",
@@ -603,24 +648,30 @@ const translations = {
             "goToOffer": "Go To Offer", "typeSlide": "Main Carousel Offer", "typeSideOffer": "Side Offer",
             "typeWeeklyOffer": "Weekly Deal", "typeOther": "Special Offer", "priceDetails": "Price Details"
         },
-        "aboutUsPage": {
-            "title": "About Our Store",
-            "commitment": "We are committed to bringing you the latest and greatest. Whether you’re looking for cutting-edge products, high-performance gear, or premium accessories, we offer a wide selection.",
-            "belief": "We believe in providing an exceptional shopping experience by ensuring fast delivery, secure payment options and outstanding customer service.",
-            "explore": "Explore our collection and stay ahead with the latest trends. Your satisfaction is our priority!", "imageAlt": "A picture representing our team and values"
-        },
+       
+  "aboutUsPage": {
+    "title": "About OUNO",
+    "commitment": "At OUNO, we're your number one destination for everything modern and innovative. We believe quality is the foundation of everything, which is why we meticulously curate a unique collection of the latest products, high-performance gear, and premium accessories that fuel your passion and exceed your expectations.",
+    "belief": "Your experience with us is more than just a purchase—it's a complete journey of comfort and confidence. We guarantee fast delivery to your doorstep, secure and diverse payment options, and an outstanding customer service team ready to assist you every step of the way.",
+    "explore": "Explore our collection now and stay ahead of the curve. At OUNO, your satisfaction isn't just a goal; it's our measure of success.",
+    "imageAlt": "An image representing the identity and vision of OUNO store"
+  }
+        ,
         "contactUsPage": {
             "title": "Contact Us", "description": "Have any questions or need assistance? Feel free to reach out. Our team is available to help.",
             "yourName": "Your Name", "yourSubject": "Subject", "yourEmail": "Your Email", "yourPhone": "Your Phone",
             "yourMessage": "Your Message", "submitMessage": "Submit Message", "successMessage": "Message submitted successfully! Thank you.",
-            "errorMessage": "Failed to submit message.", "networkError": "A network error occurred. Please try again."
+            "errorMessage": "Failed to submit message.", "networkError": "A network error occurred. Please try again.",
+            "submitting": "Submitting..."
         },
         "productCard": {
             "uncategorized": "Uncategorized", "removeFromFavorites": "Remove from Favorites", "addToFavorites": "Add to Favorites",
             "viewDetails": "View Details", "viewOffer": "View Offer", "addToCart": "Add to Cart"
         },
           "profile": {
+
       "profileDetails": "Profile Details",
+      "processing": "Processing...",
       "myOrders": "My Orders",
       "security": "Security",
       "logout": "Logout",
@@ -647,7 +698,9 @@ const translations = {
       "passwordUpdateSuccess": "Password updated successfully!",
       "passwordUpdateError": "Failed to update password.",
       "fetchOrdersError": "Failed to fetch your orders.",
-      "logoutSuccess": "You have been logged out."
+      "logoutSuccess": "You have been logged out.",
+      "pageTitle": "My Profile",
+      "pageSubtitle": "Manage your profile and order history."
     },
     "orderDetails": {
       "title": "Order Details",
@@ -715,6 +768,10 @@ const translations = {
             "continueShopping": "Continue Shopping",
             "continueShopping": "Continue Shopping",
             "placingOrder": "Placing Order",
+            "discountCode": "Discount Code",
+            "discount":"Discount",
+            "remove":"Remove",
+            "discountAppliedSuccessfully":"Discount applied successfully!",
         },
         "wishlistPage": {
             "wishlistTitle": "My Wishlist",
@@ -766,7 +823,8 @@ const translations = {
             "currencySymbol": "eg",
             "title": "choose your favorite products ", "subtitle": "explore our wide range of products",
             "noProductsFoundTitle": "No products found", "noProductsFoundSubtitle": "We're sorry, but there are no products available at the moment.",
-            "filters": "Filters",
+            "filters": "Filters","categories": "Categories", "subCategories": "Subcategories",
+            "allSubCategories": "All Subcategories","viewResults": "View Results",
 
         },
         "adminDashboardPage": {
@@ -831,7 +889,7 @@ const translations = {
             "actions": "actions", "viewDetails": "view details",
             "subtotal": "Subtotal",
             "importantDates": "Important Dates", "noOrdersFound": "No orders found.", "checkLater": "Check back later.",
-            "orderID": "Order ID"
+            "orderID": "Order ID","orderStatus": "Order Status",
         },
         "advertisementAdmin": {
             "titleRequired": "Advertisement English and Arabic titles are required.", "imageRequired": "Advertisement image is required.",
@@ -901,9 +959,10 @@ const translations = {
             "returnPolicy": "Return Policy",
             "contactInfo": "Contact Info",
             "address": "123 Main Street, Cairo, Egypt",
-            "phone": "+20 123 456 7890",
-            "email": "contact@yourstore.com",
-            "copyright": "All rights reserved, {{siteName}}."
+            "phone": "+20 15 00553457",
+            "email": "ouno66666@gmail.com",
+            "copyright": "All rights reserved, OUNO",
+            "followUs": "Follow Us",
         },
         "discountAdmin": {
             "codeRequired": "Discount code is required.", "amountRequired": "Either percentage or fixed amount is required.",

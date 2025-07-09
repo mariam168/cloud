@@ -1,7 +1,57 @@
+// backend/routes/discounts.js
+
 const express = require('express');
 const router = express.Router();
 const Discount = require('../models/Discount');
 const { protect, admin } = require('../middleware/authMiddleware');
+
+// --- ( بداية الإضافة المهمة ) ---
+// @desc    Validate a discount code
+// @route   POST /api/discounts/validate
+// @access  Private
+router.post('/validate', protect, async (req, res) => {
+    const { code, totalAmount } = req.body;
+    try {
+        const currentDate = new Date();
+        const discount = await Discount.findOne({
+            code: code.toUpperCase(),
+            isActive: true,
+            startDate: { $lte: currentDate },
+            endDate: { $gte: currentDate }
+        });
+
+        if (!discount) {
+            return res.status(404).json({ message: 'Invalid or expired discount code.' });
+        }
+
+        if (totalAmount < discount.minOrderAmount) {
+            return res.status(400).json({ message: `Minimum order amount of ${discount.minOrderAmount} is required to use this code.` });
+        }
+
+        let discountAmount = 0;
+        if (discount.percentage) {
+            discountAmount = (totalAmount * discount.percentage) / 100;
+            if (discount.maxDiscountAmount && discountAmount > discount.maxDiscountAmount) {
+                discountAmount = discount.maxDiscountAmount;
+            }
+        } else if (discount.fixedAmount) {
+            discountAmount = discount.fixedAmount;
+        }
+
+        res.json({
+            message: 'Discount applied successfully!',
+            discountAmount: discountAmount,
+            code: discount.code
+        });
+
+    } catch (error) {
+        console.error('Discount validation error:', error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+});
+// --- ( نهاية الإضافة المهمة ) ---
+
+
 router.get('/active', async (req, res) => {
     try {
         const currentDate = new Date();

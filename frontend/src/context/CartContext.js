@@ -13,6 +13,7 @@ export const CartProvider = ({ children }) => {
     const [loadingCart, setLoadingCart] = useState(true);
     const { isAuthenticated, API_BASE_URL, token } = useAuth();
     const navigate = useNavigate();
+
     const fetchCart = useCallback(async () => {
         if (!isAuthenticated || !token) {
             setCartItems([]);
@@ -44,8 +45,7 @@ export const CartProvider = ({ children }) => {
             setLoadingCart(false);
         }
     }, [isAuthenticated, fetchCart]);
-    
-    const addToCart = async (product, quantity = 1, selectedVariantId = null) => { 
+    const addToCart = async (product, quantity = 1, selectedSkuId = null) => { 
         if (!isAuthenticated) { 
             showToast(t('cart.loginRequired'), 'info'); 
             navigate('/login'); 
@@ -60,7 +60,7 @@ export const CartProvider = ({ children }) => {
             await axios.post(`${API_BASE_URL}/api/cart`, { 
                 productId: product._id,
                 quantity, 
-                selectedVariantId
+                selectedVariantId: selectedSkuId 
             }, { headers: { Authorization: `Bearer ${token}` } });
             await fetchCart();
             showToast(t('cart.productAddedSuccess'), 'success');
@@ -90,14 +90,19 @@ export const CartProvider = ({ children }) => {
     };
 
     const clearCart = useCallback(async () => {
+        if (!isAuthenticated) return;
+        setLoadingCart(true);
         try {
             await axios.delete(`${API_BASE_URL}/api/cart/clear`, { headers: { Authorization: `Bearer ${token}` } });
             setCartItems([]);
+            showToast(t('cart.clearSuccess'), 'success');
         } catch (error) {
             console.error("Failed to clear cart:", error);
             showToast(t('cart.clearError'), 'error');
+        } finally {
+            setLoadingCart(false);
         }
-    }, [API_BASE_URL, token, showToast, t]);
+    }, [API_BASE_URL, token, showToast, t, isAuthenticated]);
 
     const cartTotal = useMemo(() => cartItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0), [cartItems]);
     const getCartCount = useMemo(() => cartItems.reduce((total, item) => total + (item.quantity || 0), 0), [cartItems]);

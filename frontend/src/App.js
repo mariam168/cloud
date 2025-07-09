@@ -5,10 +5,15 @@ import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext'; 
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/ToastNotification';
+
+// استيراد المكونات
 import TopBar from './components/Header/TopBar';
 import MainHeader from './components/Header/MainHeader';
 import Footer from './components/Footer';
 import DashboardLayout from './components/layouts/DashboardLayout';
+import AdminRoute from './components/Routing/AdminRoute'; // <-- إضافة مهمة
+
+// استيراد الصفحات
 import Home from './pages/Home';
 import About from './pages/About';
 import ContactUs from './pages/ContactUs';
@@ -79,16 +84,20 @@ function App() {
                     <Route path="/resetpassword/:token" element={<ResetPasswordPage />} />
                   </Route>
                   
-                  <Route path="/admin" element={<DashboardLayout />}> 
-                    <Route index element={<Navigate to="dashboard" replace />} />
-                    <Route path="dashboard" element={<AdminDashboardPage />} />
-                    <Route path="products" element={<AdminProductsPage />} />    
-                    <Route path="categories" element={<AdminCategoriesPage />} />   
-                    <Route path="orders" element={<AdminOrdersPage />} />         
-                    <Route path="orders/:id" element={<AdminOrderDetailsPage />} />
-                    <Route path="advertisements" element={<AdvertisementList />} /> 
-                    <Route path="discounts" element={<DiscountList />} />   
+                  {/* --- ( بداية التعديل الجوهري ) --- */}
+                  <Route element={<AdminRoute />}>
+                    <Route path="/admin" element={<DashboardLayout />}> 
+                      <Route index element={<Navigate to="dashboard" replace />} />
+                      <Route path="dashboard" element={<AdminDashboardPage />} />
+                      <Route path="products" element={<AdminProductsPage />} />    
+                      <Route path="categories" element={<AdminCategoriesPage />} />   
+                      <Route path="orders" element={<AdminOrdersPage />} />         
+                      <Route path="orders/:id" element={<AdminOrderDetailsPage />} />
+                      <Route path="advertisements" element={<AdvertisementList />} /> 
+                      <Route path="discounts" element={<DiscountList />} />   
+                    </Route>
                   </Route>
+                  {/* --- ( نهاية التعديل الجوهري ) --- */}
                 </Routes>
               </CartProvider>
             </WishlistProvider>

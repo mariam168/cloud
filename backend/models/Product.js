@@ -49,7 +49,8 @@ const productSchema = new mongoose.Schema({
     },
     mainImage: { type: String },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-    subCategoryName: { type: String, trim: true, default: '' },
+    subCategory: { type: mongoose.Schema.Types.ObjectId },
+    
     attributes: [{
         _id: false,
         key_en: { type: String, required: true },
@@ -72,5 +73,4 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
- 
 module.exports = Product;

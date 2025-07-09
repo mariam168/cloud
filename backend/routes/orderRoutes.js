@@ -1,3 +1,5 @@
+// backend/routes/orders.js
+
 const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middleware/authMiddleware'); 
@@ -17,61 +19,48 @@ router.post('/', protect, async (req, res) => {
             return res.status(400).json({ message: 'Your cart is empty' });
         }
 
-        let itemsPrice = 0;
-        const orderItemsPromises = cart.items.map(async (item) => {
-            const product = await Product.findById(item.product);
-            if (!product) throw new Error(`Product with ID ${item.product} not found.`);
+        // --- ( بداية التعديل الجوهري ) ---
+        // 1. حساب سعر المنتجات مباشرة من السلة (التي تحتوي على الأسعار الصحيحة)
+        const itemsPrice = cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-            let finalPrice = product.basePrice, finalImage = product.mainImage, stock, variantDetailsText = '';
-            
-            if (item.selectedVariant) {
-                let variant, option;
-                for (const v of product.variations) {
-                    for (const o of v.options) {
-                        const foundSku = o.skus.id(item.selectedVariant);
-                        if (foundSku) { variant = foundSku; option = o; break; }
-                    }
-                    if (variant) break;
-                }
-                
-                if (!variant) throw new Error(`Variant not found.`);
-                finalPrice = variant.price;
-                finalImage = option.image || product.mainImage;
-                stock = variant.stock;
-                variantDetailsText = `${option.name_en} - ${variant.name_en}`;
-            } else {
-                stock = product.stock;
-            }
-
-            if (stock < item.quantity) throw new Error(`Not enough stock for ${product.name.en}.`);
-            
-            itemsPrice += finalPrice * item.quantity;
-            return { product: product._id, name: product.name, image: finalImage, price: finalPrice, quantity: item.quantity, selectedVariantId: item.selectedVariant, variantDetailsText };
-        });
-
-        const orderItems = await Promise.all(orderItemsPromises);
-        
+        // 2. حساب السعر الإجمالي بعد الخصم
         const totalPrice = itemsPrice - (discount?.amount || 0);
 
+        // 3. إنشاء الطلب باستخدام بيانات السلة مباشرة
         const order = new Order({
-            user: req.user.id, orderItems, shippingAddress, paymentMethod, itemsPrice, totalPrice,
-            discount: discount ? { code: discount.code, amount: discount.amount } : undefined
+            user: req.user.id,
+            orderItems: cart.items, // <-- نستخدم بيانات السلة كما هي
+            shippingAddress,
+            paymentMethod,
+            itemsPrice,
+            totalPrice: totalPrice > 0 ? totalPrice : 0, // السعر لا يمكن أن يكون أقل من صفر
+            discount: discount ? { code: discount.code, amount: discount.amount } : undefined,
         });
+        // --- ( نهاية التعديل الجوهري ) ---
 
         const createdOrder = await order.save();
         
+        // تحديث مخزون المنتجات (هذا الجزء صحيح ولا يحتاج تعديل)
         for (const item of createdOrder.orderItems) {
             const product = await Product.findById(item.product);
-            if (item.selectedVariantId) {
-                const sku = product.variations.flatMap(v => v.options.flatMap(o => o.skus)).find(s => s._id.equals(item.selectedVariantId));
-                if (sku) sku.stock -= item.quantity;
+            if (!product) continue;
+
+            if (item.selectedVariant) { // لاحظ أننا نستخدم selectedVariant من cart.item
+                const sku = product.variations
+                    .flatMap(v => v.options.flatMap(o => o.skus))
+                    .find(s => s._id.equals(item.selectedVariant));
+                if (sku && sku.stock !== undefined) {
+                    sku.stock -= item.quantity;
+                }
             } else if (product.stock !== undefined) {
                 product.stock -= item.quantity;
             }
             await product.save();
         }
         
-        await Cart.findOneAndDelete({ user: req.user.id });
+        // حذف السلة بعد إنشاء الطلب
+        await Cart.deleteOne({ user: req.user.id });
+        
         res.status(201).json(createdOrder);
 
     } catch (error) {
@@ -80,12 +69,13 @@ router.post('/', protect, async (req, res) => {
     }
 });
 
+// --- ( باقي الملف بدون تغيير ) ---
+
 // @desc    Get logged in user's orders
 // @route   GET /api/orders/myorders
 // @access  Private
 router.get('/myorders', protect, async (req, res) => {
     try {
-        // Find all orders where the 'user' field matches the logged-in user's ID
         const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
@@ -111,17 +101,41 @@ router.get('/', protect, admin, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, async (req, res) => { 
     try { 
-        const order = await Order.findById(req.params.id).populate('user', 'name email');
+        const order = await Order.findById(req.params.id).populate('user', 'name email').lean();
+
         if (order) { 
-            // Check if the logged-in user is the owner of the order OR is an admin
             if (order.user._id.toString() !== req.user.id.toString() && req.user.role !== 'admin') { 
                 return res.status(401).json({ message: 'Not authorized to view this order' }); 
-            } 
-            res.json(order); 
+            }
+
+            const populatedOrderItems = await Promise.all(order.orderItems.map(async (item) => {
+                const product = await Product.findById(item.product).lean();
+                if (!product) {
+                    return item;
+                }
+                if (item.selectedVariantId) {
+                    let details = [];
+                    product.variations.forEach(v => {
+                        const opt = v.options.find(o => o.skus.some(s => s._id.equals(item.selectedVariantId)));
+                        if (opt) {
+                            details.push({
+                                variationName: v.name,
+                                optionName: opt.name   
+                            });
+                        }
+                    });
+                    return { ...item, dynamicVariantDetails: details };
+                }
+                return item; 
+            }));
+            
+            res.json({ ...order, orderItems: populatedOrderItems }); 
+
         } else { 
             res.status(404).json({ message: 'Order not found' }); 
         } 
     } catch (e) { 
+        console.error("Error fetching order details:", e)
         res.status(500).json({ message: 'Server Error' }); 
     } 
 });

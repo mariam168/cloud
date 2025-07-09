@@ -18,13 +18,9 @@ const AllOffersPage = () => {
         setLoading(true);
         setError(null);
         try {
-            // ====> التعديل هنا <====
-            // أضفنا الـ header الذي يحتوي على اللغة الحالية
             const response = await axios.get(`${API_BASE_URL}/api/advertisements?isActive=true`, {
                 headers: { 'Accept-Language': language }
             });
-            // ====> نهاية التعديل <====
-
             const offersWithProducts = response.data
                 .filter(offer => offer.productRef)
                 .sort((a, b) => (a.order || 999) - (b.order || 999) || new Date(b.createdAt) - new Date(a.createdAt));

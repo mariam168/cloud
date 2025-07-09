@@ -20,8 +20,6 @@ const FeatureItem = ({ icon: Icon, title, desc }) => (
 
 const Features = () => {
     const { t } = useLanguage();
-
-    // Using original translation keys as requested
     const features = [
         {
             icon: Truck,

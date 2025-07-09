@@ -3,7 +3,7 @@ import { Home, Package, Folder, ShoppingCart, Megaphone, Tag, LogOut, Settings, 
 import { useLanguage } from "../LanguageContext";
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-
+import Logo from '../../Assets/logo.png';
 const DashboardLayout = () => {
   const { t } = useLanguage();
   const location = useLocation();
@@ -23,7 +23,7 @@ const DashboardLayout = () => {
       <aside className="w-16 md:w-64 bg-white dark:bg-zinc-900 flex-shrink-0 border-r border-gray-200 dark:border-zinc-800 flex flex-col">
         <div className="h-20 flex items-center justify-center px-4 border-b border-gray-200 dark:border-zinc-800 flex-shrink-0">
           <Link to="/" className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 hidden md:block">
-            {t('mainHeader.siteName')}
+           <img src={Logo} alt="Logo" className="w-20 h-20" />
           </Link>
           <Link to="/" className="md:hidden text-2xl font-bold text-indigo-600 dark:text-indigo-400">
             T

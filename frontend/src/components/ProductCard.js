@@ -12,7 +12,7 @@ const StarRating = ({ rating }) => (
             <Star
                 key={i}
                 size={14}
-                className={i < rating ? 'text-yellow-400' : 'text-gray-300'}
+                className={i < Math.round(rating) ? 'text-yellow-400' : 'text-zinc-300 dark:text-zinc-600'}
                 fill="currentColor"
             />
         ))}
@@ -25,16 +25,20 @@ const ProductCard = ({ product, advertisement }) => {
     const { toggleFavorite, isFavorite } = useWishlist();
     const { showToast } = useToast();
     const { isAuthenticated, API_BASE_URL } = useAuth();
+
     if (!product || typeof product !== 'object') {
         return null;
     }    
+
     const adData = advertisement || product.advertisement;
+    
     const handleCardClick = (e) => {
         if (e.target.closest('button')) return;
         if (product?._id) {
             navigate(`/shop/${product._id}`);
         }
     };
+    
     const handleToggleFavorite = (e) => {
         e.stopPropagation();
         if (!isAuthenticated) {
@@ -46,23 +50,29 @@ const ProductCard = ({ product, advertisement }) => {
             toggleFavorite(product);
         }
     };
+
     const handleViewDetails = (e) => {
         e.stopPropagation();
         if (product?._id) {
             navigate(`/shop/${product._id}`);
         }
     };
+    
     const productName = product.name || t('general.unnamedProduct');
     const productCategoryName = product.category?.name || t('productCard.uncategorized');
+    
     const isAdvertised = !!adData;
     const productIsFavorite = product._id ? isFavorite(product._id) : false;
     const imageUrl = product.mainImage ? `${API_BASE_URL}${product.mainImage}` : 'https://via.placeholder.com/400?text=No+Image';
+
     let displayPrice = isAdvertised ? adData.discountedPrice : product.basePrice;
     let originalPrice = isAdvertised ? adData.originalPrice : null;
+
     let discountPercentage = 0;
     if (isAdvertised && originalPrice != null && displayPrice < originalPrice) {
         discountPercentage = Math.round(((originalPrice - displayPrice) / originalPrice) * 100);
     }    
+
     const formatPrice = (price) => {
         if (price == null) return t('general.notApplicable');
         const currencyCode = adData?.currency || product.currency || 'EGP';
@@ -71,23 +81,26 @@ const ProductCard = ({ product, advertisement }) => {
             return new Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency: currencyCode,
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
             }).format(Number(price));
         } catch (error) {
-            console.error("Price formatting error:", error);
             return `${price} ${currencyCode}`;
         }
     };
+
     return (
         <div
-            className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
+            onClick={handleCardClick}
+            className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-all duration-300 ease-in-out hover:!border-primary hover:shadow-2xl hover:shadow-primary/10 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:!border-primary-light"
             dir={language === 'ar' ? 'rtl' : 'ltr'}
         >
-            <div className="relative cursor-pointer" onClick={handleCardClick}>
-                <div className="relative flex w-full items-center justify-center overflow-hidden bg-gray-100 p-4 aspect-square dark:bg-zinc-800">
+            <div className="relative overflow-hidden">
+                <div className="bg-zinc-100 dark:bg-zinc-800 aspect-square flex items-center justify-center p-4">
                     <img
                         src={imageUrl}
-                        alt={productName} 
-                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        alt={typeof productName === 'object' ? productName[language] : productName} 
+                        className="h-full w-full object-contain transition-transform duration-500 ease-in-out group-hover:scale-105"
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/400?text=No+Image'; }}
                         loading="lazy"
                     />
@@ -102,51 +115,56 @@ const ProductCard = ({ product, advertisement }) => {
                 
                 <button
                     aria-label={productIsFavorite ? t('productCard.removeFromFavorites') : t('productCard.addToFavorites')}
-                    className={`absolute top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-gray-700 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white dark:bg-zinc-900/70 dark:text-white dark:hover:bg-zinc-800 ${language === 'ar' ? 'left-3' : 'right-3'}`}
+                    className={`action-button absolute top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-zinc-700 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white dark:bg-zinc-900/60 dark:text-white dark:hover:bg-zinc-800 ${language === 'ar' ? 'left-3' : 'right-3'}`}
                     onClick={handleToggleFavorite}
                 >
-                    <Heart size={18} fill={productIsFavorite ? "currentColor" : "none"} className={productIsFavorite ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}/>
+                    <Heart size={18} fill={productIsFavorite ? "currentColor" : "none"} className={productIsFavorite ? 'text-red-500' : 'text-zinc-600 dark:text-zinc-300'}/>
                 </button>
             </div>
             
-            <div className="flex flex-1 flex-col p-4">
-                <div className="flex-1">
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                        {productCategoryName}
+            <div className="flex flex-1 flex-col justify-between p-4">
+                <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary dark:text-primary-light">
+                        {typeof productCategoryName === 'object' ? productCategoryName[language] : productCategoryName}
                     </p>
+                    
                     <h3
-                        className="mb-2 min-h-[40px] cursor-pointer text-base font-bold text-gray-800 line-clamp-2 dark:text-white"
-                        title={productName}
-                        onClick={handleCardClick}
+                        className="mb-3 text-lg font-bold text-zinc-900 line-clamp-2 leading-tight dark:text-white"
+                        title={typeof productName === 'object' ? productName[language] : productName}
                     >
-                        {productName}
+                        {typeof productName === 'object' ? productName[language] : productName}
                     </h3>
+                    
                     {product.numReviews > 0 && (
                         <div className="flex items-center gap-1.5">
                             <StarRating rating={product.averageRating} />
-                            <span className="text-xs font-medium text-gray-500 dark:text-zinc-400">({product.numReviews})</span>
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">({product.numReviews})</span>
                         </div>
                     )}
                 </div>
                 
-                <div className="mt-auto pt-2">
-                     <div className="flex flex-col">
-                        <p className="text-xl font-extrabold text-gray-900 dark:text-white">
-                            {formatPrice(displayPrice)}
-                        </p>
-                        {originalPrice && originalPrice > displayPrice && (
-                            <p className="-mt-1 text-sm font-medium text-gray-400 line-through dark:text-zinc-500">
-                                {formatPrice(originalPrice)}
+                <div className="mt-4 pt-4 border-t border-zinc-200/80 dark:border-zinc-800">
+                    <div className="flex items-end justify-between gap-4">
+                        <div>
+                            {originalPrice && originalPrice > displayPrice && (
+                                <p className="text-sm font-medium text-zinc-400 line-through dark:text-zinc-500">
+                                    {formatPrice(originalPrice)}
+                                </p>
+                            )}
+                            <p className="text-xl font-extrabold text-primary-dark dark:text-primary-light">
+                                {formatPrice(displayPrice)}
                             </p>
-                        )}
+                        </div>
+                        <div className="relative">
+                            <button 
+                                className="action-button h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-zinc-900 text-white transition-transform duration-300 ease-in-out group-hover:scale-110 dark:bg-white dark:text-zinc-900" 
+                                onClick={handleViewDetails}
+                                aria-label={t('productCard.viewDetails')}
+                            >
+                                <ArrowRight size={18} />
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-300 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-500"
-                        onClick={handleViewDetails}
-                    >
-                        <ArrowRight size={16} />
-                        {t('productCard.viewDetails')}
-                    </button>
                 </div>
             </div>
         </div>
