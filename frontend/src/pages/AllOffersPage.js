@@ -18,11 +18,15 @@ const AllOffersPage = () => {
         setLoading(true);
         setError(null);
         try {
+            // هذا الطلب للـ API يجب أن يرجع بيانات المنتج كاملة داخل `productRef`
+            // (بما في ذلك السعر، التقييم، الصور، إلخ) لكي يعمل العرض بشكل صحيح.
             const response = await axios.get(`${API_BASE_URL}/api/advertisements?isActive=true`, {
                 headers: { 'Accept-Language': language }
             });
+            
+            // فلترة العروض للتأكد من أنها مرتبطة بمنتج فعلي
             const offersWithProducts = response.data
-                .filter(offer => offer.productRef)
+                .filter(offer => offer.productRef && offer.productRef._id)
                 .sort((a, b) => (a.order || 999) - (b.order || 999) || new Date(b.createdAt) - new Date(a.createdAt));
             
             setOffers(offersWithProducts);
@@ -90,8 +94,14 @@ const AllOffersPage = () => {
                         {offers.map(offer => (
                             <ProductCard
                                 key={offer._id}
-                                product={offer.productRef}
-                                advertisement={offer}
+                                // هنا نقوم ببناء الـ 'product' object بالشكل الذي يفهمه ProductCard
+                                // ندمج بيانات المنتج وبيانات العرض معًا
+                                product={{
+                                    // ...offer.productRef ينشر كل خصائص المنتج (السعر، الاسم، التقييم، إلخ)
+                                    ...offer.productRef,
+                                    // advertisement: offer يضيف بيانات العرض نفسه
+                                    advertisement: offer
+                                }}
                             />
                         ))}
                     </div>

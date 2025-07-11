@@ -9,8 +9,7 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
     const [advertisement, setAdvertisement] = useState({
         title_en: "", title_ar: "", description_en: "", description_ar: "",
         link: "", type: "slide", isActive: true, order: 0,
-        startDate: "", endDate: "", originalPrice: "", discountedPrice: "",
-        currency: "EG", productRef: "",
+        startDate: "", endDate: "", discountPercentage: "", productRef: "",
     });
 
     const [products, setProducts] = useState([]);
@@ -26,9 +25,8 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await axios.get(`${serverUrl}/api/products`, {
-                    headers: { 'x-admin-request': 'true', 'Accept-Language': language }
-                });
+                // هذا المسار صحيح ويجب أن يبقى
+                const res = await axios.get(`${serverUrl}/api/products/admin-list`);
                 setProducts(res.data);
             } catch (error) {
                 console.error("Failed to fetch products for dropdown:", error);
@@ -37,7 +35,7 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
             }
         };
         fetchProducts();
-    }, [serverUrl, t, language]);
+    }, [serverUrl, t]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -46,16 +44,14 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // --- ( تصحيح نهائي لمنطق الفلترة ) ---
     const filteredProducts = products.filter(product => {
-        const nameEn = product.name?.en?.toLowerCase() || '';
-        const nameAr = product.name?.ar || '';
-        const searchTerm = productSearchTerm.toLowerCase();
-        return nameEn.includes(searchTerm) || nameAr.includes(productSearchTerm);
+        // بما أن name هو نص، البحث سيكون أبسط
+        if (!product || !product.name) return false;
+        return product.name.toLowerCase().includes(productSearchTerm.toLowerCase());
     });
 
     const handleChange = (e) => {
@@ -77,7 +73,8 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
     const handleProductSelect = (product) => {
         if (product) {
             setAdvertisement(prev => ({ ...prev, productRef: product._id }));
-            setProductSearchTerm(product.name?.[language] || product.name?.en);
+            // --- ( تصحيح نهائي: عرض الاسم مباشرة ) ---
+            setProductSearchTerm(product.name || "");
         } else {
             setAdvertisement(prev => ({ ...prev, productRef: "" }));
             setProductSearchTerm("");
@@ -85,17 +82,15 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
         setIsProductDropdownOpen(false);
     };
 
-    const handleImageChange = (e) => {
-        setImageFile(e.target.files[0]);
-    };
+    const handleImageChange = (e) => setImageFile(e.target.files[0]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitMessage("");
         setSubmitMessageType("");
 
-        if (!advertisement.title_en.trim() || !advertisement.title_ar.trim() || !imageFile) {
-            setSubmitMessage(t('advertisementAdmin.titleAndImageRequired'));
+        if (!advertisement.title_en.trim() || !advertisement.title_ar.trim()) {
+            setSubmitMessage(t('advertisementAdmin.titleRequired'));
             setSubmitMessageType('error');
             return;
         }
@@ -107,7 +102,10 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
                 formData.append(key, advertisement[key]);
             }
         });
-        formData.append("image", imageFile);
+        
+        if (imageFile) {
+            formData.append("image", imageFile);
+        }
 
         try {
             await axios.post(`${serverUrl}/api/advertisements`, formData, {
@@ -120,7 +118,7 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
             setAdvertisement({
                 title_en: "", title_ar: "", description_en: "", description_ar: "",
                 link: "", type: "slide", isActive: true, order: 0,
-                startDate: "", endDate: "", originalPrice: "", discountedPrice: "", currency: "EG", productRef: ""
+                startDate: "", endDate: "", discountPercentage: "", productRef: ""
             });
             setImageFile(null);
             setProductSearchTerm("");
@@ -138,7 +136,7 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
         }
     };
 
-    const inputClasses = "w-full rounded-lg border-gray-200 bg-gray-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
+    const inputClasses = "w-full rounded-lg border-gray-200 bg-gray-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent transition";
     const labelClasses = "block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5";
     const checkboxLabelClasses = "flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300 cursor-pointer";
 
@@ -196,7 +194,8 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map(product => (
                                 <li key={product._id} className="px-4 py-2 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer" onClick={() => handleProductSelect(product)}>
-                                    {product.name?.[language] || product.name?.en}
+                                    {/* --- تصحيح نهائي: عرض الاسم مباشرة --- */}
+                                    <span className="font-semibold">{product.name || 'Unnamed Product'}</span>
                                 </li>
                             ))
                         ) : (
@@ -204,6 +203,12 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
                         )}
                     </ul>
                 )}
+            </div>
+            
+            <div>
+                {/* --- تصحيح بسيط: استخدام مفتاح ترجمة صحيح --- */}
+                <label htmlFor="discountPercentage" className={labelClasses}>{t('advertisementAdmin.discountPercentageLabel')} (%)</label>
+                <input type="number" id="discountPercentage" name="discountPercentage" value={advertisement.discountPercentage} onChange={handleChange} className={inputClasses} min="0" max="100" placeholder="e.g., 10 for 10%" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -232,21 +237,6 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
                     <input type="date" id="endDate" name="endDate" value={advertisement.endDate} onChange={handleChange} className={inputClasses} />
                 </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div>
-                    <label htmlFor="originalPrice" className={labelClasses}>{t('advertisementAdmin.originalPrice')}</label>
-                    <input type="number" id="originalPrice" name="originalPrice" value={advertisement.originalPrice} onChange={handleChange} className={inputClasses} step="0.01" placeholder="0.00" />
-                </div>
-                <div>
-                    <label htmlFor="discountedPrice" className={labelClasses}>{t('advertisementAdmin.discountedPrice')}</label>
-                    <input type="number" id="discountedPrice" name="discountedPrice" value={advertisement.discountedPrice} onChange={handleChange} className={inputClasses} step="0.01" placeholder="0.00" />
-                </div>
-                <div>
-                    <label htmlFor="currency" className={labelClasses}>{t('advertisementAdmin.currency')}</label>
-                    <input type="text" id="currency" name="currency" value={advertisement.currency} onChange={handleChange} className={inputClasses} placeholder="EG, USD..." />
-                </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -255,7 +245,7 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
                 </div>
                 <div className="self-end">
                     <label className={checkboxLabelClasses}>
-                        <input type="checkbox" id="isActive" name="isActive" checked={advertisement.isActive} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                        <input type="checkbox" id="isActive" name="isActive" checked={advertisement.isActive} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary-light" />
                         <span>{t('advertisementAdmin.isActive')}</span>
                     </label>
                 </div>
@@ -263,12 +253,12 @@ const AddAdvertisementPage = ({ onAdvertisementAdded, serverUrl = 'http://localh
             
             <div>
                 <label htmlFor="advertisement-image" className={labelClasses}>{t('advertisementAdmin.imageLabel')}</label>
-                <input type="file" id="advertisement-image" name="image" onChange={handleImageChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-500/10 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-500/20" accept="image/*" required />
+                <input type="file" id="advertisement-image" name="image" onChange={handleImageChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 dark:file:bg-primary-light/10 file:text-primary-dark dark:file:text-primary-light hover:file:bg-primary/20 dark:hover:file:bg-primary-light/20" accept="image/*" />
                 {imageFile && ( <p className="mt-2 text-xs text-gray-500 dark:text-zinc-400">{t('advertisementAdmin.selectedImage')}: {imageFile.name}</p>)}
             </div>
 
             <div className="pt-4 border-t border-gray-200 dark:border-zinc-800">
-                <button type="submit" disabled={isSubmitting} className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="submit" disabled={isSubmitting} className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed">
                     {isSubmitting ? ( <Loader2 className="animate-spin" size={20} /> ) : ( <Plus size={20} /> )}
                     <span>{isSubmitting ? t('advertisementAdmin.submittingButton') : t('advertisementAdmin.addButton')}</span>
                 </button>

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const advertisementSchema = new mongoose.Schema({
     title: {
         en: { type: String, required: true, trim: true, maxlength: 100 },
@@ -8,7 +9,7 @@ const advertisementSchema = new mongoose.Schema({
         en: { type: String, trim: true, maxlength: 500 },
         ar: { type: String, trim: true, maxlength: 500 }
     },
-    image: { type: String, default: '' }, 
+    image: { type: String, default: '' },
     link: { type: String, default: '#' },
     type: {
         type: String,
@@ -18,28 +19,29 @@ const advertisementSchema = new mongoose.Schema({
     productRef: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
-        default: null 
+        default: null // Allows advertisements to not be linked to a specific product
     },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0, min: 0 },
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
-    originalPrice: { type: Number, default: null, min: 0 }, 
-    discountedPrice: { type: Number, default: null, min: 0 },
-    currency: { type: String, default: 'EG', trim: true, maxlength: 10 },
+    discountPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
 }, {
-    timestamps: true 
+    timestamps: true
 });
 
 advertisementSchema.pre('save', function (next) {
     if (this.startDate && this.endDate && this.startDate > this.endDate) {
         return next(new Error('End date must be after start date.'));
     }
-    if (this.originalPrice !== null && this.discountedPrice !== null && this.discountedPrice > this.originalPrice) {
-        return next(new Error('Discounted price cannot be higher than original price.'));
-    }
     next();
 });
+
 advertisementSchema.pre('findOneAndUpdate', function (next) {
     this.options.runValidators = true;
     next();

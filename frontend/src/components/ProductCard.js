@@ -1,5 +1,5 @@
 import React from "react";
-import { Heart, Award, Star, ArrowRight } from "lucide-react"; 
+import { Heart, Award, Star, ArrowRight } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../context/WishlistContext";
@@ -19,28 +19,30 @@ const StarRating = ({ rating }) => (
     </div>
 );
 
-const ProductCard = ({ product, advertisement }) => {
+const ProductCard = ({ product }) => {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const { toggleFavorite, isFavorite } = useWishlist();
     const { showToast } = useToast();
     const { isAuthenticated, API_BASE_URL } = useAuth();
 
-    if (!product || typeof product !== 'object') {
+    if (!product || !product.name) {
+        console.error("[ProductCard] Error: Received invalid product data", product);
         return null;
-    }    
+    }
 
-    const adData = advertisement || product.advertisement;
-    
+    // Access advertisement data attached to the product by the backend
+    const adData = product.advertisement;
+
     const handleCardClick = (e) => {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button')) return; // Prevent card click if a button inside was clicked
         if (product?._id) {
             navigate(`/shop/${product._id}`);
         }
     };
-    
+
     const handleToggleFavorite = (e) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Prevent card click when clicking favorite button
         if (!isAuthenticated) {
             showToast(t('wishlist.loginRequired'), 'info');
             navigate('/login');
@@ -52,30 +54,35 @@ const ProductCard = ({ product, advertisement }) => {
     };
 
     const handleViewDetails = (e) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Prevent card click when clicking view details button
         if (product?._id) {
             navigate(`/shop/${product._id}`);
         }
     };
-    
-    const productName = product.name || t('general.unnamedProduct');
-    const productCategoryName = product.category?.name || t('productCard.uncategorized');
-    
-    const isAdvertised = !!adData;
+
+    // Product name and category name are now directly available after backend translation
+    const productName = product.name;
+    const productCategoryName = product.category?.name;
+
     const productIsFavorite = product._id ? isFavorite(product._id) : false;
     const imageUrl = product.mainImage ? `${API_BASE_URL}${product.mainImage}` : 'https://via.placeholder.com/400?text=No+Image';
 
-    let displayPrice = isAdvertised ? adData.discountedPrice : product.basePrice;
-    let originalPrice = isAdvertised ? adData.originalPrice : null;
+    // Check if there's an advertisement and a positive discount
+    const isAdvertised = !!adData && adData.discountPercentage > 0;
+    const discountPercentage = isAdvertised ? adData.discountPercentage : 0;
 
-    let discountPercentage = 0;
-    if (isAdvertised && originalPrice != null && displayPrice < originalPrice) {
-        discountPercentage = Math.round(((originalPrice - displayPrice) / originalPrice) * 100);
-    }    
+    let displayPrice = product.basePrice;
+    let originalPrice = null;
+
+    // Calculate discounted price if advertised
+    if (isAdvertised && product.basePrice != null) {
+        originalPrice = product.basePrice;
+        displayPrice = originalPrice * (1 - (discountPercentage / 100));
+    }
 
     const formatPrice = (price) => {
         if (price == null) return t('general.notApplicable');
-        const currencyCode = adData?.currency || product.currency || 'EGP';
+        const currencyCode = 'EGP'; // Ensure this currency code is consistent
         const locale = language === 'ar' ? 'ar-EG' : 'en-US';
         try {
             return new Intl.NumberFormat(locale, {
@@ -85,34 +92,41 @@ const ProductCard = ({ product, advertisement }) => {
                 maximumFractionDigits: 0,
             }).format(Number(price));
         } catch (error) {
-            return `${price} ${currencyCode}`;
+            console.error("Error formatting price:", price, error);
+            return `${price} ${currencyCode}`; // Fallback
         }
     };
 
     return (
         <div
             onClick={handleCardClick}
-            className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-all duration-300 ease-in-out hover:!border-primary hover:shadow-2xl hover:shadow-primary/10 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:!border-primary-light"
+            // --- تعديل هنا: إضافة كلاسات لتمييز بطاقة المنتج التي عليها عرض ---
+            className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border transition-all duration-300 ease-in-out dark:bg-zinc-900 
+            ${isAdvertised
+                ? 'border-primary-light bg-gradient-to-br from-primary-light/10 to-primary/5 shadow-lg shadow-primary/20 hover:!border-primary hover:shadow-primary/30 dark:border-primary dark:from-primary-dark/20 dark:to-primary/10'
+                : 'border-zinc-200 bg-white hover:!border-primary hover:shadow-2xl hover:shadow-primary/10 dark:border-zinc-800 dark:hover:!border-primary-light'
+            }`}
             dir={language === 'ar' ? 'rtl' : 'ltr'}
         >
             <div className="relative overflow-hidden">
                 <div className="bg-zinc-100 dark:bg-zinc-800 aspect-square flex items-center justify-center p-4">
                     <img
                         src={imageUrl}
-                        alt={typeof productName === 'object' ? productName[language] : productName} 
+                        alt={productName}
                         className="h-full w-full object-contain transition-transform duration-500 ease-in-out group-hover:scale-105"
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/400?text=No+Image'; }}
                         loading="lazy"
                     />
                 </div>
 
-                {discountPercentage > 0 && (
+                {/* Discount Badge */}
+                {isAdvertised && (
                     <div className={`absolute top-3 z-10 flex items-center gap-1.5 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-md ${language === 'ar' ? 'right-3' : 'left-3'}`}>
                         <Award size={14} />
-                        <span>{discountPercentage}% {t('general.off')}</span>
+                        <span>{Math.round(discountPercentage)}% {t('general.off')}</span>
                     </div>
                 )}
-                
+
                 <button
                     aria-label={productIsFavorite ? t('productCard.removeFromFavorites') : t('productCard.addToFavorites')}
                     className={`action-button absolute top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-zinc-700 shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-white dark:bg-zinc-900/60 dark:text-white dark:hover:bg-zinc-800 ${language === 'ar' ? 'left-3' : 'right-3'}`}
@@ -121,20 +135,20 @@ const ProductCard = ({ product, advertisement }) => {
                     <Heart size={18} fill={productIsFavorite ? "currentColor" : "none"} className={productIsFavorite ? 'text-red-500' : 'text-zinc-600 dark:text-zinc-300'}/>
                 </button>
             </div>
-            
+
             <div className="flex flex-1 flex-col justify-between p-4">
                 <div>
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary dark:text-primary-light">
-                        {typeof productCategoryName === 'object' ? productCategoryName[language] : productCategoryName}
+                        {productCategoryName}
                     </p>
-                    
+
                     <h3
                         className="mb-3 text-lg font-bold text-zinc-900 line-clamp-2 leading-tight dark:text-white"
-                        title={typeof productName === 'object' ? productName[language] : productName}
+                        title={productName}
                     >
-                        {typeof productName === 'object' ? productName[language] : productName}
+                        {productName}
                     </h3>
-                    
+
                     {product.numReviews > 0 && (
                         <div className="flex items-center gap-1.5">
                             <StarRating rating={product.averageRating} />
@@ -142,22 +156,23 @@ const ProductCard = ({ product, advertisement }) => {
                         </div>
                     )}
                 </div>
-                
+
                 <div className="mt-4 pt-4 border-t border-zinc-200/80 dark:border-zinc-800">
                     <div className="flex items-end justify-between gap-4">
                         <div>
+                            {/* Original Price (Strikethrough) */}
                             {originalPrice && originalPrice > displayPrice && (
                                 <p className="text-sm font-medium text-zinc-400 line-through dark:text-zinc-500">
                                     {formatPrice(originalPrice)}
                                 </p>
                             )}
-                            <p className="text-xl font-extrabold text-primary-dark dark:text-primary-light">
+                            <p className={`text-xl font-extrabold ${isAdvertised ? 'text-red-600 dark:text-red-400' : 'text-primary-dark dark:text-primary-light'}`}>
                                 {formatPrice(displayPrice)}
                             </p>
                         </div>
                         <div className="relative">
-                            <button 
-                                className="action-button h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-zinc-900 text-white transition-transform duration-300 ease-in-out group-hover:scale-110 dark:bg-white dark:text-zinc-900" 
+                            <button
+                                className="action-button h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-primary text-white transition-transform duration-300 ease-in-out group-hover:scale-110 dark:bg-primary-light dark:text-primary-dark"
                                 onClick={handleViewDetails}
                                 aria-label={t('productCard.viewDetails')}
                             >

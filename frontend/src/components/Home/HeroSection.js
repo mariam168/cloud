@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Copy, Sparkles, Loader2, ShoppingCart, ArrowRight, TrendingUp, CheckCircle2, Calendar, Tag, CircleDollarSign } from "lucide-react";
 import { useLanguage } from "../../components/LanguageContext";
 import axios from 'axios';
@@ -7,9 +7,9 @@ import { Link } from 'react-router-dom';
 const useCurrencyFormatter = () => {
     const { t, language } = useLanguage();
 
-    return useCallback((amount, currency) => {
+    return useCallback((amount) => {
         if (amount == null) return t('general.notApplicable');
-        const safeCurrencyCode = 'EGP'; // تحديد الجنيه المصري كعملة أساسية
+        const safeCurrencyCode = 'EGP';
         const locale = language === 'ar' ? 'ar-EG' : 'en-US';
         try {
             return new Intl.NumberFormat(locale, {
@@ -94,16 +94,32 @@ const DiscountCodeCard = ({ discount, t, isRTL, handleCopyCode, copiedCode }) =>
         </div>
     );
 };
-
 const SideOfferCard = ({ offer, t, serverUrl }) => {
     const formatCurrency = useCurrencyFormatter();
-    
+    const priceInfo = useMemo(() => {
+        const product = offer.productRef;
+        if (!product || product.basePrice == null) {
+            return { finalPrice: null, originalPrice: null };
+        }
+
+        const originalPrice = product.basePrice;
+        let finalPrice = originalPrice;
+        if (offer.discountPercentage > 0) {
+            finalPrice = originalPrice * (1 - offer.discountPercentage / 100);
+        }
+
+        return {
+            finalPrice,
+            originalPrice: finalPrice < originalPrice ? originalPrice : null
+        };
+    }, [offer]);
+
     return (
-        <Link to={offer.link || '#'} className="block group">
+        <Link to={offer.link || (offer.productRef?._id ? `/shop/${offer.productRef._id}` : '#')} className="block group">
             <div className="h-full flex flex-col rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-primary/50">
                 <div className="flex items-center gap-4">
                     <img 
-                        src={offer.image ? `${serverUrl}${offer.image}` : ''} 
+                        src={offer.image ? `${serverUrl}${offer.image}` : (offer.productRef?.mainImage ? `${serverUrl}${offer.productRef.mainImage}` : '')} 
                         alt={offer.title} 
                         className="h-20 w-20 flex-shrink-0 rounded-lg bg-zinc-100 object-contain p-1 transition-transform duration-300 group-hover:scale-105 dark:bg-zinc-800" 
                     />
@@ -112,24 +128,25 @@ const SideOfferCard = ({ offer, t, serverUrl }) => {
                         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 line-clamp-1">{offer.description}</p>
                     </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-700 flex-1 flex flex-col justify-end">
-                    <div className="flex items-baseline gap-2">
-                        {offer.discountedPrice != null &&
+                {priceInfo.finalPrice != null && (
+                    <div className="mt-4 pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-700 flex-1 flex flex-col justify-end">
+                        <div className="flex items-baseline gap-2">
                             <p className="text-lg font-bold text-primary dark:text-primary-light">
-                                {formatCurrency(offer.discountedPrice)}
+                                {formatCurrency(priceInfo.finalPrice)}
                             </p>
-                        }
-                        {offer.originalPrice != null &&
-                             <p className="text-sm text-zinc-500 line-through dark:text-zinc-500">
-                                {formatCurrency(offer.originalPrice)}
-                            </p>
-                        }
+                            {priceInfo.originalPrice && (
+                                <p className="text-sm text-zinc-500 line-through dark:text-zinc-500">
+                                    {formatCurrency(priceInfo.originalPrice)}
+                                </p>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </Link>
     );
 };
+
 
 const AllOffersCard = ({ t, isRTL }) => (
     <Link to="/all-offers" className="block group">
@@ -169,10 +186,9 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
         setError(null);
         const axiosConfig = { headers: { 'accept-language': language } };
         try {
-            const [adsResponse, discountsResponse] = await Promise.all([
-                axios.get(`${serverUrl}/api/advertisements?isActive=true`, axiosConfig),
-                axios.get(`${serverUrl}/api/discounts/active`, axiosConfig)
-            ]);
+            const adsResponse = await axios.get(`${serverUrl}/api/advertisements?isActive=true`, axiosConfig);
+            const discountsResponse = await axios.get(`${serverUrl}/api/discounts/active`, axiosConfig);
+            
             const allAds = adsResponse.data;
             setSlidesData(allAds.filter(ad => ad.type === 'slide').sort((a, b) => (a.order || 0) - (b.order || 0)));
             setSideOffersData(allAds.filter(ad => ad.type === 'sideOffer').sort((a, b) => (a.order || 0) - (b.order || 0)));
@@ -207,8 +223,32 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
         setTimeout(() => setCopiedCode(null), 2500);
     };
 
+    const combinedProductOffers = useMemo(() => {
+        const offers = [...sideOffersData];
+        if (weeklyOfferData) {
+            offers.push(weeklyOfferData);
+        }
+        return offers.slice(0, 2);
+    }, [sideOffersData, weeklyOfferData]);
+    const currentSlidePriceInfo = useMemo(() => {
+        const slide = slidesData[current];
+        if (!slide?.productRef || slide.productRef.basePrice == null) {
+            return { finalPrice: null, originalPrice: null };
+        }
+        const originalPrice = slide.productRef.basePrice;
+        let finalPrice = originalPrice;
+        if (slide.discountPercentage > 0) {
+            finalPrice = originalPrice * (1 - slide.discountPercentage / 100);
+        }
+        return { finalPrice, originalPrice: finalPrice < originalPrice ? originalPrice : null };
+    }, [slidesData, current]);
+
+    const displayedDiscounts = useMemo(() => {
+        return discountsData.slice(0, 2);
+    }, [discountsData]);
+
     const currentSlideContent = slidesData[current];
-    const hasContent = currentSlideContent || sideOffersData.length > 0 || weeklyOfferData || discountsData.length > 0;
+    const hasContent = currentSlideContent || combinedProductOffers.length > 0 || displayedDiscounts.length > 0;
 
     if (loading) { return <section dir={isRTL ? 'rtl' : 'ltr'} className="flex min-h-[450px] w-full items-center justify-center bg-zinc-50 dark:bg-black"><Loader2 size={48} className="animate-spin text-primary" /></section>; }
     if (error) { return <section dir={isRTL ? 'rtl' : 'ltr'} className="flex min-h-[450px] w-full items-center justify-center rounded-3xl bg-red-100 p-4 text-center text-red-700 dark:bg-red-950/30 dark:text-red-300"><div className="flex items-center gap-3"><Sparkles size={28} /><span className="text-lg font-semibold">{error}</span></div></section>; }
@@ -224,7 +264,7 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                 <img src={`${serverUrl}${currentSlideContent.image}`} alt={currentSlideContent.title} className="relative z-10 h-40 w-40 object-contain transition-transform duration-500 group-hover:scale-105 sm:h-48 sm:w-48 md:h-64 md:w-64" />
                             </div>
                             <div className={`w-full flex-1 text-center md:text-left ${isRTL ? 'md:order-2 md:text-right' : 'md:order-1'}`}>
-                                <p className="text-sm font-semibold uppercase tracking-wider text-primary dark:text-primary-light">{currentSlideContent.category?.name?.[language] || currentSlideContent.category?.name || t('heroSection.featuredProduct')}</p>
+                                <p className="text-sm font-semibold uppercase tracking-wider text-primary dark:text-primary-light">{currentSlideContent.productRef?.category?.name || t('heroSection.featuredProduct')}</p>
                                 <h1 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-zinc-900 dark:text-white sm:text-4xl lg:text-5xl">
                                     {currentSlideContent.title}
                                 </h1>
@@ -232,14 +272,14 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                                     {currentSlideContent.description}
                                 </p>
                                 <div className={`mt-4 flex items-baseline justify-center gap-3 sm:mt-6 ${isRTL ? 'md:justify-end flex-row-reverse' : 'md:justify-start'}`}>
-                                    {currentSlideContent.discountedPrice != null && (
+                                    {currentSlidePriceInfo.finalPrice != null && (
                                         <span className="text-3xl font-bold text-primary dark:text-primary-light sm:text-4xl">
-                                            {formatCurrencyForDisplay(currentSlideContent.discountedPrice)}
+                                            {formatCurrencyForDisplay(currentSlidePriceInfo.finalPrice)}
                                         </span>
                                     )}
-                                    {currentSlideContent.originalPrice != null && (
+                                    {currentSlidePriceInfo.originalPrice != null && (
                                         <span className="text-lg text-zinc-500 line-through dark:text-zinc-500 sm:text-xl">
-                                            {formatCurrencyForDisplay(currentSlideContent.originalPrice)}
+                                            {formatCurrencyForDisplay(currentSlidePriceInfo.originalPrice)}
                                         </span>
                                     )}
                                 </div>
@@ -264,18 +304,15 @@ const HeroSection = ({ serverUrl = 'http://localhost:5000' }) => {
                 )}
                 
                 <div className="col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
-                    {sideOffersData.slice(0, 1).map((offer) => (
+                    {combinedProductOffers.map((offer) => (
                         <SideOfferCard key={offer._id} offer={offer} t={t} serverUrl={serverUrl} />
                     ))}
-                    {weeklyOfferData && (
-                         <SideOfferCard offer={weeklyOfferData} t={t} serverUrl={serverUrl} />
-                    )}
-                    {discountsData.length > 0 && 
-                        <AllOffersCard t={t} isRTL={isRTL} />
-                    }
-                    {discountsData.slice(0, 1).map((discount) => (
+                    {displayedDiscounts.map((discount) => (
                         <DiscountCodeCard key={discount._id} discount={discount} t={t} isRTL={isRTL} handleCopyCode={handleCopyCode} copiedCode={copiedCode} />
                     ))}
+                    {(combinedProductOffers.length > 0 || slidesData.length > 0) && (
+                         <AllOffersCard t={t} isRTL={isRTL} />
+                    )}
                 </div>
             </div>
         </section>

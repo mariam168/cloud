@@ -50,7 +50,7 @@ const productSchema = new mongoose.Schema({
     mainImage: { type: String },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     subCategory: { type: mongoose.Schema.Types.ObjectId },
-    
+
     attributes: [{
         _id: false,
         key_en: { type: String, required: true },

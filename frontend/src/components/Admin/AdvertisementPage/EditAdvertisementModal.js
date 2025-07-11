@@ -9,8 +9,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
     const [editedAdvertisement, setEditedAdvertisement] = useState({
         title_en: '', title_ar: '', description_en: '', description_ar: '',
         link: '', type: 'slide', isActive: true, order: 0,
-        startDate: '', endDate: '', originalPrice: '', discountedPrice: '',
-        currency: '', productRef: '',
+        startDate: '', endDate: '', discountPercentage: '', productRef: '',
     });
 
     const [products, setProducts] = useState([]);
@@ -23,9 +22,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await axios.get(`${serverUrl}/api/products`, {
-                    headers: { 'x-admin-request': 'true', 'Accept-Language': language }
-                });
+                const res = await axios.get(`${serverUrl}/api/products/admin-list`);
                 setProducts(res.data);
             } catch (error) {
                 console.error("Failed to fetch products for dropdown:", error);
@@ -34,7 +31,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
             }
         };
         fetchProducts();
-    }, [serverUrl, t, language]);
+    }, [serverUrl, t]);
 
     useEffect(() => {
         if (advertisement) {
@@ -49,10 +46,8 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                 order: advertisement.order || 0,
                 startDate: advertisement.startDate ? new Date(advertisement.startDate).toISOString().slice(0, 10) : '',
                 endDate: advertisement.endDate ? new Date(advertisement.endDate).toISOString().slice(0, 10) : '',
-                originalPrice: advertisement.originalPrice ?? '',
-                discountedPrice: advertisement.discountedPrice ?? '',
-                currency: advertisement.currency || 'EG',
-                productRef: advertisement.productRef?._id || advertisement.productRef || '',
+                discountPercentage: advertisement.discountPercentage ?? '',
+                productRef: advertisement.productRef?._id || '',
             });
             setCurrentImageUrl(advertisement.image ? `${serverUrl}${advertisement.image}` : '');
             setSubmitMessage('');
@@ -70,9 +65,6 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
         if (file) {
             setImageFile(file);
             setCurrentImageUrl(URL.createObjectURL(file));
-        } else {
-            setImageFile(null);
-            setCurrentImageUrl(advertisement.image ? `${serverUrl}${advertisement.image}` : '');
         }
     };
 
@@ -91,9 +83,11 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
 
         const formData = new FormData();
         Object.keys(editedAdvertisement).forEach(key => {
-            if (key === 'isActive') {
+            if (key === 'productRef' && editedAdvertisement[key] === '') {
+                 formData.append(key, '');
+            } else if (key === 'isActive') {
                 formData.append(key, editedAdvertisement[key] ? 'true' : 'false');
-            } else if (editedAdvertisement[key] !== "" && editedAdvertisement[key] !== null) {
+            } else if (editedAdvertisement[key] !== null) {
                 formData.append(key, editedAdvertisement[key]);
             }
         });
@@ -125,7 +119,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
 
     if (!advertisement) return null;
 
-    const inputClasses = "w-full rounded-lg border-gray-200 bg-gray-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition";
+    const inputClasses = "w-full rounded-lg border-gray-200 bg-gray-50 p-3 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent transition";
     const labelClasses = "block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5";
     const checkboxLabelClasses = "flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-zinc-300 cursor-pointer";
 
@@ -177,10 +171,17 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                             <option value="">{t('advertisementAdmin.noProductLinked')}</option>
                             {products.map(product => (
                                 <option key={product._id} value={product._id}>
-                                    {product.name?.[language] || product.name?.en || t('general.unnamedProduct')}
+                                    {/* --- تصحيح نهائي: عرض الاسم مباشرة --- */}
+                                    {product.name || t('general.unnamedProduct')}
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    
+                    <div>
+                        {/* --- تصحيح بسيط: استخدام مفتاح ترجمة صحيح --- */}
+                        <label htmlFor="edit-discountPercentage" className={labelClasses}>{t('advertisementAdmin.discountPercentageLabel')} (%)</label>
+                        <input type="number" id="edit-discountPercentage" name="discountPercentage" value={editedAdvertisement.discountPercentage} onChange={handleChange} className={inputClasses} min="0" max="100" placeholder="e.g., 10 for 10%" />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,21 +211,6 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                         <div>
-                            <label htmlFor="edit-originalPrice" className={labelClasses}>{t('advertisementAdmin.originalPrice')}</label>
-                            <input type="number" id="edit-originalPrice" name="originalPrice" value={editedAdvertisement.originalPrice} onChange={handleChange} className={inputClasses} step="0.01" placeholder="0.00" />
-                        </div>
-                        <div>
-                            <label htmlFor="edit-discountedPrice" className={labelClasses}>{t('advertisementAdmin.discountedPrice')}</label>
-                            <input type="number" id="edit-discountedPrice" name="discountedPrice" value={editedAdvertisement.discountedPrice} onChange={handleChange} className={inputClasses} step="0.01" placeholder="0.00" />
-                        </div>
-                        <div>
-                            <label htmlFor="edit-currency" className={labelClasses}>{t('advertisementAdmin.currency')}</label>
-                            <input type="text" id="edit-currency" name="currency" value={editedAdvertisement.currency} onChange={handleChange} className={inputClasses} placeholder="EG, USD..." />
-                        </div>
-                    </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label htmlFor="edit-order" className={labelClasses}>{t('advertisementAdmin.orderLabel')}</label>
@@ -232,7 +218,7 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                         </div>
                         <div className="self-end">
                             <label className={checkboxLabelClasses}>
-                                <input type="checkbox" id="edit-isActive" name="isActive" checked={editedAdvertisement.isActive} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                <input type="checkbox" id="edit-isActive" name="isActive" checked={editedAdvertisement.isActive} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary-light" />
                                 <span>{t('advertisementAdmin.isActive')}</span>
                             </label>
                         </div>
@@ -243,14 +229,14 @@ const EditAdvertisementModal = ({ advertisement, onClose, onAdvertisementUpdated
                         {currentImageUrl && (
                             <img src={currentImageUrl} alt={t('advertisementAdmin.currentImage')} className="mt-2 mb-3 w-32 h-32 object-cover rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700" />
                         )}
-                        <input type="file" id="edit-image" name="image" onChange={handleImageChange} accept="image/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-500/10 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-500/20" />
+                        <input type="file" id="edit-image" name="image" onChange={handleImageChange} accept="image/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 dark:file:bg-primary-light/10 file:text-primary-dark dark:file:text-primary-light hover:file:bg-primary/20 dark:hover:file:bg-primary-light/20" />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-zinc-800">
                         <button type="button" onClick={onClose} disabled={isSubmitting} className="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-5 py-2.5 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-700 disabled:opacity-50">
                             {t('general.cancel')}
                         </button>
-                        <button type="submit" disabled={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-black dark:hover:bg-indigo-500 disabled:opacity-60">
+                        <button type="submit" disabled={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:opacity-60">
                             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
                             <span>{isSubmitting ? t('advertisementAdmin.updatingButton') : t('advertisementAdmin.updateButton')}</span>
                         </button>

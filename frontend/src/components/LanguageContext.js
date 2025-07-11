@@ -15,7 +15,7 @@ const translations = {
             "errorOccurred": "حدث خطاء. يرجى المحاولة لاحقاً.", "retry": "اعادة المحاولة", "actions": "العمليات",
             "edit": "تحرير", "delete": "حذف", "noResultsFound": "لم يتم العثور على نتائج.", "add": "إضافة",
             "edit": "تعديل",
-            "delete": "حذف",
+            "delete": "حذف","notAvailable":"غير متاح",
             "actions": "إجراءات", "noDataForChart": "لا توجد بيانات للمخطط.",
             "days": "أيام",
             "hours": "ساعات",
@@ -379,7 +379,8 @@ const translations = {
                 "description": "الوصف",
                 "type": "النوع",
                 "active": "نشط",
-                "order": "الترتيب"
+                "order": "الترتيب",
+                "discount": "الخصم"
             },
             "dates": "تاريخ البدء والانتهاء",
 
@@ -560,6 +561,7 @@ const translations = {
     },
     en: {
         "general": {
+            "notAvailable":"not Available",
             "loading": "Loading...", "error": "Error", "notApplicable": "N/A", "unnamedItem": "Unnamed Item", "priceNotAvailable": "Price N/A",
             "shopNow": "Shop Now", "currencySymbol": "$", "off": "OFF", "noImage": "No Image", "errorFetchingData": "Failed to fetch data.",
             "unnamedProduct": "Unnamed Product", "imageFailedToLoad": "Image failed to load", "noImageAvailable": "No Image Available",
@@ -895,6 +897,7 @@ const translations = {
             "titleRequired": "Advertisement English and Arabic titles are required.", "imageRequired": "Advertisement image is required.",
             "addSuccess": "Advertisement added successfully!", "addError": "Error adding advertisement: ",
             "titleEn": "Title (English)", "titleAr": "Title (Arabic)",
+
             "descriptionEn": "Description (English)", "descriptionAr": "Description (Arabic)",
             "linkLabel": "Link URL", "typeLabel": "Type",
             "typeSlide": "Slide", "typeSideOffer": "Side Offer", "typeWeeklyOffer": "Weekly Offer",
@@ -938,7 +941,8 @@ const translations = {
                 "minOrder": "Min. Order",
                 "usageLimit": "Usage Limit",
 
-                "order": "Order"
+                "order": "Order",
+                "discount":"Discount"
             },
 
         },

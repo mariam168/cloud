@@ -21,18 +21,12 @@ const ProductList = () => {
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);
-            const headers = { 'x-admin-request': 'true', 'Accept-Language': language };
-            const [productsResponse, categoriesResponse] = await Promise.all([
-                axios.get(`${SERVER_URL}/api/products`, { headers }),
-                axios.get(`${SERVER_URL}/api/categories`, { headers })
-            ]);
-            const categoriesMap = new Map(categoriesResponse.data.map(cat => [cat._id, cat]));
-            const productsWithCategories = productsResponse.data.map(prod => ({
-                ...prod,
-                category: categoriesMap.get(prod.category) || prod.category
-            }));
-            setProducts(productsWithCategories);
-            setFilteredProducts(productsWithCategories);
+            // --- ( تعديل جوهري: استخدام المسار العام مع header اللغة ) ---
+            const response = await axios.get(`${SERVER_URL}/api/products`, {
+                headers: { 'Accept-Language': language }
+            });
+            setProducts(response.data);
+            setFilteredProducts(response.data); // Initialize filtered products
             setError(null);
         } catch (err) {
             setError(`${t('general.errorFetchingData')}: ${err.response?.data?.message || err.message}`);
@@ -48,21 +42,18 @@ const ProductList = () => {
     useEffect(() => {
         const lowercasedFilter = searchTerm.toLowerCase();
         const filteredData = products.filter(item =>
-            (item.name?.en?.toLowerCase().includes(lowercasedFilter)) ||
-            (item.name?.ar?.toLowerCase().includes(lowercasedFilter))
+             // الاسم الآن string وليس object
+            item.name?.toLowerCase().includes(lowercasedFilter)
         );
         setFilteredProducts(filteredData);
     }, [searchTerm, products]);
     
-    const getDisplayName = (item) => {
-        if (!item || !item.name) return '';
-        if (typeof item.name === 'object') return item.name[language] || item.name.en || '';
-        return item.name;
-    };
+    // لم نعد بحاجة لهذه الدالة لأن البيانات تأتي مترجمة
+    // const getDisplayName = ...
     
     const getCategoryName = (product) => {
         if (!product?.category?.name) return t('productAdmin.uncategorized');
-        return getDisplayName(product.category);
+        return product.category.name; // الاسم الآن string
     };
 
     const handleDelete = async (productId, productName) => {
@@ -170,13 +161,13 @@ const ProductList = () => {
                                     <td className="whitespace-nowrap p-4">
                                         <div className="h-12 w-12 rounded-md bg-gray-100 dark:bg-zinc-800 flex items-center justify-center">
                                             {product.mainImage ? 
-                                                <img src={`${SERVER_URL}${product.mainImage}`} alt={getDisplayName(product)} className="h-full w-full object-cover rounded-md" /> : 
+                                                <img src={`${SERVER_URL}${product.mainImage}`} alt={product.name} className="h-full w-full object-cover rounded-md" /> : 
                                                 <ImageIcon className="h-6 w-6 text-gray-400" />
                                             }
                                         </div>
                                     </td>
                                     <td className="whitespace-nowrap p-4">
-                                        <p className="font-medium text-gray-800 dark:text-white">{getDisplayName(product)}</p>
+                                        <p className="font-medium text-gray-800 dark:text-white">{product.name}</p>
                                         <div className="flex items-center gap-1.5 mt-1">
                                             <span className="font-mono text-xs text-gray-500 dark:text-zinc-500">...{product._id.slice(-6)}</span>
                                             <button onClick={() => copyToClipboard(product._id)} className="text-gray-400 hover:text-indigo-500">
@@ -191,7 +182,7 @@ const ProductList = () => {
                                             <button onClick={() => handleOpenEditModal(product)} className="inline-block rounded-l-md p-2 text-gray-600 hover:bg-gray-200 hover:text-indigo-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-indigo-400 focus:relative">
                                                 <Edit size={16} />
                                             </button>
-                                            <button onClick={() => handleDelete(product._id, getDisplayName(product))} className="inline-block rounded-r-md p-2 text-gray-600 hover:bg-gray-200 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-red-400 focus:relative">
+                                            <button onClick={() => handleDelete(product._id, product.name)} className="inline-block rounded-r-md p-2 text-gray-600 hover:bg-gray-200 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-red-400 focus:relative">
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>

@@ -7,9 +7,22 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.get('/', protect, async (req, res) => {
     try {
-        const userCart = await Cart.findOne({ user: req.user.id }).populate('items.product', 'name');
-        res.status(200).json({ cart: userCart ? userCart.items : [] });
+        // We populate the product details to ensure cart data is fresh
+        const userCart = await Cart.findOne({ user: req.user.id })
+            .populate({
+                path: 'items.product',
+                select: 'name mainImage images variations' 
+            });
+
+        if (!userCart) {
+            return res.status(200).json({ cart: [] });
+        }
+        
+        // You could add a step here to re-validate prices if needed, but for now we trust the price at time of add.
+        res.status(200).json({ cart: userCart.items });
+
     } catch (error) {
+        console.error("Error fetching cart:", error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
@@ -28,29 +41,35 @@ router.post('/', protect, async (req, res) => {
             String(item.selectedVariant || null) === String(selectedVariantId || null)
         );
 
-        let finalPrice = product.basePrice;
-        let finalImage = product.mainImage;
-        let finalStock;
-        let variantDetailsText = '';
-
         // --- ( بداية التعديل الجوهري لمنطق السعر ) ---
 
-        // 1. أولاً، نحدد السعر الأساسي بناءً على الـ SKU المختار (إذا وجد)
+        // 1. تحديد السعر الأساسي للحساب (سعر المنتج الافتراضي أو سعر الـ SKU)
+        let priceForCalculation = product.basePrice;
+        let finalImage = product.mainImage;
+        let finalStock = product.stock;
+        let variantDetailsText = '';
+
         if (selectedVariantId) {
-            const variant = product.variations.flatMap(v => v.options.flatMap(o => o.skus)).find(s => s._id.equals(selectedVariantId));
-            if (!variant) return res.status(400).json({ message: 'Variant not found' });
+            const sku = product.variations
+                .flatMap(v => v.options.flatMap(o => o.skus))
+                .find(s => s._id.equals(selectedVariantId));
+            
+            if (!sku) return res.status(400).json({ message: 'Variant not found' });
 
-            finalPrice = variant.price; // السعر المبدئي هو سعر الـ SKU
-            finalStock = variant.stock;
+            priceForCalculation = sku.price; // سعر الـ SKU هو الأساس للحساب
+            finalStock = sku.stock;
 
-            const optionParent = product.variations.flatMap(v => v.options).find(o => o.skus.some(s => s._id.equals(selectedVariantId)));
-            if(optionParent?.image) finalImage = optionParent.image;
-            variantDetailsText = variant.name_en; 
-        } else {
-            finalStock = product.stock;
+            const optionParent = product.variations
+                .flatMap(v => v.options)
+                .find(o => o.skus.some(s => s._id.equals(selectedVariantId)));
+            
+            if (optionParent?.image) finalImage = optionParent.image;
+            
+            // إنشاء نص وصفي للمتغير
+            variantDetailsText = [optionParent?.name_en, sku.name_en].filter(Boolean).join(' / ');
         }
 
-        // 2. ثانياً، نتحقق من وجود عرض خاص. إذا وجد، فإن سعره يلغي أي سعر آخر.
+        // 2. التحقق من وجود عرض خاص.
         const activeAd = await Advertisement.findOne({
             productRef: productId,
             isActive: true,
@@ -58,22 +77,30 @@ router.post('/', protect, async (req, res) => {
             $or: [{ endDate: { $gte: new Date() } }, { endDate: null }]
         });
         
-        if (activeAd && activeAd.discountedPrice != null) {
-            finalPrice = activeAd.discountedPrice; // سعر العرض له الأولوية القصوى
-        }
+        // 3. حساب السعر النهائي. يبدأ بالسعر الأساسي ثم يطبق الخصم إن وجد.
+        let finalPrice = priceForCalculation;
         
+        if (activeAd && activeAd.discountPercentage > 0) {
+            const discountMultiplier = 1 - (activeAd.discountPercentage / 100);
+            finalPrice = priceForCalculation * discountMultiplier;
+        }
+
+        // تقريب السعر لتجنب مشاكل الأرقام العشرية
+        finalPrice = Math.round(finalPrice * 100) / 100;
+
         // --- ( نهاية التعديل الجوهري لمنطق السعر ) ---
 
         if (existingItemIndex > -1) {
             userCart.items[existingItemIndex].quantity += quantity;
             // تحديث السعر في حال تغير (مثلاً بدأ عرض جديد على منتج موجود في السلة)
             userCart.items[existingItemIndex].price = finalPrice; 
+            userCart.items[existingItemIndex].stock = finalStock;
         } else {
             userCart.items.push({ 
                 product: productId, 
                 name: product.name,
                 image: finalImage,
-                price: finalPrice,
+                price: finalPrice, // استخدام السعر النهائي المحسوب
                 quantity, 
                 selectedVariant: selectedVariantId,
                 variantDetailsText: variantDetailsText,
@@ -120,6 +147,7 @@ router.put('/', protect, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 router.delete('/clear', protect, async (req, res) => {
     try {
